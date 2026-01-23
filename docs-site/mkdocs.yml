@@ -16,3 +16,6 @@ nav:
 markdown_extensions:
   - attr_list     # Allows you to use { width="100" }
   - md_in_html    # Allows you to write Markdown inside <div> tags
+
+extra_css:
+  - stylesheets/photos.css

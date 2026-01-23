@@ -5,24 +5,50 @@ hide:
 
 # Meet the Team
 
-Here are the developers behind the project.
-
 <div class="grid cards" markdown>
 
--   **Alice Smith**
+-   ## Peter Capriotti
     
-    ![Alice](../assets/alice.jpg){ width="100" }
+    ![Peter](assets/peter.jpg){ .rounded-circle width="150" }
     
-    *Backend Lead*
-    
-    Math/CS Major focused on Django and Database Security.
+    Insert bio here
 
--   **Bob Jones**
+    **Contact**. 
+    Email here <br>
+    Linkedin here <br>
+    Website here <br>
 
-    ![Bob](../assets/bob.jpg){ width="100" }
+-   ## Holland Henderson-Boyer
 
-    *Frontend Lead*
-    
-    CS Major focused on React and Data Visualization.
+    ![Holland](assets/holland.jpeg){ .rounded-circle width="150" }
+
+    Computer science and math major, UA class of 2026. I love exploring new cities, reading sci-fi and mysteries, and wrangling data :) After I graduate in May, I plan to move to the Bay Area to work as a software engineer at Netflix.  
+
+    **Contact**<br> 
+    hrhendersonboyer@crimson.ua.edu <br> 
+    [Let's connect on LinkedIn!](https://www.linkedin.com/in/holland-henderson-boyer/) <br>
+    [Check out my other projects!](https://holland-website-cursor.vercel.app/)
+
+-   ## Alex Cunningham
+
+    ![Alex](assets/alex.jpg){ .rounded-circle width="150" }
+
+    Insert bio here
+
+    **Contact** <br> 
+    Email here <br>
+    Linkedin here <br>
+    Website here <br>
+
+-   ## Pierce Daugherty
+
+    ![Pierce](assets/pierce.jpg){ .rounded-circle width="150" }
+
+    Insert bio here
+
+    **Contact** <br>
+    Email here <br>
+    Linkedin here <br>
+    Website here <br>
 
 </div>
