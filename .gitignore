@@ -4,3 +4,5 @@ backend/config/__pycache__/
 db.sqlite3
 .DS_Store
 .env
+backend/config/__pycache__/settings.cpython-311.pyc
+backend/config/__pycache__/urls.cpython-311.pyc
