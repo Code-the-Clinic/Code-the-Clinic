@@ -1,0 +1,18 @@
+site_name: Code the Clinic
+theme:
+  name: material
+  palette:
+    primary: indigo
+    accent: blue
+  features:
+    - navigation.tabs
+    - navigation.sections
+
+nav:
+  - Home: index.md
+  - 'Meet the Team': team.md
+  - 'Project Deliverables': deliverables.md
+
+markdown_extensions:
+  - attr_list     # Allows you to use { width="100" }
+  - md_in_html    # Allows you to write Markdown inside <div> tags
