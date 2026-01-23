@@ -1,4 +1,5 @@
 __pycache__/
+backend/config/__pycache__/
 *.pyc
 db.sqlite3
 .DS_Store

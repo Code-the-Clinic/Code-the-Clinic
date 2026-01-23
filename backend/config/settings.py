@@ -10,6 +10,8 @@ For the full list of settings and their values, see
 https://docs.djangoproject.com/en/5.2/ref/settings/
 """
 
+# TODO: Change security settings before launching in production!
+
 from pathlib import Path
 import os
 
@@ -21,13 +23,12 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 # See https://docs.djangoproject.com/en/5.2/howto/deployment/checklist/
 
 # SECURITY WARNING: keep the secret key used in production secret!
-SECRET_KEY = 'django-insecure-$cf*$v+c57!#f*)v@e*5j!p2lg^mr8(a^=3fj32q2t9v+se1f8'
+SECRET_KEY = os.environ.get('DJANGO_SECRET_KEY')
 
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
 ALLOWED_HOSTS = []
-
 
 # Application definition
 
@@ -40,6 +41,11 @@ INSTALLED_APPS = [
     'django.contrib.staticfiles',
     'rest_framework',
     'corsheaders',
+    # Needed for authentication
+    'django.contrib.sites',
+    'allauth',
+    'allauth.account',
+    'allauth.socialaccount',
     'core' # Core logic for the project
 ]
 
@@ -52,6 +58,7 @@ MIDDLEWARE = [
     'django.contrib.auth.middleware.AuthenticationMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
+    'allauth.account.middleware.AccountMiddleware',
 ]
 
 ROOT_URLCONF = 'config.urls'
@@ -73,17 +80,16 @@ TEMPLATES = [
 
 WSGI_APPLICATION = 'config.wsgi.application'
 
-
 # Database
 # https://docs.djangoproject.com/en/5.2/ref/settings/#databases
 
 DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.postgresql',
-        'NAME': 'capstone_db',      # Matches POSTGRES_DB in docker-compose.yml
-        'USER': 'postgres',         # Matches POSTGRES_USER
-        'PASSWORD': 'postgres',     # Matches POSTGRES_PASSWORD
-        'HOST': 'db',               # This is the Service Name from docker-compose
+        'NAME': os.environ.get('POSTGRES_DB'),
+        'USER': os.environ.get('DB_USER'),
+        'PASSWORD': os.environ.get('DB_PASS'),
+        'HOST': 'db', # Must match service name from docker-compose file
         'PORT': '5432',
     }
 }
@@ -142,9 +148,6 @@ REST_FRAMEWORK = {
     'DEFAULT_AUTHENTICATION_CLASSES': [
         # Use Django's standard session (cookie) mechanism (browser handles the cookie automatically)
         'rest_framework.authentication.SessionAuthentication',
-        
-        # Allows API testing
-        'rest_framework.authentication.BasicAuthentication',
     ],
 
     # Pagination to avoid server crashes when loading a large dataset
@@ -152,5 +155,15 @@ REST_FRAMEWORK = {
     'PAGE_SIZE': 100,
 }
 
+# TODO: Remove this in production
 if not os.environ.get('AZURE_CLIENT_ID'):
+    # Use a dummy account for now since we don't have the Azure info
     INSTALLED_APPS.append('allauth.socialaccount.providers.dummy')
+
+# Frontend TODO: Change this to a different port if needed
+# Redirect to React frontend (localhost:3000) after login or logout
+LOGIN_REDIRECT_URL = 'http://localhost:3000/'
+LOGOUT_REDIRECT_URL = 'http://localhost:3000/'
+
+# Identify the site
+SITE_ID = 1
