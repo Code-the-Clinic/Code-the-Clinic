@@ -1,0 +1,17 @@
+name: Publish Docs
+on:
+  push:
+    branches:
+      - main
+permissions:
+  contents: write
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v4
+        with:
+          python-version: 3.x
+      - run: pip install mkdocs-material # Need this library to render the documentation
+      - run: mkdocs gh-deploy --force --config-file docs-site/mkdocs.yml
