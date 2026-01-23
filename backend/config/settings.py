@@ -91,6 +91,11 @@ DATABASES = {
         'PASSWORD': os.environ.get('DB_PASS'),
         'HOST': 'db', # Must match service name from docker-compose file
         'PORT': '5432',
+        'OPTIONS': {
+            # If we are in Azure (Host contains 'azure.com'), require SSL.
+            # TODO: Change this if azure DB domain is not azure.com
+            'sslmode': 'require' if 'azure.com' in os.environ.get('POSTGRES_HOST', '') else 'disable',
+        },
     }
 }
 
@@ -136,6 +141,9 @@ STATIC_URL = 'static/'
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
 CORS_ALLOWED_ORIGINS = [
+    # Frontend TODO: Change this to whatever local port you are using for React
+    # This allows the frontend to talk to the Django app without opening it up to
+    # anyone on the internet
     "http://localhost:3000",
     "http://127.0.0.1:3000",
 ]
