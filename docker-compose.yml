@@ -1,5 +1,3 @@
-version: '3.8'
-
 services:
   # 1. The Project Website (MkDocs)
   docs:
@@ -8,12 +6,26 @@ services:
       - "8001:8000"  # Map container port 8000 to local (laptop) port 8001
     volumes:
       - ./docs-site:/docs # Syncs edits to project website
+  
+  backend:
+    build: ./backend
+    command: python manage.py runserver 0.0.0.0:8000
+    volumes:
+      - ./backend:/app
+    ports:
+      - "8000:8000"
+    env_file: .env
+    depends_on:
+      - db
 
-  # 2. The Backend (Django) - Placeholder for now
-  # Uncomment this after setting up Django files
-  # backend:
-  #   build: ./backend
-  #   ports:
-  #     - "8000:8000"
-  #   volumes:
-  #     - ./backend:/app
+  db:
+    image: postgres:15
+    environment:
+      - POSTGRES_DB=capstone_db
+      - POSTGRES_USER=postgres
+      - POSTGRES_PASSWORD=postgres
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+
+volumes:
+  postgres_data:
