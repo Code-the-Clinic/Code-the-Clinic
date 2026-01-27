@@ -11,12 +11,13 @@ hide:
     
     ![Peter](assets/peter.jpg){ .rounded-circle width="150" }
     
-    Insert bio here
+    I'm a senior graduating in May 2026 studying computer science. I'm very interested in AI, big data, and cybersecurity. In my free time, I love outdoor adventures, travelling, and music production. 
 
     **Contact**. 
-    Email here <br>
-    Linkedin here <br>
-    Website here <br>
+    pacapriotti@crimson.ua.edu <br>
+    [Let's connect on LinkedIn!]
+    (https://linkedin.com/in/peter-cap) <br>
+    
 
 -   ## Holland Henderson-Boyer
 
