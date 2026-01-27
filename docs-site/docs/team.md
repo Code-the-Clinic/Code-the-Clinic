@@ -15,8 +15,7 @@ hide:
 
     **Contact**. 
     pacapriotti@crimson.ua.edu <br>
-    [Let's connect on LinkedIn!]
-    (https://linkedin.com/in/peter-cap) <br>
+    [Let's connect on LinkedIn!](https://www.linkedin.com/in/peter-cap/) <br>
     
 
 -   ## Holland Henderson-Boyer
