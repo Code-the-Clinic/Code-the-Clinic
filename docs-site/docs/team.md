@@ -33,7 +33,7 @@ hide:
 
     ![Alex](assets/alex.jpg){ .rounded-circle width="150" }
 
-    Insert bio here
+    Insert bio here 
 
     **Contact** <br> 
     Email here <br>
@@ -44,11 +44,11 @@ hide:
 
     ![Pierce](assets/pierce.jpg){ .rounded-circle width="150" }
 
-    Insert bio here
+    Im a computer science major graduating spring '26 from The University of Alabama. I enjoy cooking, tennis, and movies in my free time. I don't have concrete plans for after graduation, only that I would like to live in a big city. 
 
     **Contact** <br>
-    Email here <br>
-    Linkedin here <br>
-    Website here <br>
+    pmdaugherty@crimson.ua.edu <br>
+    [Let's connect on LinkedIn!](https://www.linkedin.com/in/p-daugherty/) <br>
+    [Personal GitHub](https://github.com/pierced07) <br>
 
 </div>
