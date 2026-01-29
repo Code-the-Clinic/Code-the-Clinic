@@ -14,7 +14,7 @@ def form_view(request):
     return render(request, 'clinic_reports/form.html')
 
 
-@csrf_exempt # TODO: Update this to tighten security before launching in production!
+@csrf_exempt # TODO: Remove this and use CSRF tokens to tighten security before launching in production!
 @require_http_methods(["POST"])
 def submit_report(request):
     """API endpoint to submit clinic report.
