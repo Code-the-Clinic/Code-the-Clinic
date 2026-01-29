@@ -10,3 +10,17 @@
 ## How to run
 - To run the docs AND the django backend: docker-compose up
 - To update the local database: docker-compose exec backend python manage.py migrate
+- To create a superuser (required to locally test the admin page without a Microsoft account): docker-compose exec backend python manage.py createsuperuser
+
+## How to get myBama auth working
+- Get a personal Azure tenant ID and secret by creating an Azure account, or ask me for mine
+- Put your Azure tenant ID and secret in .env (follow the instructions in .env-example)
+- Go to /accounts/microsoft/login and it should let you authenticate with myBama
+- If you want to be automatically logged in to the admin portal with myBama, you will need to follow these steps:
+    - Log in with myBama--this will create a user in the system for you
+    - Log out
+    - Create a superuser with the above command
+    - Log in to the admin portal as the superuser
+    - Use the admin portal to give your myBama user superuser permissions
+    - Delete the manually created superuser when you are done for security
+    - Now when you log in with your crimson email you should automatically be able to see the admin dashboard!

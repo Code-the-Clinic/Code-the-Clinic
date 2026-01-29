@@ -141,7 +141,7 @@ STATIC_URL = 'static/'
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
 CORS_ALLOWED_ORIGINS = [
-    # Frontend TODO: Change this to whatever local port you are using for React
+    # Frontend TODO: Change this to whatever local port we are using for React
     # This allows the frontend to talk to the Django app without opening it up to
     # anyone on the internet
     "http://localhost:3000",
@@ -163,15 +163,34 @@ REST_FRAMEWORK = {
     'PAGE_SIZE': 100,
 }
 
+# This allows us to use Microsoft Entra for login
+# All secrets should ALWAYS stay in local environment variables!
+SOCIALACCOUNT_PROVIDERS = {
+    'microsoft': {
+        'APP': {
+            'client_id': os.environ.get('AZURE_CLIENT_ID'),
+            'secret': os.environ.get('AZURE_SECRET'),
+        },
+        'TENANT': os.environ.get('AZURE_TENANT_ID'), # TODO: Replace with UA's tenant in production
+        'SCOPE': ['User.Read'],
+        'AUTH_PARAMS': {'prompt': 'select_account'},
+    }
+}
+
 # TODO: Remove this in production
 if not os.environ.get('AZURE_CLIENT_ID'):
     # Use a dummy account for now since we don't have the Azure info
     INSTALLED_APPS.append('allauth.socialaccount.providers.dummy')
+else:
+    # Use Azure
+    INSTALLED_APPS.append('allauth.socialaccount.providers.microsoft')
 
-# Frontend TODO: Change this to a different port if needed
-# Redirect to React frontend (localhost:3000) after login or logout
-LOGIN_REDIRECT_URL = 'http://localhost:3000/'
-LOGOUT_REDIRECT_URL = 'http://localhost:3000/'
+# Frontend TODO: Change this after building out frontend for login page
+LOGIN_REDIRECT_URL = '/clinic-reports/' # Redirect to student form for now
+LOGOUT_REDIRECT_URL = '/accounts/' # Redirect to accounts page on logout for now
 
 # Identify the site
 SITE_ID = 1
+
+# Use custom social account adapter to restrict to UA email domains
+SOCIALACCOUNT_ADAPTER = 'core.adapters.CustomSocialAccountAdapter'
