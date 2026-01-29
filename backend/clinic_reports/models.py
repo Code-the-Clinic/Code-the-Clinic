@@ -1,0 +1,39 @@
+from django.db import models
+
+
+class ClinicReport(models.Model):
+    SPORT_CHOICES = [
+        ('Football', 'Football'),
+        ('Basketball', 'Basketball'),
+        ('Soccer', 'Soccer'),
+        ('Hockey', 'Hockey'),
+        ('Baseball', 'Baseball'),
+        ('Volleyball', 'Volleyball'),
+        ('Tennis', 'Tennis'),
+        ('Track and Field', 'Track and Field'),
+        ('Swimming', 'Swimming'),
+        ('Lacrosse', 'Lacrosse'),
+    ]
+
+    first_name = models.CharField(max_length=100)
+    last_name = models.CharField(max_length=100)
+    email = models.EmailField()
+    clinical_site = models.CharField(max_length=200)
+    sport = models.CharField(max_length=50, choices=SPORT_CHOICES)
+    
+    # Patient categories
+    immediate_emergency_care = models.IntegerField()
+    musculoskeletal_exam = models.IntegerField()
+    non_musculoskeletal_exam = models.IntegerField()
+    taping_bracing = models.IntegerField()
+    rehabilitation_reconditioning = models.IntegerField()
+    modalities = models.IntegerField()
+    pharmacology = models.IntegerField()
+    injury_illness_prevention = models.IntegerField()
+    non_sport_patient = models.IntegerField()
+    
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    def __str__(self):
+        return f"{self.first_name} {self.last_name} - {self.sport} ({self.created_at.date()})"
+

@@ -1,0 +1,241 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Weekly Clinical Report</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      max-width: 900px;
+      margin: 30px auto;
+      padding: 20px;
+      background-color: #f5f5f5;
+    }
+    .form-container {
+      background: white;
+      padding: 30px;
+      border-radius: 8px;
+      box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+    }
+    h2 {
+      color: #333;
+      text-align: center;
+    }
+    .section-title {
+      background-color: #4CAF50;
+      color: white;
+      padding: 10px 15px;
+      margin-top: 25px;
+      margin-bottom: 15px;
+      border-radius: 4px;
+      font-weight: bold;
+    }
+    .form-row {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 20px;
+      margin-bottom: 15px;
+    }
+    .form-row.full {
+      grid-template-columns: 1fr;
+    }
+    .form-group {
+      display: flex;
+      flex-direction: column;
+    }
+    label {
+      font-weight: bold;
+      margin-bottom: 5px;
+      color: #555;
+      font-size: 14px;
+    }
+    input, select {
+      padding: 10px;
+      border: 1px solid #ddd;
+      border-radius: 4px;
+      font-size: 14px;
+    }
+    input:focus, select:focus {
+      outline: none;
+      border-color: #4CAF50;
+      box-shadow: 0 0 5px rgba(76, 175, 80, 0.3);
+    }
+    button {
+      background-color: #4CAF50;
+      color: white;
+      padding: 12px 30px;
+      border: none;
+      border-radius: 4px;
+      cursor: pointer;
+      font-size: 16px;
+      font-weight: bold;
+      margin-top: 30px;
+      width: 100%;
+    }
+    button:hover {
+      background-color: #45a049;
+    }
+    .success-message {
+      color: #4CAF50;
+      text-align: center;
+      margin-top: 20px;
+      display: none;
+      font-weight: bold;
+    }
+    .error-message {
+      color: #f44336;
+      text-align: center;
+      margin-top: 20px;
+      display: none;
+      font-weight: bold;
+    }
+  </style>
+</head>
+<body>
+  <div class="form-container">
+    <h2>Weekly Clinical Report</h2>
+
+    <form id="clinic-form">
+      <!-- Personal Information Section -->
+      <div class="section-title">Personal Information</div>
+      <div class="form-row">
+        <div class="form-group">
+          <label for="first_name">First Name</label>
+          <input id="first_name" name="first_name" placeholder="First name" required />
+        </div>
+        <div class="form-group">
+          <label for="last_name">Last Name</label>
+          <input id="last_name" name="last_name" placeholder="Last name" required />
+        </div>
+      </div>
+
+      <div class="form-row full">
+        <div class="form-group">
+          <label for="email">Email</label>
+          <input id="email" name="email" type="email" required />
+        </div>
+      </div>
+
+      <!-- Clinical Information Section -->
+      <div class="section-title">Clinical Information</div>
+      <div class="form-row">
+        <div class="form-group">
+          <label for="clinical_site">Clinical Site Name</label>
+          <input id="clinical_site" name="clinical_site" placeholder="e.g., Sports Medicine Clinic" required />
+        </div>
+        <div class="form-group">
+          <label for="sport">Sport</label>
+          <select id="sport" name="sport" required>
+            <option value="">Select a sport</option>
+            <option>Football</option>
+            <option>Basketball</option>
+            <option>Soccer</option>
+            <option>Hockey</option>
+            <option>Baseball</option>
+            <option>Volleyball</option>
+            <option>Tennis</option>
+            <option>Track and Field</option>
+            <option>Swimming</option>
+            <option>Lacrosse</option>
+          </select>
+        </div>
+      </div>
+
+      <!-- Patient Categories Section -->
+      <div class="section-title">Number of Patients in Each Category</div>
+      
+      <div class="form-row">
+        <div class="form-group">
+          <label for="immediate_emergency_care">Immediate and Emergency Care</label>
+          <input id="immediate_emergency_care" type="number" name="immediate_emergency_care" min="0" required />
+        </div>
+        <div class="form-group">
+          <label for="musculoskeletal_exam">Musculoskeletal Examination and Assessment</label>
+          <input id="musculoskeletal_exam" type="number" name="musculoskeletal_exam" min="0" required />
+        </div>
+      </div>
+
+      <div class="form-row">
+        <div class="form-group">
+          <label for="non_musculoskeletal_exam">Non-Musculoskeletal (General Medicine) Examination and Assessment</label>
+          <input id="non_musculoskeletal_exam" type="number" name="non_musculoskeletal_exam" min="0" required />
+        </div>
+        <div class="form-group">
+          <label for="taping_bracing">Therapeutic Intervention: Taping and Bracing</label>
+          <input id="taping_bracing" type="number" name="taping_bracing" min="0" required />
+        </div>
+      </div>
+
+      <div class="form-row">
+        <div class="form-group">
+          <label for="rehabilitation_reconditioning">Therapeutic Intervention: Rehabilitation and Reconditioning</label>
+          <input id="rehabilitation_reconditioning" type="number" name="rehabilitation_reconditioning" min="0" required />
+        </div>
+        <div class="form-group">
+          <label for="modalities">Therapeutic Intervention: Modalities</label>
+          <input id="modalities" type="number" name="modalities" min="0" required />
+        </div>
+      </div>
+
+      <div class="form-row">
+        <div class="form-group">
+          <label for="pharmacology">Therapeutic Intervention: Pharmacology</label>
+          <input id="pharmacology" type="number" name="pharmacology" min="0" required />
+        </div>
+        <div class="form-group">
+          <label for="injury_illness_prevention">Injury and Illness Prevention</label>
+          <input id="injury_illness_prevention" type="number" name="injury_illness_prevention" min="0" required />
+        </div>
+      </div>
+
+      <div class="form-row full">
+        <div class="form-group">
+          <label for="non_sport_patient">Non-Sport Patient</label>
+          <input id="non_sport_patient" type="number" name="non_sport_patient" min="0" required />
+        </div>
+      </div>
+
+      <button type="submit">Submit Report</button>
+    </form>
+
+    <div class="success-message" id="success-message">
+      ✓ Report submitted successfully!
+    </div>
+    <div class="error-message" id="error-message">
+      ✗ Error submitting report. Please try again.
+    </div>
+  </div>
+
+  <script>
+    document.getElementById("clinic-form").onsubmit = async (e) => {
+      e.preventDefault();
+      const data = Object.fromEntries(new FormData(e.target));
+
+      try {
+        const res = await fetch("/clinic-reports/api/submit/", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(data)
+        });
+
+        const result = await res.json();
+
+        if (result.success) {
+          document.getElementById("success-message").style.display = "block";
+          document.getElementById("error-message").style.display = "none";
+          e.target.reset();
+          setTimeout(() => {
+            document.getElementById("success-message").style.display = "none";
+          }, 3000);
+        } else {
+          document.getElementById("error-message").style.display = "block";
+          document.getElementById("success-message").style.display = "none";
+        }
+      } catch (error) {
+        document.getElementById("error-message").style.display = "block";
+        document.getElementById("success-message").style.display = "none";
+      }
+    };
+  </script>
+</body>
+</html>
+
