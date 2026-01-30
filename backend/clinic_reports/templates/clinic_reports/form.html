@@ -217,6 +217,14 @@
           body: JSON.stringify(data)
         });
 
+        // If the user is not authenticated the API returns 401. Redirect to
+        // the login page and preserve the current path with `next` so the
+        // user returns to the form after signing in.
+        if (res.status === 401) {
+          window.location = '/accounts/login/?next=' + encodeURIComponent(window.location.pathname);
+          return;
+        }
+
         const result = await res.json();
 
         if (result.success) {

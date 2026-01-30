@@ -18,7 +18,7 @@ from django.contrib import admin
 from django.urls import path, include
 
 urlpatterns = [
-    path('admin/', admin.site.urls),
-    path('accounts/', include('allauth.urls')),
-    path('clinic-reports/', include('clinic_reports.urls')),
+    path('admin/', admin.site.urls, name='admin'),
+    path('accounts/', include('allauth.urls'), name='accounts'),
+    path('clinic-reports/', include('clinic_reports.urls'), name='form'),
 ]
