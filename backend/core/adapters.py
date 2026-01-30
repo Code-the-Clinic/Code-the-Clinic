@@ -12,18 +12,18 @@ class CustomSocialAccountAdapter(DefaultSocialAccountAdapter):
         allowed_list = os.environ.get('ALLOWED_DOMAINS', '').split(',')
         allowed_domains = [d.strip().lower() for d in allowed_list if d.strip()]
 
-        # Get the email from Microsoft data
+        # Get user email from Microsoft data
         data = sociallogin.account.extra_data
         email = data.get('email') or data.get('userPrincipalName')
 
         if not email:
             raise ValidationError("No email address provided by Microsoft.")
 
-        # 3. Check the Domain
+        # 3. Check email domain (should be a university email)
         user_domain = email.split('@')[-1].lower()
 
         if user_domain not in allowed_domains:
-            # The Microsoft account doesn't have a University domain
+            # Not a university domain--do not authenticate
             raise ValidationError(
                 f"Access Denied. Please log in with a valid University account (myBama)."
             )

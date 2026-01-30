@@ -45,12 +45,11 @@ INSTALLED_APPS = [
     'django.contrib.staticfiles',
     'rest_framework',
     'corsheaders',
-    # Needed for authentication
     'django.contrib.sites',
     'allauth',
     'allauth.account',
     'allauth.socialaccount',
-    'core', # Core logic for the project
+    'core',
     'clinic_reports', # Clinic report form
 ]
 

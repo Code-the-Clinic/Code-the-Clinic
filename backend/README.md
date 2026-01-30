@@ -13,6 +13,11 @@
 - To update the local database: docker-compose exec backend python manage.py migrate
 - To create a superuser (required to locally test the admin page without a Microsoft account): docker-compose exec backend python manage.py createsuperuser
 
+## How to test
+- To run all backend tests: docker-compose exec backend python manage.py test
+- To run all backend tests for a specific app: docker-compose exec backend python manage.py test app-name
+    - For example, python manage.py test clinic_reports would run all the tests under the clinic_reports app (these check whether the form authentication and submission logic works correctly).
+
 ## How to get myBama auth working
 - Get a personal Azure tenant ID and secret by creating an Azure account, or ask me for mine
 - Put your Azure tenant ID and secret in .env (follow the instructions in .env-example)
