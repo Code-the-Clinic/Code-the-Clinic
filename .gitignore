@@ -6,3 +6,4 @@ db.sqlite3
 .env
 backend/config/__pycache__/settings.cpython-311.pyc
 backend/config/__pycache__/urls.cpython-311.pyc
+my_notes.txt
