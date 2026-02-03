@@ -5,7 +5,7 @@ from django.utils import timezone
 import openpyxl
 
 
-def export_to_excel(modeladmin, request, queryset):
+def export_raw_data_to_excel(modeladmin, request, queryset):
     """
     Downloads selected rows as an Excel file from the admin portal.
     """
@@ -26,11 +26,11 @@ def export_to_excel(modeladmin, request, queryset):
 
     # Write the data rows
     for record in queryset:
-        # Make sure the order matches the columns above!
         created_date = record.created_at
         # Strip timezone info from timestamp to enable saving to excel
         created_date = timezone.localtime(created_date).replace(tzinfo=None)
-
+        
+        # Order in this list must match the columns list above
         row = [
             record.first_name,
             record.last_name,
@@ -60,13 +60,12 @@ def export_to_excel(modeladmin, request, queryset):
     wb.save(response)
     return response
 
-# Optional: Give it a nice name in the dropdown
-export_to_excel.short_description = "Export selected records to Excel"
-
+# Name for Actions dropdown
+export_raw_data_to_excel.short_description = "Export selected records to Excel"
 
 @admin.register(ClinicReport)
 class ClinicReportAdmin(admin.ModelAdmin):
     list_display = ('first_name', 'last_name', 'sport', 'clinical_site', 'created_at')
     search_fields = ('first_name', 'last_name', 'email')
     list_filter = ('sport', 'clinical_site', 'created_at')
-    actions = [export_to_excel]
+    actions = [export_raw_data_to_excel]
