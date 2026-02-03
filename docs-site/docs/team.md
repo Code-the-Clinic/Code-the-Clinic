@@ -33,12 +33,12 @@ hide:
 
     ![Alex](assets/alex.jpg){ .rounded-circle width="150" }
 
-    Insert bio here 
+    Computer science major, Graduating in Spring of 2026. Interests include late antiquity, the Hellenistic world, and chess. I intent to work locally post graduation.
 
     **Contact** <br> 
-    Email here <br>
-    Linkedin here <br>
-    Website here <br>
+    dacunningham1@crimson.ua.edu <br>
+    [Let's connect on LinkedIn!](https://www.linkedin.com/in/dylan-cunningham-a86470200/) <br>
+    [Github](https://github.com/Alexander-ru-a) <br>
 
 -   ## Pierce Daugherty
 
