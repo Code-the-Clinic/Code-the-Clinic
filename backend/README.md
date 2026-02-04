@@ -11,7 +11,10 @@
 ## How to run
 - To run the docs AND the django backend: docker-compose up
 - To run the docs and the django backend and rebuild the docker container (for example, if you added new dependencies to requirements.txt): docker-compose up --build
-- To update the local database: docker-compose exec backend python manage.py migrate
+- To update the local database:
+    - Create migration: docker-compose exec backend python manage.py makemigrations clinic_reports
+        - Use the name of the data model instead of clinic_reports if updating a different model
+    - Run migration: docker-compose exec backend python manage.py migrate
 - To create a superuser (required to locally test the admin page without a Microsoft account): docker-compose exec backend python manage.py createsuperuser
 
 ## How to test
