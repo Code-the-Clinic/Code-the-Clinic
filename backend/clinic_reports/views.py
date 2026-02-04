@@ -29,6 +29,13 @@ def submit_report(request):
 
     try:
         data = json.loads(request.body)
+        interacted = data.get('interacted_hcps')
+        try:
+            # We expect the "interacted with other providers" response to come in from the form as a string '1' or '0'
+            interacted_bool = bool(int(interacted))
+        except (TypeError, ValueError):
+            # Just in case the form HTML changes in the future, accept other "True" values
+            interacted_bool = str(interacted).strip().lower() in {"1", "true", "True", "yes", "Yes", "y", "Y"}
         report = ClinicReport.objects.create(
             first_name=data.get('first_name'),
             last_name=data.get('last_name'),
@@ -44,6 +51,7 @@ def submit_report(request):
             pharmacology=int(data.get('pharmacology', 0)),
             injury_illness_prevention=int(data.get('injury_illness_prevention', 0)),
             non_sport_patient=int(data.get('non_sport_patient', 0)),
+            interacted_hcps=interacted_bool
         )
         return JsonResponse({'success': True, 'id': report.id})
     except Exception as e:

@@ -31,6 +31,9 @@ class ClinicReport(models.Model):
     pharmacology = models.IntegerField()
     injury_illness_prevention = models.IntegerField()
     non_sport_patient = models.IntegerField()
+    # Did the student interact with other healthcare providers this week?
+    interacted_hcps = models.BooleanField(default=False,
+                                          verbose_name="Interacted with other Health Care Professionals this week?")
     
     created_at = models.DateTimeField(auto_now_add=True)
 
