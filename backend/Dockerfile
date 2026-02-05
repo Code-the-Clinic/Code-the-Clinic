@@ -4,6 +4,8 @@ WORKDIR /app
 
 RUN mkdir -p /app/staticfiles
 
+# You can change this local GID/UID if you are running into system permission issues
+# But make sure to keep the uid/gid above 1000
 RUN addgroup --system --gid 1001 appgroup && \
     adduser --system --uid 1001 --ingroup appgroup appuser
 
