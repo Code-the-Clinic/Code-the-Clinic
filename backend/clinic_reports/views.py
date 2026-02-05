@@ -29,13 +29,30 @@ def submit_report(request):
 
     try:
         data = json.loads(request.body)
+        required_fields = [
+            'first_name', 'last_name', 'email', 'clinical_site', 'sport',
+            'immediate_emergency_care', 'musculoskeletal_exam', 'non_musculoskeletal_exam',
+            'taping_bracing', 'rehabilitation_reconditioning', 'modalities',
+            'pharmacology', 'injury_illness_prevention', 'non_sport_patient', 'interacted_hcps'
+        ]
+        missing = [f for f in required_fields if data.get(f) is None]
+        if missing:
+            return JsonResponse({'success': False, 'error': f'Missing required fields: {", ".join(missing)}'}, status=400)
+
+        # Email validation
+        from django.core.validators import validate_email
+        from django.core.exceptions import ValidationError
+        try:
+            validate_email(data['email'])
+        except ValidationError:
+            return JsonResponse({'success': False, 'error': 'Invalid email address'}, status=400)
+
         interacted = data.get('interacted_hcps')
         try:
-            # We expect the "interacted with other providers" response to come in from the form as a string '1' or '0'
             interacted_bool = bool(int(interacted))
         except (TypeError, ValueError):
-            # Just in case the form HTML changes in the future, accept other "True" values
             interacted_bool = str(interacted).strip().lower() in {"1", "true", "True", "yes", "Yes", "y", "Y"}
+
         report = ClinicReport.objects.create(
             first_name=data.get('first_name'),
             last_name=data.get('last_name'),

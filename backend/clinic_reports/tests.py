@@ -6,6 +6,7 @@ from clinic_reports.models import ClinicReport
 
 User = get_user_model() # Gets whatever Django user model we are using (the built in one or a custom one)
 
+
 class ClinicReportViewTests(TestCase):
     def setUp(self):
         self.client = Client()
@@ -29,7 +30,49 @@ class ClinicReportViewTests(TestCase):
             'pharmacology': 0,
             'injury_illness_prevention': 0,
             'non_sport_patient': 0,
+            'interacted_hcps': 0,
         }
+
+    def test_data_retrieval(self):
+        self.client.force_login(self.user)
+        self.client.post(self.submit_url, data=json.dumps(self.payload), content_type='application/json')
+        report = ClinicReport.objects.first()
+        self.assertIsNotNone(report)
+        self.assertEqual(report.first_name, 'Alice')
+        self.assertEqual(report.sport, 'Football')
+
+    def test_invalid_email(self):
+        self.client.force_login(self.user)
+        bad_payload = self.payload.copy()
+        bad_payload['email'] = 'not-an-email'
+        resp = self.client.post(self.submit_url, data=json.dumps(bad_payload), content_type='application/json')
+        self.assertNotEqual(resp.status_code, 200)
+        self.assertEqual(ClinicReport.objects.count(), 0)
+
+    def test_missing_required_field(self):
+        self.client.force_login(self.user)
+        bad_payload = self.payload.copy()
+        del bad_payload['first_name']
+        resp = self.client.post(self.submit_url, data=json.dumps(bad_payload), content_type='application/json')
+        self.assertNotEqual(resp.status_code, 200)
+        self.assertEqual(ClinicReport.objects.count(), 0)
+
+    def test_sql_injection_attempt(self):
+        self.client.force_login(self.user)
+        bad_payload = self.payload.copy()
+        bad_payload['first_name'] = "Robert'); DROP TABLE clinic_reports_clinicreport;--"
+        resp = self.client.post(self.submit_url, data=json.dumps(bad_payload), content_type='application/json')
+        self.assertEqual(resp.status_code, 200)
+        self.assertTrue(ClinicReport.objects.filter(first_name__contains='Robert').exists())
+
+    def test_xss_injection(self):
+        self.client.force_login(self.user)
+        bad_payload = self.payload.copy()
+        bad_payload['last_name'] = '<script>alert(1)</script>'
+        resp = self.client.post(self.submit_url, data=json.dumps(bad_payload), content_type='application/json')
+        self.assertEqual(resp.status_code, 200)
+        report = ClinicReport.objects.get(first_name='Alice')
+        self.assertIn('<script>', report.last_name)
 
     def test_no_form_if_not_authenticated(self):
         # Use reverse to avoid hardcoding URLs

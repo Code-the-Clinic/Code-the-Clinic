@@ -1,3 +1,6 @@
+# Ignore Python cache and compiled files
+__pycache__/
+*.pyc
 __pycache__/
 backend/config/__pycache__/
 *.pyc
