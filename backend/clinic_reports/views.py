@@ -3,6 +3,8 @@ from django.http import JsonResponse
 from django.views.decorators.http import require_http_methods
 from django.views.decorators.csrf import csrf_exempt
 from django.contrib.auth.decorators import login_required
+from django.core.validators import validate_email
+from django.core.exceptions import ValidationError
 import json
 from .models import ClinicReport
 
@@ -40,8 +42,6 @@ def submit_report(request):
             return JsonResponse({'success': False, 'error': f'Missing required fields: {", ".join(missing)}'}, status=400)
 
         # Email validation
-        from django.core.validators import validate_email
-        from django.core.exceptions import ValidationError
         try:
             validate_email(data['email'])
         except ValidationError:

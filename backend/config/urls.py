@@ -21,4 +21,5 @@ urlpatterns = [
     path('admin/', admin.site.urls, name='admin'),
     path('accounts/', include('allauth.urls'), name='accounts'),
     path('clinic-reports/', include('clinic_reports.urls'), name='form'),
+    path('dashboard/', include('core.urls'), name='dashboard')
 ]
