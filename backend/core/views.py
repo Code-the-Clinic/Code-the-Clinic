@@ -3,7 +3,7 @@ from django.http import JsonResponse
 from django.views.decorators.http import require_http_methods
 from django.views.decorators.csrf import csrf_exempt
 from django.contrib.auth.decorators import login_required
-from django.db.models import Avg, Sum, F, Case, When, IntegerField
+from django.db.models import Avg, Sum, F, Case, When, IntegerField, Value, FloatField
 from django.db.models.functions import Coalesce
 import json
 from clinic_reports.models import ClinicReport
@@ -64,33 +64,41 @@ def fetch_data(request):
             Coalesce(F('non_sport_patient'), 0)
         ).aggregate(
             # Calculate average patient load
-            average_patients_per_week=Avg('weekly_total_patients'),
+            average_patients_per_week=Coalesce(
+                Avg('weekly_total_patients'),
+                Value(0.0),
+                output_field=FloatField()
+            ),
             
             # Calculate total patients served by category
-            total_immediate_emergency_care=Sum('immediate_emergency_care'),
-            total_musculoskeletal_exam=Sum('musculoskeletal_exam'),
-            total_non_musculoskeletal_exam=Sum('non_musculoskeletal_exam'),
-            total_taping_bracing=Sum('taping_bracing'),
-            total_rehabilitation_reconditioning=Sum('rehabilitation_reconditioning'),
-            total_modalities=Sum('modalities'),
-            total_pharmacology=Sum('pharmacology'),
-            total_injury_illness_prevention=Sum('injury_illness_prevention'),
-            total_non_sport_patient=Sum('non_sport_patient'),
-            total_interacted_hcps=Sum(
-                Case(
-                    When(interacted_hcps=True, then=1),
-                    default=0,
-                    output_field=IntegerField()
-                )
+            total_immediate_emergency_care=Coalesce(Sum('immediate_emergency_care'), Value(0)),
+            total_musculoskeletal_exam=Coalesce(Sum('musculoskeletal_exam'), Value(0)),
+            total_non_musculoskeletal_exam=Coalesce(Sum('non_musculoskeletal_exam'), Value(0)),
+            total_taping_bracing=Coalesce(Sum('taping_bracing'), Value(0)),
+            total_rehabilitation_reconditioning=Coalesce(Sum('rehabilitation_reconditioning'), Value(0)),
+            total_modalities=Coalesce(Sum('modalities'), Value(0)),
+            total_pharmacology=Coalesce(Sum('pharmacology'), Value(0)),
+            total_injury_illness_prevention=Coalesce(Sum('injury_illness_prevention'), Value(0)),
+            total_non_sport_patient=Coalesce(Sum('non_sport_patient'), Value(0)),
+            total_interacted_hcps=Coalesce(
+                Sum(
+                    Case(
+                        When(interacted_hcps=True, then=1),
+                        default=0,
+                        output_field=IntegerField()
+                    )
+                ),
+                Value(0)
             ),
 
             # Total patients served across all students and categories
-            grand_total_served=Sum('weekly_total_patients')
+            grand_total_served=Coalesce(Sum('weekly_total_patients'), Value(0))
         )
 
         return JsonResponse({
             'success': True,
             'stats': stats,
         })
+    
     except Exception as e:
         return JsonResponse({'success': False, 'error': str(e)}, status=400)
