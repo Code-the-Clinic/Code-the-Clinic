@@ -14,7 +14,7 @@ from clinic_reports.models import ClinicReport
 @login_required
 def faculty_dashboard_view(request):
     """Render the faculty/admin dashboard. Requires an authenticated user."""
-    return render(request, 'core/dashboard.html')
+    return render(request, 'core/faculty_dashboard.html')
 
 @login_required
 def student_dashboard_view(request):
@@ -83,7 +83,7 @@ def fetch_data(request):
                     output_field=IntegerField()
                 )
             ),
-            
+
             # Total patients served across all students and categories
             grand_total_served=Sum('weekly_total_patients')
         )
