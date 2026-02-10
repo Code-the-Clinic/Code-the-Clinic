@@ -1,0 +1,37 @@
+<!-- home.html -->
+{% extends 'core/base.html' %}
+{% load socialaccount %}
+
+{% block title %}Home - Code the Clinic{% endblock %}
+
+{% block content %}
+{% if user.is_authenticated %}
+{% if user.is_staff %}
+<h1>Welcome to Code the Clinic</h1>
+    <div class="section-title">Get Started</div>
+    <div class="centered">
+        <p class="muted">Welcome back!</p>
+        <a class="btn-primary" href="/admin/">Admin Portal</a>
+        <a class="btn-primary" href="/dashboard/admin/">Admin Dashboard</a>
+        <a class="btn-primary" href="/clinic-reports/">Clinical Experience Form</a>
+        <a class="btn-primary" href="/accounts/logout/">Logout</a>
+    </div>
+{% else %}
+<h1>Welcome to Code the Clinic</h1>
+    <div class="section-title">Get Started</div>
+    <div class="centered">
+        <p class="muted">Welcome back!</p>
+        <a class="btn-primary" href="/dashboard/student/">Student Dashboard</a>
+        <a class="btn-primary" href="/clinic-reports/">Clinical Experience Form</a>
+        <a class="btn-primary" href="/accounts/logout/">Logout</a>
+    </div>
+{% endif %}
+{% else %}
+<h1>Welcome to Code the Clinic</h1>
+    <div class="section-title">Get Started</div>
+    <div class="centered">
+        <p class="muted">Sign in with myBama to submit reports and view dashboards.</p>
+        <a class="btn-primary" href="{% provider_login_url 'microsoft' %}">Login with myBama</a>
+    </div>
+{% endif %}
+{% endblock %}

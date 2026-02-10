@@ -194,7 +194,7 @@ else:
 
 # Frontend TODO: Change this after building out frontend for login page
 LOGIN_REDIRECT_URL = '/clinic-reports/' # Redirect to student form for now
-LOGOUT_REDIRECT_URL = '/accounts/' # Redirect to accounts page on logout for now
+LOGOUT_REDIRECT_URL = '/' # Redirect to homepage on logout for now
 
 # Identify the site
 SITE_ID = 1

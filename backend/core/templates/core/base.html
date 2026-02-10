@@ -1,0 +1,129 @@
+{% load socialaccount %}
+<!-- base.html -->
+<!DOCTYPE html>
+<html>
+<head>
+    <title>{% block title %}Code the Clinic{% endblock %}</title>
+    <style>
+        :root {
+            --crimson: #9e1b32;
+            --crimson-dark: #86172b;
+            --surface: #ffffff;
+            --bg: #f5f5f5;
+            --text: #333333;
+            --muted: #555555;
+            --border: #dddddd;
+        }
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 900px;
+            margin: 30px auto;
+            padding: 20px;
+            background-color: var(--bg);
+            color: var(--text);
+        }
+        .page-container {
+            background: var(--surface);
+            padding: 30px;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+        .nav {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 20px;
+        }
+        .nav-title {
+            font-weight: bold;
+            color: var(--crimson);
+        }
+        .nav-links {
+            display: flex;
+            gap: 12px;
+        }
+        .nav a,
+        .nav button {
+            text-decoration: none;
+            color: var(--crimson);
+            font-weight: bold;
+            background: none;
+            border: none;
+            padding: 0;
+            cursor: pointer;
+            font-size: 16px;
+        }
+        .nav a:hover,
+        .nav button:hover {
+            color: var(--crimson-dark);
+        }
+        h1, h2 {
+            color: var(--text);
+            text-align: center;
+        }
+        .section-title {
+            background-color: var(--crimson);
+            color: white;
+            padding: 10px 15px;
+            margin-top: 25px;
+            margin-bottom: 15px;
+            border-radius: 4px;
+            font-weight: bold;
+        }
+        .btn-primary {
+            background-color: var(--crimson);
+            color: white;
+            padding: 12px 30px;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 16px;
+            font-weight: bold;
+            display: inline-block;
+            text-decoration: none;
+        }
+        .btn-primary:hover {
+            background-color: var(--crimson-dark);
+        }
+        .centered {
+            text-align: center;
+        }
+        .muted {
+            color: var(--muted);
+            font-size: 14px;
+        }
+    </style>
+</head>
+<body>
+    <div class="page-container">
+        <nav class="nav">
+            <div class="nav-title">Code the Clinic</div>
+            <div class="nav-links">
+                <a href="/">Home</a>
+                {% if user.is_authenticated %}
+                    {% if user.is_staff %}
+                        <a href="/dashboard/admin/">Dashboard</a>
+                    {% else %}
+                        <a href="/dashboard/student/">Dashboard</a>
+                    {% endif %}
+                {% else %}
+                    <a href="{% provider_login_url 'microsoft' %}">Dashboard</a>
+                {% endif %}
+                <a href="/clinic-reports/">Submit Report</a>
+                {% if user.is_authenticated %}
+                <form method="post" action="/accounts/logout/">
+                    {% csrf_token %}
+                    <button type="submit">Logout</button>
+                </form>
+                {% else %}
+                <a href="{% provider_login_url 'microsoft' %}">Login</a>
+                {% endif %}
+            </div>
+        </nav>
+
+        {% block content %}
+        <!-- Child templates put their content here -->
+        {% endblock %}
+    </div>
+</body>
+</html>

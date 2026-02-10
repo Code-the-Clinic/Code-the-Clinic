@@ -21,6 +21,10 @@ def student_dashboard_view(request):
     """Render the faculty/admin dashboard form. Requires an authenticated user."""
     return render(request, 'core/student_dashboard.html')
 
+def home_view(request):
+    """Render the homepage."""
+    return render(request, 'core/home.html')
+
 @require_http_methods(["POST"])
 def fetch_data(request):
     """API endpoint to load data for dashboards (need to differentiate between students and faculty)
