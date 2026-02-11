@@ -189,7 +189,7 @@
         // the login page and preserve the current path with `next` so the
         // user returns to the form after signing in.
         if (res.status === 401) {
-          window.location = '/accounts/login/microsoft/?next=' + encodeURIComponent(window.location.pathname);
+          window.location = '/accounts/microsoft/login/?next=' + encodeURIComponent(window.location.pathname);
           return;
         }
 

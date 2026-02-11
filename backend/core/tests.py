@@ -254,8 +254,6 @@ class HomeViewTests(TestCase):
         self.assertTrue(response.context['user'].is_authenticated)
         self.assertTrue(response.context['user'].is_staff)
 
-# TODO: Add these tests after implementing student and faculty dashboards
-'''
 class DashboardViewTests(TestCase):
     def setUp(self):
         self.client = Client()
@@ -275,13 +273,13 @@ class DashboardViewTests(TestCase):
         """Faculty dashboard should redirect anonymous users to login"""
         response = self.client.get(reverse('faculty_dashboard'))
         self.assertEqual(response.status_code, 302)
-        self.assertIn('/accounts/login/', response.url)
+        self.assertIn('/accounts/microsoft/login/', response.url)
 
     def test_student_dashboard_requires_login(self):
         """Student dashboard should redirect anonymous users to login"""
         response = self.client.get(reverse('student_dashboard'))
         self.assertEqual(response.status_code, 302)
-        self.assertIn('/accounts/login/', response.url)
+        self.assertIn('/accounts/microsoft/login', response.url)
 
     def test_faculty_dashboard_authenticated(self):
         """Authenticated users can access faculty dashboard"""
@@ -294,4 +292,9 @@ class DashboardViewTests(TestCase):
         self.client.force_login(self.student_user)
         response = self.client.get(reverse('student_dashboard'))
         self.assertEqual(response.status_code, 200)
-'''
+
+    def test_student_cannot_access_faculty_dashboard(self):
+        """Students get redirected to login when trying to access faculty dashboard"""
+        self.client.force_login(self.student_user)
+        response = self.client.get(reverse('faculty_dashboard'))
+        self.assertEqual(response.status_code, 403) # Permission denied error
