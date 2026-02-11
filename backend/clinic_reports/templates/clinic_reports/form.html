@@ -186,10 +186,10 @@
         });
 
         // If the user is not authenticated the API returns 401. Redirect to
-        // the home page and preserve the current path with `next` so the
+        // the login page and preserve the current path with `next` so the
         // user returns to the form after signing in.
         if (res.status === 401) {
-          window.location = '/?next=' + encodeURIComponent(window.location.pathname);
+          window.location = '/accounts/login/microsoft/?next=' + encodeURIComponent(window.location.pathname);
           return;
         }
 
