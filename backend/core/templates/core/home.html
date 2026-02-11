@@ -8,18 +8,18 @@
 {% if user.is_authenticated %}
 {% if user.is_staff %}
 <h1>Welcome to Code the Clinic</h1>
-    <div class="section-title">Get Started</div>
+    <div class="section-title">Admin Hub</div>
     <div class="centered">
-        <p class="muted">Welcome back!</p>
+        <p class="muted">Welcome back, {{user.first_name}}!</p>
         <a class="btn-primary" href="/admin/">Admin Portal</a>
         <a class="btn-primary" href="/dashboard/admin/">Admin Dashboard</a>
         <a class="btn-primary" href="/clinic-reports/">Clinical Experience Form</a>
     </div>
 {% else %}
 <h1>Welcome to Code the Clinic</h1>
-    <div class="section-title">Get Started</div>
+    <div class="section-title">Student Hub</div>
     <div class="centered">
-        <p class="muted">Welcome back!</p>
+        <p class="muted">Welcome back, {{user.first_name}}!</p>
         <a class="btn-primary" href="/dashboard/student/">Student Dashboard</a>
         <a class="btn-primary" href="/clinic-reports/">Clinical Experience Form</a>
     </div>
