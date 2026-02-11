@@ -193,8 +193,9 @@ else:
     INSTALLED_APPS.append('allauth.socialaccount.providers.microsoft')
 
 # Frontend TODO: Change this after building out frontend for login page
-LOGIN_REDIRECT_URL = '/clinic-reports/' # Redirect to student form for now
-LOGOUT_REDIRECT_URL = '/' # Redirect to homepage on logout for now
+LOGIN_URL = '/accounts/microsoft/login/' # Skip allauth chooser, go straight to Microsoft
+LOGIN_REDIRECT_URL = '/' # Redirect to homepage after login
+LOGOUT_REDIRECT_URL = '/' # Redirect to homepage after logout
 
 # Identify the site
 SITE_ID = 1
