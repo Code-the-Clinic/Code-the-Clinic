@@ -186,3 +186,115 @@ class FetchDataTests(TestCase):
         self.assertEqual(stats.get('total_musculoskeletal_exam'), 3)
         self.assertAlmostEqual(stats.get('average_patients_per_week'), 3.5)
         self.assertEqual(stats.get('total_interacted_hcps'), 1)
+
+
+class HomeViewTests(TestCase):
+    def setUp(self):
+        self.client = Client()
+        self.home_url = reverse('home')
+
+        self.student_user = User.objects.create_user(
+            username='student',
+            email='student@university.edu',
+            password='testpass123'
+        )
+        self.staff_user = User.objects.create_user(
+            username='staff',
+            email='staff@university.edu',
+            password='testpass123',
+            is_staff=True
+        )
+
+    def test_home_view_anonymous_user(self):
+        """Anonymous users should see the home page with login button"""
+        response = self.client.get(self.home_url)
+        self.assertEqual(response.status_code, 200)
+        self.assertContains(response, 'Welcome to Code the Clinic')
+        self.assertContains(response, 'Login with myBama')
+        # Anonymous users should NOT see admin or student dashboard links in navbar
+        self.assertNotContains(response, '/dashboard/admin/')
+        self.assertNotContains(response, '/dashboard/student/')
+        # Anonymous users should NOT see admin portal button
+        self.assertNotContains(response, 'Admin Portal')
+    
+    def test_home_view_authenticated_student(self):
+        """Authenticated non-staff users should see student options"""
+        self.client.force_login(self.student_user)
+        response = self.client.get(self.home_url)
+        self.assertEqual(response.status_code, 200)
+        self.assertContains(response, 'Welcome to Code the Clinic')
+        # Student should see student dashboard link in nav
+        self.assertContains(response, '/dashboard/student/')
+        # Student should NOT see admin dashboard link in navbar
+        self.assertNotContains(response, '/dashboard/admin/')
+        # Student should NOT see admin portal button
+        self.assertNotContains(response, 'Admin Portal')
+
+    def test_home_view_authenticated_staff(self):
+        """Authenticated staff users should see faculty options"""
+        self.client.force_login(self.staff_user)
+        response = self.client.get(self.home_url)
+        self.assertEqual(response.status_code, 200)
+        self.assertContains(response, 'Welcome to Code the Clinic')
+        # Staff should see admin dashboard link in navbar
+        self.assertContains(response, '/dashboard/admin/')
+        # Staff should see admin portal button
+        self.assertContains(response, 'Admin Portal')
+        self.assertContains(response, '/admin/')
+
+    def test_home_view_context(self):
+        """Home view should pass user context to template"""
+        self.client.force_login(self.student_user)
+        response = self.client.get(self.home_url)
+        self.assertTrue(response.context['user'].is_authenticated)
+        self.assertFalse(response.context['user'].is_staff)
+
+        self.client.force_login(self.staff_user)
+        response = self.client.get(self.home_url)
+        self.assertTrue(response.context['user'].is_authenticated)
+        self.assertTrue(response.context['user'].is_staff)
+
+class DashboardViewTests(TestCase):
+    def setUp(self):
+        self.client = Client()
+        self.student_user = User.objects.create_user(
+            username='student',
+            email='student@university.edu',
+            password='testpass123'
+        )
+        self.staff_user = User.objects.create_user(
+            username='staff',
+            email='staff@university.edu',
+            password='testpass123',
+            is_staff=True
+        )
+
+    def test_faculty_dashboard_requires_login(self):
+        """Faculty dashboard should redirect anonymous users to login"""
+        response = self.client.get(reverse('faculty_dashboard'))
+        self.assertEqual(response.status_code, 302)
+        self.assertIn('/accounts/microsoft/login/', response.url)
+
+    def test_student_dashboard_requires_login(self):
+        """Student dashboard should redirect anonymous users to login"""
+        response = self.client.get(reverse('student_dashboard'))
+        self.assertEqual(response.status_code, 302)
+        self.assertIn('/accounts/microsoft/login', response.url)
+
+    def test_faculty_dashboard_authenticated(self):
+        """Authenticated users can access faculty dashboard"""
+        self.client.force_login(self.staff_user)
+        response = self.client.get(reverse('faculty_dashboard'))
+        self.assertEqual(response.status_code, 200)
+
+    def test_student_dashboard_authenticated(self):
+        """Authenticated users can access student dashboard"""
+        self.client.force_login(self.student_user)
+        response = self.client.get(reverse('student_dashboard'))
+        self.assertEqual(response.status_code, 200)
+
+    def test_student_cannot_access_faculty_dashboard(self):
+        """Students get redirected to login when trying to access faculty dashboard"""
+        self.client.force_login(self.student_user)
+        response = self.client.get(reverse('faculty_dashboard'))
+        self.assertEqual(response.status_code, 403) # Permission denied error

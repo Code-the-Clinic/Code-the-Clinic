@@ -1,34 +1,9 @@
-<!DOCTYPE html>
-<html>
-<head>
-  <title>Weekly Clinical Report</title>
+{% extends 'core/base.html' %}
+
+{% block title %}Weekly Clinical Report{% endblock %}
+
+{% block content %}
   <style>
-    body {
-      font-family: Arial, sans-serif;
-      max-width: 900px;
-      margin: 30px auto;
-      padding: 20px;
-      background-color: #f5f5f5;
-    }
-    .form-container {
-      background: white;
-      padding: 30px;
-      border-radius: 8px;
-      box-shadow: 0 2px 4px rgba(0,0,0,0.1);
-    }
-    h2 {
-      color: #333;
-      text-align: center;
-    }
-    .section-title {
-      background-color: #4CAF50;
-      color: white;
-      padding: 10px 15px;
-      margin-top: 25px;
-      margin-bottom: 15px;
-      border-radius: 4px;
-      font-weight: bold;
-    }
     .form-row {
       display: grid;
       grid-template-columns: 1fr 1fr;
@@ -56,23 +31,8 @@
     }
     input:focus, select:focus {
       outline: none;
-      border-color: #4CAF50;
-      box-shadow: 0 0 5px rgba(76, 175, 80, 0.3);
-    }
-    button {
-      background-color: #4CAF50;
-      color: white;
-      padding: 12px 30px;
-      border: none;
-      border-radius: 4px;
-      cursor: pointer;
-      font-size: 16px;
-      font-weight: bold;
-      margin-top: 30px;
-      width: 100%;
-    }
-    button:hover {
-      background-color: #45a049;
+      border-color: var(--crimson);
+      box-shadow: 0 0 5px rgba(158, 27, 50, 0.3);
     }
     .success-message {
       color: #4CAF50;
@@ -89,9 +49,7 @@
       font-weight: bold;
     }
   </style>
-</head>
-<body>
-  <div class="form-container">
+
     <h2>Weekly Clinical Report</h2>
 
     <form id="clinic-form">
@@ -206,7 +164,7 @@
         </div>
       </div>
 
-      <button type="submit">Submit Report</button>
+      <button class="btn-primary" type="submit">Submit Report</button>
     </form>
 
     <div class="success-message" id="success-message">
@@ -215,8 +173,6 @@
     <div class="error-message" id="error-message">
       ✗ Error submitting report. Please try again.
     </div>
-  </div>
-
   <script>
     document.getElementById("clinic-form").onsubmit = async (e) => {
       e.preventDefault();
@@ -233,7 +189,7 @@
         // the login page and preserve the current path with `next` so the
         // user returns to the form after signing in.
         if (res.status === 401) {
-          window.location = '/accounts/login/?next=' + encodeURIComponent(window.location.pathname);
+          window.location = '/accounts/microsoft/login/?next=' + encodeURIComponent(window.location.pathname);
           return;
         }
 
@@ -256,6 +212,5 @@
       }
     };
   </script>
-</body>
-</html>
+{% endblock %}
 

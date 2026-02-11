@@ -1,25 +1,30 @@
-from django.shortcuts import render
+from django.shortcuts import render, redirect
 from django.http import JsonResponse
 from django.views.decorators.http import require_http_methods
 from django.views.decorators.csrf import csrf_exempt
 from django.contrib.auth.decorators import login_required
 from django.db.models import Avg, Sum, F, Case, When, IntegerField, Value, FloatField
 from django.db.models.functions import Coalesce
+from django.core.exceptions import PermissionDenied
 import json
 from clinic_reports.models import ClinicReport
 
-
 # Security note: Viewing the faculty dashboard requires authentication
-# TODO: Specify staff/superuser designation to access this page
 @login_required
 def faculty_dashboard_view(request):
-    """Render the faculty/admin dashboard. Requires an authenticated user."""
+    """Render the faculty/admin dashboard. Requires staff permission."""
+    if not request.user.is_staff:
+        raise PermissionDenied("You don't have permission to access this page.")
     return render(request, 'core/faculty_dashboard.html')
 
 @login_required
 def student_dashboard_view(request):
-    """Render the faculty/admin dashboard form. Requires an authenticated user."""
+    """Render the student dashboard."""
     return render(request, 'core/student_dashboard.html')
+
+def home_view(request):
+    """Render the homepage."""
+    return render(request, 'core/home.html')
 
 @require_http_methods(["POST"])
 def fetch_data(request):

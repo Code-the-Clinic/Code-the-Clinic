@@ -80,7 +80,7 @@ class ClinicReportViewTests(TestCase):
         # Check that the site redirects unauthenticated users to the login page
         # if they try to access the form
         self.assertEqual(resp.status_code, 302)
-        self.assertIn('/accounts/login/', resp['Location'])
+        self.assertIn('/accounts/microsoft/login/', resp['Location'])
 
     def test_form_view_allows_authenticated(self):
         self.client.force_login(self.user) # This simulates logging in the user
