@@ -18,7 +18,6 @@ class ClinicReport(models.Model):
     first_name = models.CharField(max_length=100)
     last_name = models.CharField(max_length=100)
     email = models.EmailField()
-    clinical_site = models.CharField(max_length=200)
     sport = models.CharField(max_length=50, choices=SPORT_CHOICES)
     
     # Patient categories
