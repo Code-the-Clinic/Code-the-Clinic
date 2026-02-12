@@ -50,7 +50,7 @@ def fetch_data(request):
             clinic_reports = clinic_reports.filter(email=filters.get('email'))
 
         if filters.get('sport'):
-            clinic_reports = clinic_reports.filter(sport=filters.get('sport'))
+            clinic_reports = clinic_reports.filter(sport_id=filters.get('sport'))
 
         # Get summary stats
         stats = clinic_reports.annotate(

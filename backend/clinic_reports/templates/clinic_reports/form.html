@@ -81,16 +81,9 @@
           <label for="sport">Sport</label>
           <select id="sport" name="sport" required>
             <option value="">Select a sport</option>
-            <option>Football</option>
-            <option>Basketball</option>
-            <option>Soccer</option>
-            <option>Hockey</option>
-            <option>Baseball</option>
-            <option>Volleyball</option>
-            <option>Tennis</option>
-            <option>Track and Field</option>
-            <option>Swimming</option>
-            <option>Lacrosse</option>
+            {% for sport in sports %}
+              <option value="{{ sport.id }}">{{ sport.name }}</option>
+            {% endfor %}
           </select>
         </div>
       </div>
