@@ -32,7 +32,7 @@ def submit_report(request):
     try:
         data = json.loads(request.body)
         required_fields = [
-            'first_name', 'last_name', 'email', 'clinical_site', 'sport',
+            'first_name', 'last_name', 'email', 'sport',
             'immediate_emergency_care', 'musculoskeletal_exam', 'non_musculoskeletal_exam',
             'taping_bracing', 'rehabilitation_reconditioning', 'modalities',
             'pharmacology', 'injury_illness_prevention', 'non_sport_patient', 'interacted_hcps'
@@ -57,7 +57,6 @@ def submit_report(request):
             first_name=data.get('first_name'),
             last_name=data.get('last_name'),
             email=data.get('email'),
-            clinical_site=data.get('clinical_site'),
             sport=data.get('sport'),
             immediate_emergency_care=int(data.get('immediate_emergency_care', 0)),
             musculoskeletal_exam=int(data.get('musculoskeletal_exam', 0)),

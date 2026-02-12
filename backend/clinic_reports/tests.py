@@ -19,7 +19,6 @@ class ClinicReportViewTests(TestCase):
             'first_name': 'Alice',
             'last_name': 'Example',
             'email': 'alice@university.edu',
-            'clinical_site': 'Sports Med',
             'sport': 'Football',
             'immediate_emergency_care': 1,
             'musculoskeletal_exam': 2,

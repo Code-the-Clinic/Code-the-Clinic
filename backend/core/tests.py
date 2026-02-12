@@ -66,7 +66,6 @@ class FetchDataTests(TestCase):
             first_name='Alice',
             last_name='Student',
             email='student@university.edu',
-            clinical_site='Clinic A',
             sport='Football',
             immediate_emergency_care=1,
             musculoskeletal_exam=2,
@@ -83,7 +82,6 @@ class FetchDataTests(TestCase):
             first_name='Bob',
             last_name='Other',
             email='other@university.edu',
-            clinical_site='Clinic B',
             sport='Soccer',
             immediate_emergency_care=0,
             musculoskeletal_exam=1,
@@ -154,28 +152,6 @@ class FetchDataTests(TestCase):
         self.assertEqual(stats.get('grand_total_served'), 4)
         self.assertEqual(stats.get('total_musculoskeletal_exam'), 2)
         self.assertEqual(stats.get('total_interacted_hcps'), 1)
-
-    def test_staff_filter_by_clinical_site(self):
-        response = self.post_fetch(self.staff_user, {'clinical_site': 'Clinic B'})
-        data = json.loads(response.content)
-        stats = data.get('stats')
-
-        # Clinic B report weekly total = 0+1+1+0+1+0+0+0+0 = 3
-        self.assertEqual(stats.get('grand_total_served'), 3)
-        self.assertEqual(stats.get('total_rehabilitation_reconditioning'), 1)
-        self.assertAlmostEqual(stats.get('average_patients_per_week'), 3)
-        self.assertEqual(stats.get('total_interacted_hcps'), 0)
-
-    def test_staff_filter_by_sport_and_clinical_site(self):
-        response = self.post_fetch(self.staff_user, {
-            'sport': 'Football',
-            'clinical_site': 'Clinic B'
-        })
-        data = json.loads(response.content)
-        stats = data.get('stats')
-
-        # No report matches Football + Clinic B
-        self.assertEqual(stats.get('grand_total_served'), 0)
 
     def test_staff_no_filters(self):
         response = self.post_fetch(self.staff_user, {})
