@@ -30,7 +30,8 @@ load_dotenv(BASE_DIR.parent / '.env')
 SECRET_KEY = os.environ.get('DJANGO_SECRET_KEY')
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = False
+# Read DEBUG from environment so .env DEBUG=True is respected during development
+DEBUG = os.environ.get('DEBUG', 'False').lower() in ('1', 'true', 'yes')
 
 if DEBUG:
     ALLOWED_HOSTS = []
@@ -202,3 +203,24 @@ SITE_ID = 1
 
 # Use custom social account adapter to restrict to UA email domains
 SOCIALACCOUNT_ADAPTER = 'core.adapters.CustomSocialAccountAdapter'
+
+# CSRF and cookie security settings
+# Allow browsers to send cookies with cross-origin XHR when configured
+CORS_ALLOW_CREDENTIALS = True
+
+# Trusted origins (comma-separated) can be set via env for deployed domains
+# Example: CSRF_TRUSTED_ORIGINS='https://example.com,https://sub.example.com'
+CSRF_TRUSTED_ORIGINS = [x for x in os.environ.get('CSRF_TRUSTED_ORIGINS', '').split(',') if x]
+
+# Use secure cookies when not in DEBUG (i.e., in production with HTTPS)
+CSRF_COOKIE_SECURE = not DEBUG
+SESSION_COOKIE_SECURE = not DEBUG
+
+# Sane defaults for SameSite to reduce CSRF exposure while allowing normal
+# navigation-based logins (use 'Strict' if you only need same-site access)
+CSRF_COOKIE_SAMESITE = os.environ.get('CSRF_COOKIE_SAMESITE', 'Lax')
+SESSION_COOKIE_SAMESITE = os.environ.get('SESSION_COOKIE_SAMESITE', 'Lax')
+
+# Extra security headers (recommended for FERPA-sensitive apps)
+SECURE_BROWSER_XSS_FILTER = True
+SECURE_CONTENT_TYPE_NOSNIFF = True

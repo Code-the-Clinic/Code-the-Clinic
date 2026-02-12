@@ -52,7 +52,8 @@
 
     <h2>Weekly Clinical Report</h2>
 
-    <form id="clinic-form">
+    <form id="clinic-form" method="post">
+      {% csrf_token %}
       <!-- Personal Information Section -->
       <div class="section-title">Personal Information</div>
       <div class="form-row">
@@ -174,6 +175,24 @@
       ✗ Error submitting report. Please try again.
     </div>
   <script>
+    // Helper to read cookie (to send CSRF token in XHR headers)
+    function getCookie(name) {
+      let cookieValue = null;
+      if (document.cookie && document.cookie !== '') {
+        const cookies = document.cookie.split(';');
+        for (let i = 0; i < cookies.length; i++) {
+          const cookie = cookies[i].trim();
+          if (cookie.substring(0, name.length + 1) === (name + '=')) {
+            cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+            break;
+          }
+        }
+      }
+      return cookieValue;
+    }
+
+    const csrftoken = getCookie('csrftoken');
+
     document.getElementById("clinic-form").onsubmit = async (e) => {
       e.preventDefault();
       const data = Object.fromEntries(new FormData(e.target));
@@ -181,7 +200,9 @@
       try {
         const res = await fetch("/clinic-reports/api/submit/", {
           method: "POST",
-          headers: { "Content-Type": "application/json" },
+          headers: { "Content-Type": "application/json", "X-CSRFToken": csrftoken },
+          // Ensure browser sends session cookie for CSRF/session-authenticated requests
+          credentials: 'same-origin',
           body: JSON.stringify(data)
         });
 
