@@ -5,15 +5,19 @@ from django.views.decorators.csrf import csrf_exempt
 from django.contrib.auth.decorators import login_required
 from django.core.validators import validate_email
 from django.core.exceptions import ValidationError
+from django.http import HttpResponseBadRequest
 import json
 from .models import ClinicReport
+from .models import Sport
 
 # Security note: Student form submissions require authentication because we want to protect against DDoS attacks.
 # This way, only verified students and faculty can submit the form and create new traffic to the database.
 @login_required
 def form_view(request):
     """Render the clinic report form. Requires an authenticated user."""
-    return render(request, 'clinic_reports/form.html')
+    sports = Sport.objects.filter(active=True).values('id', 'name')
+    context = {'sports': sports}
+    return render(request, 'clinic_reports/form.html', context)
 
 
 @csrf_exempt # TODO: Remove this and use CSRF tokens to tighten security before launching in production!
@@ -53,11 +57,17 @@ def submit_report(request):
         except (TypeError, ValueError):
             interacted_bool = str(interacted).strip().lower() in {"1", "true", "True", "yes", "Yes", "y", "Y"}
 
+        sport_id = data.get('sport')
+        try:
+            sport = Sport.objects.get(id=sport_id, active=True)
+        except Sport.DoesNotExist:
+            return JsonResponse({'success': False, 'error': 'Invalid sport selection'}, status=400)
+
         report = ClinicReport.objects.create(
             first_name=data.get('first_name'),
             last_name=data.get('last_name'),
             email=data.get('email'),
-            sport=data.get('sport'),
+            sport=sport,
             immediate_emergency_care=int(data.get('immediate_emergency_care', 0)),
             musculoskeletal_exam=int(data.get('musculoskeletal_exam', 0)),
             non_musculoskeletal_exam=int(data.get('non_musculoskeletal_exam', 0)),

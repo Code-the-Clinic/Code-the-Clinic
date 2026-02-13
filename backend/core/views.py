@@ -50,7 +50,8 @@ def fetch_data(request):
             clinic_reports = clinic_reports.filter(email=filters.get('email'))
 
         if filters.get('sport'):
-            clinic_reports = clinic_reports.filter(sport=filters.get('sport'))
+            # Filter by sport name, not ID, because this will make the API more intuitive to use
+            clinic_reports = clinic_reports.filter(sport__name=filters.get('sport'))
 
         # Get summary stats
         stats = clinic_reports.annotate(

@@ -1,5 +1,5 @@
 from django.contrib import admin
-from .models import ClinicReport
+from .models import ClinicReport, Sport
 from django.http import HttpResponse
 from django.utils import timezone
 import openpyxl
@@ -35,7 +35,7 @@ def export_raw_data_to_excel(modeladmin, request, queryset):
             record.first_name,
             record.last_name,
             record.email,
-            record.sport,
+            record.sport.name,
             record.immediate_emergency_care,
             record.musculoskeletal_exam,
             record.non_musculoskeletal_exam,
@@ -68,3 +68,10 @@ class ClinicReportAdmin(admin.ModelAdmin):
     search_fields = ('first_name', 'last_name', 'email')
     list_filter = ('sport', 'created_at')
     actions = [export_raw_data_to_excel]
+
+
+@admin.register(Sport)
+class SportAdmin(admin.ModelAdmin):
+    list_display = ('name', 'active')
+    search_fields = ('name',)
+    list_filter = ('active',)

@@ -6,7 +6,7 @@ from types import SimpleNamespace
 from django.urls import reverse
 from django.contrib.auth import get_user_model
 from core.adapters import CustomSocialAccountAdapter
-from clinic_reports.models import ClinicReport
+from clinic_reports.models import ClinicReport, Sport
 
 User = get_user_model()
 
@@ -45,6 +45,12 @@ class AdapterDomainTests(TestCase):
 
 # TODO: Check that faculty dashboard view can't render without staff authentication
 class FetchDataTests(TestCase):
+    @classmethod
+    def setUpTestData(cls):
+        """Run once for the entire test class"""
+        cls.football, _ = Sport.objects.get_or_create(name='Football', defaults={'active': True})
+        cls.soccer, _ = Sport.objects.get_or_create(name='Soccer', defaults={'active': True})
+
     def setUp(self):
         self.client = Client()
         self.fetch_url = reverse('fetch_data')
@@ -66,7 +72,7 @@ class FetchDataTests(TestCase):
             first_name='Alice',
             last_name='Student',
             email='student@university.edu',
-            sport='Football',
+            sport=self.football,
             immediate_emergency_care=1,
             musculoskeletal_exam=2,
             non_musculoskeletal_exam=0,
@@ -82,7 +88,7 @@ class FetchDataTests(TestCase):
             first_name='Bob',
             last_name='Other',
             email='other@university.edu',
-            sport='Soccer',
+            sport=self.soccer,
             immediate_emergency_care=0,
             musculoskeletal_exam=1,
             non_musculoskeletal_exam=1,
@@ -98,7 +104,7 @@ class FetchDataTests(TestCase):
     def post_fetch(self, user, payload):
         self.client.force_login(user)
         response = self.client.post(
-            self.fetch_url,
+            self.fetch_url, # URL for fetch_data endpoint
             data=json.dumps(payload),
             content_type='application/json'
         )
