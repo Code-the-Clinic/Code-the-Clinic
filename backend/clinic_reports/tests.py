@@ -2,13 +2,20 @@ from django.test import TestCase, Client
 from django.contrib.auth import get_user_model
 from django.urls import reverse
 import json
-from clinic_reports.models import ClinicReport
+from clinic_reports.models import ClinicReport, Sport
 
 User = get_user_model() # Gets whatever Django user model we are using (the built in one or a custom one)
 
 
 class ClinicReportViewTests(TestCase):
+    @classmethod
+    def setUpTestData(cls):
+        """Run once for the entire test class"""
+        cls.football, _ = Sport.objects.get_or_create(name='Football', defaults={'active': True})
+        cls.inactive, _ = Sport.objects.get_or_create(name='Inactive', active=False)
+
     def setUp(self):
+        """Run before each test method"""
         self.client = Client()
         self.url = reverse('form')
         self.submit_url = reverse('submit_report')
@@ -19,7 +26,7 @@ class ClinicReportViewTests(TestCase):
             'first_name': 'Alice',
             'last_name': 'Example',
             'email': 'alice@university.edu',
-            'sport': 'Football',
+            'sport': self.football.id,  # Form submissions use sport ID as json value
             'immediate_emergency_care': 1,
             'musculoskeletal_exam': 2,
             'non_musculoskeletal_exam': 0,
@@ -38,7 +45,7 @@ class ClinicReportViewTests(TestCase):
         report = ClinicReport.objects.first()
         self.assertIsNotNone(report)
         self.assertEqual(report.first_name, 'Alice')
-        self.assertEqual(report.sport, 'Football')
+        self.assertEqual(report.sport, self.football)  # Compare with Sport object
 
     def test_invalid_email(self):
         self.client.force_login(self.user)
@@ -106,3 +113,30 @@ class ClinicReportViewTests(TestCase):
         body = json.loads(resp.content)
         self.assertTrue(body.get('success')) # Checks that the form sent back a "success" message
         self.assertEqual(ClinicReport.objects.count(), 1) # Checks new record added to DB
+
+    def test_form_shows_only_active_sports(self):
+        """Form should only display sports with active=True"""
+        self.client.force_login(self.user)
+        response = self.client.get(self.url)
+        # Football and Inactive objects were created at the beginning
+        # but only Football should show up in the response
+        self.assertContains(response, 'Football')
+        self.assertNotContains(response, 'Inactive')
+
+    def test_submit_with_invalid_sport_id(self):
+        """Submitting with non-existent sport ID should fail"""
+        self.client.force_login(self.user)
+        bad_payload = self.payload.copy()
+        bad_payload['sport'] = 99999  # Non-existent ID
+        resp = self.client.post(self.submit_url, data=json.dumps(bad_payload), content_type='application/json')
+        self.assertEqual(resp.status_code, 400)
+        self.assertEqual(ClinicReport.objects.count(), 0)
+
+    def test_submit_with_inactive_sport(self):
+        """Submitting with inactive sport ID should fail"""
+        self.client.force_login(self.user)
+        bad_payload = self.payload.copy()
+        bad_payload['sport'] = self.inactive.id
+        resp = self.client.post(self.submit_url, data=json.dumps(bad_payload), content_type='application/json')
+        self.assertEqual(resp.status_code, 400)
+        self.assertEqual(ClinicReport.objects.count(), 0)
