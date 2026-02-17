@@ -6,7 +6,7 @@ class UserActivityLoggingMiddleware:
     """Middleware that creates a UserActivity row for authenticated users.
 
     Adds a minimal footprint: logs path, IP and user agent. It only logs
-    requests for authenticated users to avoid noise, but can be adjusted.
+    requests for authenticated users to avoid noise
     """
 
     def __init__(self, get_response):
