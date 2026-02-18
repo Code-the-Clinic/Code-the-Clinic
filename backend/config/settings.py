@@ -34,12 +34,10 @@ SECRET_KEY = os.environ.get('DJANGO_SECRET_KEY')
 # Read DEBUG from environment so .env DEBUG=True is respected during development
 DEBUG = os.environ.get('DEBUG', 'False').lower() in ('1', 'true', 'yes')
 
-if DEBUG:
-    ALLOWED_HOSTS = []
-else:
-    # TODO: Add cloud host in production
-    # Allow local addresses to simulate production in test env
-    ALLOWED_HOSTS = ["localhost", "127.0.0.1", "0.0.0.0", "code-the-clinic-c8b8cxb8bgareygs.northcentralus-01.azurewebsites.net", "https://code-the-clinic-c8b8cxb8bgareygs.northcentralus-01.azurewebsites.net", ".azurewebsites.net"]
+
+# Parse comma-separated ALLOWED_HOSTS from environment
+allowed_hosts_str = os.environ.get("ALLOWED_HOSTS", "")
+ALLOWED_HOSTS = [h.strip() for h in allowed_hosts_str.split(",") if h.strip()]
 
 # Application definition
 
