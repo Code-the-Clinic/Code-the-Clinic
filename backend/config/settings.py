@@ -39,7 +39,7 @@ if DEBUG:
 else:
     # TODO: Add cloud host in production
     # Allow local addresses to simulate production in test env
-    ALLOWED_HOSTS = ["localhost", "127.0.0.1", "0.0.0.0"]
+    ALLOWED_HOSTS = ["localhost", "127.0.0.1", "0.0.0.0", "code-the-clinic-c8b8cxb8bgareygs.northcentralus-01.azurewebsites.net", "https://code-the-clinic-c8b8cxb8bgareygs.northcentralus-01.azurewebsites.net"]
 
 # Application definition
 
