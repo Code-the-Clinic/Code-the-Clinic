@@ -194,7 +194,7 @@ REST_FRAMEWORK = {
 SOCIALACCOUNT_PROVIDERS = {
     'microsoft': {
         'APP': {
-            'client_id': os.environ.get('AZURE_CLIENT_ID'),
+            'client_id': os.environ.get('MICROSOFT_LOGIN_CLIENT_ID'), # Same as azure client id but that name is reserved in Azure
             'secret': os.environ.get('AZURE_SECRET'),
         },
         'TENANT': os.environ.get('AZURE_TENANT_ID'), # TODO: Replace with UA's tenant in production
