@@ -22,4 +22,5 @@ RUN python manage.py collectstatic --noinput && \
 
 USER appuser
 
+EXPOSE 8000
 CMD ["gunicorn", "--worker-tmp-dir", "/dev/shm", "--bind", "0.0.0.0:8000", "--workers", "3", "config.wsgi:application"]
