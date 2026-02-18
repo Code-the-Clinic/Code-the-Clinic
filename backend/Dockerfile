@@ -18,8 +18,8 @@ RUN pip install --no-cache-dir -r requirements.txt
 COPY . .
 
 RUN python manage.py collectstatic --noinput && \
-    chown -R appuser:appgroup /app/staticfiles
+    chown -R appuser:appgroup /app
 
 USER appuser
 
-CMD ["gunicorn", "--bind", "0.0.0.0:8000", "--workers", "3", "config.wsgi:application"]
+CMD ["gunicorn", "--worker-tmp-dir", "/dev/shm", "--bind", "0.0.0.0:8000", "--workers", "3", "config.wsgi:application"]
