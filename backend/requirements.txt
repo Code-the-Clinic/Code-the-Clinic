@@ -7,3 +7,4 @@ django-allauth
 requests
 openpyxl
 whitenoise
+azure-identity

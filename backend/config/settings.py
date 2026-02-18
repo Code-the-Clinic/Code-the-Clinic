@@ -15,6 +15,7 @@ https://docs.djangoproject.com/en/5.2/ref/settings/
 from pathlib import Path
 import os
 from dotenv import load_dotenv
+from azure.identity import DefaultAzureCredential
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
@@ -94,16 +95,30 @@ WSGI_APPLICATION = 'config.wsgi.application'
 # Database
 # https://docs.djangoproject.com/en/5.2/ref/settings/#databases
 
+IS_IN_AZURE = 'WEBSITE_SITE_NAME' in os.environ # Check if the app is running in Azure
+
 DATABASES = {
     "default": {
         "ENGINE": "django.db.backends.postgresql",
         "NAME": os.getenv("POSTGRES_DB"),
         "USER": os.getenv("POSTGRES_USER"),
-        "PASSWORD": os.getenv("POSTGRES_PASSWORD"),
         "HOST": os.getenv("POSTGRES_HOST"),
         "PORT": os.getenv("POSTGRES_PORT", "5432"),
     }
 }
+
+if IS_IN_AZURE:
+    DATABASES['default']['OPTIONS'] = {'sslmode': 'require'}
+    try:
+        credential = DefaultAzureCredential()
+        # Request a token scoped specifically for Azure Database for PostgreSQL
+        token_response = credential.get_token("https://ossrdbms-aad.database.windows.net/.default")
+        DATABASES['default']['PASSWORD'] = token_response.token
+    except Exception as e:
+        print(f"Critical: Failed to acquire Entra ID token in Azure environment. Error: {e}")
+
+else:
+    DATABASES['default']['PASSWORD'] = os.getenv("POSTGRES_PASSWORD")
 
 # Password validation
 # https://docs.djangoproject.com/en/5.2/ref/settings/#auth-password-validators
