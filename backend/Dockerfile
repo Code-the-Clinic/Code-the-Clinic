@@ -24,4 +24,4 @@ USER appuser
 
 EXPOSE 8000
 ENV PORT=8000
-CMD ["sh", "-c", "gunicorn --worker-tmp-dir /dev/shm --bind 0.0.0.0:${PORT} --workers 3 --access-logfile - --error-logfile - --log-level debug config.wsgi:application"]
+CMD ["sh", "-c", "python manage.py migrate --noinput && gunicorn --worker-tmp-dir /dev/shm --bind 0.0.0.0:${PORT} --workers 3 --access-logfile - --error-logfile - --log-level debug config.wsgi:application"]
