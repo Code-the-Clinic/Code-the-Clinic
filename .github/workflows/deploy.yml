@@ -32,4 +32,4 @@ jobs:
           context: ./backend
           push: true
           # Define destination URL
-          tags: ghcr.io/supergeek57/athletic-dashboards:latest
+          tags: ghcr.io/${{ github.repository }}:${{ github.ref_name }}
