@@ -23,4 +23,5 @@ RUN python manage.py collectstatic --noinput && \
 USER appuser
 
 EXPOSE 8000
-CMD ["gunicorn", "--worker-tmp-dir", "/dev/shm", "--bind", "0.0.0.0:8000", "--workers", "3", "--access-logfile", "-", "--error-logfile", "-", "--log-level", "debug", "config.wsgi:application"]
+ENV PORT=8000
+CMD ["sh", "-c", "gunicorn --worker-tmp-dir /dev/shm --bind 0.0.0.0:${PORT} --workers 3 --access-logfile - --error-logfile - --log-level debug config.wsgi:application"]
