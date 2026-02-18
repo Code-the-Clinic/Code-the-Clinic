@@ -54,9 +54,14 @@ INSTALLED_APPS = [
     'allauth',
     'allauth.account',
     'allauth.socialaccount',
+    'allauth.socialaccount.providers.microsoft',
     'core',
     'clinic_reports', # Clinic report form
 ]
+
+# For local dev without Azure creds, add dummy provider
+if not os.environ.get('AZURE_CLIENT_ID'):
+    INSTALLED_APPS.append('allauth.socialaccount.providers.dummy')
 
 MIDDLEWARE = [
     'corsheaders.middleware.CorsMiddleware',
@@ -197,14 +202,6 @@ SOCIALACCOUNT_PROVIDERS = {
         'AUTH_PARAMS': {'prompt': 'select_account'},
     }
 }
-
-# TODO: Remove this in production
-if not os.environ.get('AZURE_CLIENT_ID'):
-    # Use a dummy account for now since we don't have the Azure info
-    INSTALLED_APPS.append('allauth.socialaccount.providers.dummy')
-else:
-    # Use Azure
-    INSTALLED_APPS.append('allauth.socialaccount.providers.microsoft')
 
 # Frontend TODO: Change this after building out frontend for login page
 LOGIN_URL = '/accounts/microsoft/login/' # Skip allauth chooser, go straight to Microsoft
