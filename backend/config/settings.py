@@ -222,6 +222,9 @@ CORS_ALLOW_CREDENTIALS = True
 # Example: CSRF_TRUSTED_ORIGINS='https://example.com,https://sub.example.com'
 CSRF_TRUSTED_ORIGINS = [x for x in os.environ.get('CSRF_TRUSTED_ORIGINS', '').split(',') if x]
 
+# For Azure: recognize X-Forwarded-Proto header from reverse proxy to correctly detect HTTPS
+SECURE_PROXY_SSL_HEADER = ('HTTP_X_FORWARDED_PROTO', 'https')
+
 # Use secure cookies when not in DEBUG (i.e., in production with HTTPS)
 CSRF_COOKIE_SECURE = not DEBUG
 SESSION_COOKIE_SECURE = not DEBUG
