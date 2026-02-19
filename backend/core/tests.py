@@ -6,7 +6,7 @@ from types import SimpleNamespace
 from django.urls import reverse
 from django.contrib.auth import get_user_model
 from core.adapters import CustomSocialAccountAdapter
-from clinic_reports.models import ClinicReport
+from clinic_reports.models import ClinicReport, Sport
 
 User = get_user_model()
 
@@ -45,6 +45,12 @@ class AdapterDomainTests(TestCase):
 
 # TODO: Check that faculty dashboard view can't render without staff authentication
 class FetchDataTests(TestCase):
+    @classmethod
+    def setUpTestData(cls):
+        """Run once for the entire test class"""
+        cls.football, _ = Sport.objects.get_or_create(name='Football', defaults={'active': True})
+        cls.soccer, _ = Sport.objects.get_or_create(name='Soccer', defaults={'active': True})
+
     def setUp(self):
         self.client = Client()
         self.fetch_url = reverse('fetch_data')
@@ -66,8 +72,7 @@ class FetchDataTests(TestCase):
             first_name='Alice',
             last_name='Student',
             email='student@university.edu',
-            clinical_site='Clinic A',
-            sport='Football',
+            sport=self.football,
             immediate_emergency_care=1,
             musculoskeletal_exam=2,
             non_musculoskeletal_exam=0,
@@ -83,8 +88,7 @@ class FetchDataTests(TestCase):
             first_name='Bob',
             last_name='Other',
             email='other@university.edu',
-            clinical_site='Clinic B',
-            sport='Soccer',
+            sport=self.soccer,
             immediate_emergency_care=0,
             musculoskeletal_exam=1,
             non_musculoskeletal_exam=1,
@@ -100,7 +104,7 @@ class FetchDataTests(TestCase):
     def post_fetch(self, user, payload):
         self.client.force_login(user)
         response = self.client.post(
-            self.fetch_url,
+            self.fetch_url, # URL for fetch_data endpoint
             data=json.dumps(payload),
             content_type='application/json'
         )
@@ -154,28 +158,6 @@ class FetchDataTests(TestCase):
         self.assertEqual(stats.get('grand_total_served'), 4)
         self.assertEqual(stats.get('total_musculoskeletal_exam'), 2)
         self.assertEqual(stats.get('total_interacted_hcps'), 1)
-
-    def test_staff_filter_by_clinical_site(self):
-        response = self.post_fetch(self.staff_user, {'clinical_site': 'Clinic B'})
-        data = json.loads(response.content)
-        stats = data.get('stats')
-
-        # Clinic B report weekly total = 0+1+1+0+1+0+0+0+0 = 3
-        self.assertEqual(stats.get('grand_total_served'), 3)
-        self.assertEqual(stats.get('total_rehabilitation_reconditioning'), 1)
-        self.assertAlmostEqual(stats.get('average_patients_per_week'), 3)
-        self.assertEqual(stats.get('total_interacted_hcps'), 0)
-
-    def test_staff_filter_by_sport_and_clinical_site(self):
-        response = self.post_fetch(self.staff_user, {
-            'sport': 'Football',
-            'clinical_site': 'Clinic B'
-        })
-        data = json.loads(response.content)
-        stats = data.get('stats')
-
-        # No report matches Football + Clinic B
-        self.assertEqual(stats.get('grand_total_served'), 0)
 
     def test_staff_no_filters(self):
         response = self.post_fetch(self.staff_user, {})

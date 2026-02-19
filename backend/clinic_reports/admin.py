@@ -1,5 +1,5 @@
 from django.contrib import admin
-from .models import ClinicReport
+from .models import ClinicReport, Sport
 from django.http import HttpResponse
 from django.utils import timezone
 import openpyxl
@@ -15,7 +15,7 @@ def export_raw_data_to_excel(modeladmin, request, queryset):
     ws.title = "Form Contents"
 
     # Define columns to export (TODO: Add "interaction with other health providers")
-    columns = ['first_name', 'last_name', 'email', 'clinical_site', 'sport',
+    columns = ['first_name', 'last_name', 'email', 'sport',
                'immediate_emergency_care', 'musculoskeletal_exam', 'non_musculoskeletal_exam',
                'taping_bracing', 'rehabilitation_reconditioning', 'modalities',
                'pharmacology', 'injury_illness_prevention', 'non_sport_patient',
@@ -35,8 +35,7 @@ def export_raw_data_to_excel(modeladmin, request, queryset):
             record.first_name,
             record.last_name,
             record.email,
-            record.clinical_site,
-            record.sport,
+            record.sport.name,
             record.immediate_emergency_care,
             record.musculoskeletal_exam,
             record.non_musculoskeletal_exam,
@@ -65,7 +64,14 @@ export_raw_data_to_excel.short_description = "Export selected records to Excel"
 
 @admin.register(ClinicReport)
 class ClinicReportAdmin(admin.ModelAdmin):
-    list_display = ('first_name', 'last_name', 'sport', 'clinical_site', 'created_at')
+    list_display = ('first_name', 'last_name', 'sport', 'created_at')
     search_fields = ('first_name', 'last_name', 'email')
-    list_filter = ('sport', 'clinical_site', 'created_at')
+    list_filter = ('sport', 'created_at')
     actions = [export_raw_data_to_excel]
+
+
+@admin.register(Sport)
+class SportAdmin(admin.ModelAdmin):
+    list_display = ('name', 'active')
+    search_fields = ('name',)
+    list_filter = ('active',)

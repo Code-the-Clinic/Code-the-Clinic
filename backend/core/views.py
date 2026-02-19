@@ -32,7 +32,7 @@ def fetch_data(request):
     
     Authorization:
     - Non-staff users can only view their own email's data
-    - Staff users can filter by any email, sport, or clinical_site
+    - Staff users can filter by any email or sport
     """
     if not request.user.is_authenticated:
         # Throw a 403 Forbidden error if user is not logged in
@@ -50,10 +50,8 @@ def fetch_data(request):
             clinic_reports = clinic_reports.filter(email=filters.get('email'))
 
         if filters.get('sport'):
-            clinic_reports = clinic_reports.filter(sport=filters.get('sport'))
-            
-        if filters.get('clinical_site'):
-            clinic_reports = clinic_reports.filter(clinical_site=filters.get('clinical_site'))
+            # Filter by sport name, not ID, because this will make the API more intuitive to use
+            clinic_reports = clinic_reports.filter(sport__name=filters.get('sport'))
 
         # Get summary stats
         stats = clinic_reports.annotate(
