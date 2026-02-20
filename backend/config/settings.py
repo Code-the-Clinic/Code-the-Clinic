@@ -16,6 +16,21 @@ from pathlib import Path
 import os
 from dotenv import load_dotenv
 from azure.identity import DefaultAzureCredential
+import time
+
+class AzureDbToken:
+    def __init__(self):
+        self.token = None
+        self.expiry = 0
+        self.cred = DefaultAzureCredential()
+
+    def __str__(self):
+        # If token is missing or expiring in less than 5 mins, refresh it
+        if not self.token or self.expiry < (time.time() + 300):
+            token_obj = self.cred.get_token("https://ossrdbms-aad.database.windows.net/.default")
+            self.token = token_obj.token
+            self.expiry = token_obj.expires_on
+        return self.token
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
@@ -113,10 +128,7 @@ DATABASES = {
 if IS_IN_AZURE:
     DATABASES['default']['OPTIONS'] = {'sslmode': 'require'}
     try:
-        credential = DefaultAzureCredential()
-        # Request a token scoped specifically for Azure Database for PostgreSQL
-        token_response = credential.get_token("https://ossrdbms-aad.database.windows.net/.default")
-        DATABASES['default']['PASSWORD'] = token_response.token
+        DATABASES['default']['PASSWORD'] = AzureDbToken()
     except Exception as e:
         print(f"Critical: Failed to acquire Entra ID token in Azure environment. Error: {e}")
 
