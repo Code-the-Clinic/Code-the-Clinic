@@ -7,16 +7,113 @@ from django.db.models import Avg, Sum, F, Case, When, IntegerField, Value, Float
 from django.db.models.functions import Coalesce
 from django.core.exceptions import PermissionDenied
 import json
-from clinic_reports.models import ClinicReport
+from clinic_reports.models import ClinicReport, Sport
 
 # Security note: Viewing the faculty dashboard requires authentication
 @login_required
+@login_required
 def faculty_dashboard_view(request):
-    """Render the faculty/admin dashboard. Requires staff permission."""
+    """Faculty dashboard with heat map and pie chart"""
     if not request.user.is_staff:
         raise PermissionDenied("You don't have permission to access this page.")
-    return render(request, 'core/faculty_dashboard.html')
-
+    
+    # Get filter values
+    selected_sport = request.GET.get('sport')
+    selected_semester = request.GET.get('semester')
+    
+    # Base queryset for pie chart (filtered by both)
+    pie_reports = ClinicReport.objects.all()
+    if selected_semester:
+        pie_reports = pie_reports.filter(semester=selected_semester)
+    if selected_sport:
+        pie_reports = pie_reports.filter(sport__name=selected_sport)
+    
+    # Calculate pie chart totals
+    pie_totals = pie_reports.aggregate(
+        immediate=Sum('immediate_emergency_care') or 0,
+        musculoskeletal=Sum('musculoskeletal_exam') or 0,
+        non_musculoskeletal=Sum('non_musculoskeletal_exam') or 0,
+        taping=Sum('taping_bracing') or 0,
+        rehab=Sum('rehabilitation_reconditioning') or 0,
+        modalities=Sum('modalities') or 0,
+        pharmacology=Sum('pharmacology') or 0,
+        prevention=Sum('injury_illness_prevention') or 0,
+        non_sport=Sum('non_sport_patient') or 0,
+    )
+    
+    # Prepare pie chart data
+    pie_chart_data = []
+    for label, key in [
+        ('Immediate/Emergency', 'immediate'),
+        ('Musculoskeletal Exam', 'musculoskeletal'),
+        ('Non-Musculoskeletal', 'non_musculoskeletal'),
+        ('Taping/Bracing', 'taping'),
+        ('Rehabilitation', 'rehab'),
+        ('Modalities', 'modalities'),
+        ('Pharmacology', 'pharmacology'),
+        ('Injury Prevention', 'prevention'),
+        ('Non-Sport Patient', 'non_sport'),
+    ]:
+        value = pie_totals[key]
+        if value > 0:
+            pie_chart_data.append({'label': label, 'value': value})
+    
+    # Heat map data (always shows ALL sports, filtered only by semester)
+    heatmap_reports = ClinicReport.objects.all()
+    if selected_semester:
+        heatmap_reports = heatmap_reports.filter(semester=selected_semester)
+    
+    # Get all sports and categories
+    all_sports = Sport.objects.filter(clinicreport__isnull=False).distinct().order_by('name')
+    categories = [
+        ('Immediate/Emergency', 'immediate_emergency_care'),
+        ('Musculoskeletal Exam', 'musculoskeletal_exam'),
+        ('Non-Musculoskeletal', 'non_musculoskeletal_exam'),
+        ('Taping/Bracing', 'taping_bracing'),
+        ('Rehabilitation', 'rehabilitation_reconditioning'),
+        ('Modalities', 'modalities'),
+        ('Pharmacology', 'pharmacology'),
+        ('Injury Prevention', 'injury_illness_prevention'),
+        ('Non-Sport Patient', 'non_sport_patient'),
+    ]
+    
+    # Build heat map matrix: rows=categories, cols=sports
+    heatmap_data = []
+    max_value = 0
+    for cat_label, cat_field in categories:
+        row = {'category': cat_label, 'values': []}
+        for sport in all_sports:
+            total = heatmap_reports.filter(sport=sport).aggregate(
+                val=Sum(cat_field)
+            )['val'] or 0
+            row['values'].append(total)
+            if total > max_value:
+                max_value = total
+        heatmap_data.append(row)
+    
+    # Get filter options
+    semesters = ClinicReport.objects.values_list('semester', flat=True).distinct().exclude(semester__isnull=True).order_by('-semester')
+    sports = Sport.objects.filter(clinicreport__isnull=False).distinct().values_list('name', flat=True).order_by('name')
+    
+    context = {
+        # Filters
+        'selected_sport': selected_sport,
+        'selected_semester': selected_semester,
+        'semesters': sorted(set(semesters)),
+        'sports': sorted(set(sports)),
+        
+        # Pie chart
+        'pie_chart_data': pie_chart_data,
+        'pie_total_patients': sum(item['value'] for item in pie_chart_data),
+        
+        # Heat map
+        'heatmap_categories': [c[0] for c in categories],
+        'heatmap_sports': list(all_sports.values_list('name', flat=True)),
+        'heatmap_matrix': heatmap_data,
+        'heatmap_max': max_value if max_value > 0 else 1,  # Avoid division by zero
+    }
+    
+    return render(request, 'core/faculty_dashboard.html', context)
 @login_required
 def student_dashboard_view(request):
     """Render the student dashboard."""
