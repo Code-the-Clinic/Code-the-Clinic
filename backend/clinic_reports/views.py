@@ -8,7 +8,7 @@ from django.core.exceptions import ValidationError
 from django.http import HttpResponseBadRequest
 import json
 from .models import ClinicReport
-from .models import Sport
+from .models import Sport, HealthcareProvider
 
 # Security note: Student form submissions require authentication because we want to protect against DDoS attacks.
 # This way, only verified students and faculty can submit the form and create new traffic to the database.
@@ -16,7 +16,8 @@ from .models import Sport
 def form_view(request):
     """Render the clinic report form. Requires an authenticated user."""
     sports = Sport.objects.filter(active=True).values('id', 'name')
-    context = {'sports': sports}
+    healthcare_providers = HealthcareProvider.objects.filter(active=True).values('id', 'name')
+    context = {'sports': sports, 'healthcare_providers': healthcare_providers}
     return render(request, 'clinic_reports/form.html', context)
 
 
@@ -44,6 +45,16 @@ def submit_report(request):
         missing = [f for f in required_fields if data.get(f) is None]
         if missing:
             return JsonResponse({'success': False, 'error': f'Missing required fields: {", ".join(missing)}'}, status=400)
+        
+        # Validate healthcare_provider if interacted_hcps is True
+        interacted = data.get('interacted_hcps')
+        try:
+            interacted_bool = bool(int(interacted))
+        except (TypeError, ValueError):
+            interacted_bool = str(interacted).strip().lower() in {"1", "true", "True", "yes", "Yes", "y", "Y"}
+        
+        if interacted_bool and not data.get('healthcare_provider'):
+            return JsonResponse({'success': False, 'error': 'Healthcare provider is required when you interacted with other healthcare professionals'}, status=400)
 
         # Email validation
         try:
@@ -51,17 +62,20 @@ def submit_report(request):
         except ValidationError:
             return JsonResponse({'success': False, 'error': 'Invalid email address'}, status=400)
 
-        interacted = data.get('interacted_hcps')
-        try:
-            interacted_bool = bool(int(interacted))
-        except (TypeError, ValueError):
-            interacted_bool = str(interacted).strip().lower() in {"1", "true", "True", "yes", "Yes", "y", "Y"}
-
         sport_id = data.get('sport')
         try:
             sport = Sport.objects.get(id=sport_id, active=True)
         except Sport.DoesNotExist:
             return JsonResponse({'success': False, 'error': 'Invalid sport selection'}, status=400)
+        
+        # Get healthcare provider if specified
+        healthcare_provider = None
+        if interacted_bool:
+            provider_id = data.get('healthcare_provider')
+            try:
+                healthcare_provider = HealthcareProvider.objects.get(id=provider_id, active=True)
+            except HealthcareProvider.DoesNotExist:
+                return JsonResponse({'success': False, 'error': 'Invalid healthcare provider selection'}, status=400)
 
         report = ClinicReport.objects.create(
             first_name=data.get('first_name'),
@@ -77,7 +91,8 @@ def submit_report(request):
             pharmacology=int(data.get('pharmacology', 0)),
             injury_illness_prevention=int(data.get('injury_illness_prevention', 0)),
             non_sport_patient=int(data.get('non_sport_patient', 0)),
-            interacted_hcps=interacted_bool
+            interacted_hcps=interacted_bool,
+            healthcare_provider=healthcare_provider
         )
         return JsonResponse({'success': True, 'id': report.id})
     except Exception as e:
