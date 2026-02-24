@@ -2,7 +2,7 @@ from django.test import TestCase, Client, override_settings
 from django.contrib.auth import get_user_model
 from django.urls import reverse
 import json
-from clinic_reports.models import ClinicReport, Sport
+from clinic_reports.models import ClinicReport, Sport, HealthcareProvider
 
 User = get_user_model() # Gets whatever Django user model we are using (the built in one or a custom one)
 
@@ -13,6 +13,9 @@ class ClinicReportViewTests(TestCase):
         """Run once for the entire test class"""
         cls.football, _ = Sport.objects.get_or_create(name='Football', defaults={'active': True})
         cls.inactive, _ = Sport.objects.get_or_create(name='Inactive', active=False)
+        cls.physician, _ = HealthcareProvider.objects.get_or_create(name='Physician (MD/DO)', defaults={'active': True})
+        cls.physical_therapist, _ = HealthcareProvider.objects.get_or_create(name='Physical Therapist (PT)', defaults={'active': True})
+        cls.inactive_provider, _ = HealthcareProvider.objects.get_or_create(name='Inactive Provider', active=False)
 
     def setUp(self):
         """Run before each test method"""
@@ -37,6 +40,25 @@ class ClinicReportViewTests(TestCase):
             'injury_illness_prevention': 0,
             'non_sport_patient': 0,
             'interacted_hcps': 0,
+        }
+
+        # Payload with healthcare provider interaction
+        self.payload_with_hcp = {
+            'first_name': 'Bob',
+            'last_name': 'Student',
+            'email': 'bob@university.edu',
+            'sport': self.football.id,
+            'immediate_emergency_care': 0,
+            'musculoskeletal_exam': 1,
+            'non_musculoskeletal_exam': 0,
+            'taping_bracing': 0,
+            'rehabilitation_reconditioning': 1,
+            'modalities': 0,
+            'pharmacology': 0,
+            'injury_illness_prevention': 0,
+            'non_sport_patient': 0,
+            'interacted_hcps': 1,
+            'healthcare_provider': self.physician.id,
         }
 
     def test_data_retrieval(self):
@@ -141,3 +163,119 @@ class ClinicReportViewTests(TestCase):
         resp = self.client.post(self.submit_url, data=json.dumps(bad_payload), content_type='application/json')
         self.assertEqual(resp.status_code, 400)
         self.assertEqual(ClinicReport.objects.count(), 0)
+
+    def test_healthcare_provider_str(self):
+        """Test string representation of HealthcareProvider"""
+        self.assertEqual(str(self.physician), 'Physician (MD/DO)')
+
+    def test_submit_with_healthcare_provider(self):
+        """Successfully submit a report with healthcare provider interaction"""
+        self.client.force_login(self.user)
+        resp = self.client.post(self.submit_url, data=json.dumps(self.payload_with_hcp), content_type='application/json')
+        self.assertEqual(resp.status_code, 200)
+        body = json.loads(resp.content)
+        self.assertTrue(body.get('success'))
+        
+        report = ClinicReport.objects.get(email='bob@university.edu')
+        self.assertIsNotNone(report)
+        self.assertTrue(report.interacted_hcps)
+        self.assertEqual(report.healthcare_provider, self.physician)
+
+    def test_submit_without_healthcare_provider(self):
+        """Successfully submit a report without healthcare provider interaction"""
+        self.client.force_login(self.user)
+        payload_no_hcp = self.payload.copy()
+        payload_no_hcp['email'] = 'nohcp@university.edu'
+        payload_no_hcp['interacted_hcps'] = 0
+        resp = self.client.post(self.submit_url, data=json.dumps(payload_no_hcp), content_type='application/json')
+        self.assertEqual(resp.status_code, 200)
+        body = json.loads(resp.content)
+        self.assertTrue(body.get('success'))
+        
+        report = ClinicReport.objects.get(email='nohcp@university.edu')
+        self.assertIsNotNone(report)
+        self.assertFalse(report.interacted_hcps)
+        self.assertIsNone(report.healthcare_provider)
+
+    def test_interacted_hcps_true_requires_provider(self):
+        """When interacted_hcps is True, healthcare_provider is required"""
+        self.client.force_login(self.user)
+        bad_payload = self.payload_with_hcp.copy()
+        del bad_payload['healthcare_provider']  # Remove healthcare_provider
+        resp = self.client.post(self.submit_url, data=json.dumps(bad_payload), content_type='application/json')
+        self.assertEqual(resp.status_code, 400)
+        body = json.loads(resp.content)
+        self.assertFalse(body.get('success'))
+        self.assertIn('Healthcare provider is required', body.get('error', ''))
+        self.assertEqual(ClinicReport.objects.count(), 0)
+
+    def test_submit_with_invalid_provider_id(self):
+        """Submitting with non-existent healthcare provider ID should fail"""
+        self.client.force_login(self.user)
+        bad_payload = self.payload_with_hcp.copy()
+        bad_payload['healthcare_provider'] = 99999  # Non-existent ID
+        resp = self.client.post(self.submit_url, data=json.dumps(bad_payload), content_type='application/json')
+        self.assertEqual(resp.status_code, 400)
+        body = json.loads(resp.content)
+        self.assertFalse(body.get('success'))
+        self.assertIn('Invalid healthcare provider', body.get('error', ''))
+        self.assertEqual(ClinicReport.objects.count(), 0)
+
+    def test_submit_with_inactive_provider(self):
+        """Submitting with inactive healthcare provider ID should fail"""
+        self.client.force_login(self.user)
+        bad_payload = self.payload_with_hcp.copy()
+        bad_payload['healthcare_provider'] = self.inactive_provider.id
+        resp = self.client.post(self.submit_url, data=json.dumps(bad_payload), content_type='application/json')
+        self.assertEqual(resp.status_code, 400)
+        body = json.loads(resp.content)
+        self.assertFalse(body.get('success'))
+        self.assertIn('Invalid healthcare provider', body.get('error', ''))
+        self.assertEqual(ClinicReport.objects.count(), 0)
+
+    def test_form_shows_only_active_providers(self):
+        """Form should only display healthcare providers with active=True"""
+        self.client.force_login(self.user)
+        response = self.client.get(self.url)
+        # Check active providers are shown
+        self.assertContains(response, 'Physician (MD/DO)')
+        self.assertContains(response, 'Physical Therapist (PT)')
+        # Check inactive provider is not shown
+        self.assertNotContains(response, 'Inactive Provider')
+
+    def test_healthcare_provider_optional_when_no_interaction(self):
+        """Healthcare provider can be omitted when interacted_hcps is False"""
+        self.client.force_login(self.user)
+        # Payload with interacted_hcps=0 and healthcare_provider specified (should be ignored)
+        payload = self.payload.copy()
+        payload['email'] = 'optional@university.edu'
+        payload['healthcare_provider'] = self.physician.id
+        
+        resp = self.client.post(self.submit_url, data=json.dumps(payload), content_type='application/json')
+        self.assertEqual(resp.status_code, 200)
+        
+        report = ClinicReport.objects.get(email='optional@university.edu')
+        self.assertIsNotNone(report)
+        self.assertFalse(report.interacted_hcps)
+
+    def test_multiple_provider_types(self):
+        """Test submitting reports with different healthcare provider types"""
+        self.client.force_login(self.user)
+        
+        # Submit with physician
+        resp1 = self.client.post(self.submit_url, data=json.dumps(self.payload_with_hcp), content_type='application/json')
+        self.assertEqual(resp1.status_code, 200)
+        
+        # Submit with physical therapist
+        payload_pt = self.payload_with_hcp.copy()
+        payload_pt['email'] = 'different@university.edu'
+        payload_pt['healthcare_provider'] = self.physical_therapist.id
+        resp2 = self.client.post(self.submit_url, data=json.dumps(payload_pt), content_type='application/json')
+        self.assertEqual(resp2.status_code, 200)
+        
+        # Verify both reports were created with correct providers
+        self.assertEqual(ClinicReport.objects.count(), 2)
+        physician_report = ClinicReport.objects.get(email='bob@university.edu')
+        pt_report = ClinicReport.objects.get(email='different@university.edu')
+        self.assertEqual(physician_report.healthcare_provider, self.physician)
+        self.assertEqual(pt_report.healthcare_provider, self.physical_therapist)
