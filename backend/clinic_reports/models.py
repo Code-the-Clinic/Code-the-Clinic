@@ -11,6 +11,14 @@ class Sport(models.Model):
         return f"{self.name}"
 
 
+class HealthcareProvider(models.Model):
+    name = models.CharField(max_length=100, unique=True)
+    active = models.BooleanField(default=True)
+
+    def __str__(self):
+        return f"{self.name}"
+
+
 class ClinicReport(models.Model):
 
     first_name = models.CharField(max_length=100)
@@ -31,6 +39,8 @@ class ClinicReport(models.Model):
     # Did the student interact with other healthcare providers this week?
     interacted_hcps = models.BooleanField(default=False,
                                           verbose_name="Interacted with other Health Care Professionals this week?")
+    # Which healthcare provider did they interact with?
+    healthcare_provider = models.ForeignKey(HealthcareProvider, on_delete=models.PROTECT, null=True, blank=True)
     
     created_at = models.DateTimeField(auto_now_add=True)
 

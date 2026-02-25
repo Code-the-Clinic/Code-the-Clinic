@@ -154,6 +154,19 @@
         </div>
       </div>
 
+      <!-- Healthcare Provider Selection - shown only when interacted_hcps is Yes -->
+      <div class="form-row full" id="healthcare-provider-section" style="display:none;">
+        <div class="form-group">
+          <label for="healthcare_provider">Which healthcare professional did you primarily interact with?</label>
+          <select id="healthcare_provider" name="healthcare_provider">
+            <option value="">Select a healthcare provider</option>
+            {% for provider in healthcare_providers %}
+              <option value="{{ provider.id }}">{{ provider.name }}</option>
+            {% endfor %}
+          </select>
+        </div>
+      </div>
+
       <button class="btn-primary" type="submit">Submit Report</button>
     </form>
 
@@ -182,6 +195,24 @@
 
     const csrftoken = getCookie('csrftoken');
 
+    // Show/hide healthcare provider dropdown based on interacted_hcps selection
+    const hcpRadios = document.querySelectorAll('input[name="interacted_hcps"]');
+    const providerSection = document.getElementById('healthcare-provider-section');
+    const providerSelect = document.getElementById('healthcare_provider');
+
+    hcpRadios.forEach(radio => {
+      radio.addEventListener('change', function() {
+        if (this.value === '1') {
+          providerSection.style.display = 'block';
+          providerSelect.setAttribute('required', 'required');
+        } else {
+          providerSection.style.display = 'none';
+          providerSelect.removeAttribute('required');
+          providerSelect.value = ''; // Clear selection
+        }
+      });
+    });
+
     document.getElementById("clinic-form").onsubmit = async (e) => {
       e.preventDefault();
       const data = Object.fromEntries(new FormData(e.target));
@@ -209,6 +240,7 @@
           document.getElementById("success-message").style.display = "block";
           document.getElementById("error-message").style.display = "none";
           e.target.reset();
+          providerSection.style.display = 'none'; // Hide provider section on reset
           setTimeout(() => {
             document.getElementById("success-message").style.display = "none";
           }, 3000);
