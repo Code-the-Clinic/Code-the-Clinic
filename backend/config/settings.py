@@ -75,7 +75,7 @@ INSTALLED_APPS = [
 ]
 
 # For local dev without Azure creds, add dummy provider
-if not os.environ.get('AZURE_CLIENT_ID'):
+if not os.environ.get('MICROSOFT_LOGIN_CLIENT_ID'):
     INSTALLED_APPS.append('allauth.socialaccount.providers.dummy')
 
 MIDDLEWARE = [
@@ -215,8 +215,25 @@ SOCIALACCOUNT_PROVIDERS = {
     }
 }
 
-# Frontend TODO: Change this after building out frontend for login page
-LOGIN_URL = '/accounts/microsoft/login/' # Skip allauth chooser, go straight to Microsoft
+# For local dev without Azure creds, add dummy provider config
+# TODO: Potentially remove this before final production cloud deployment
+if not os.environ.get('MICROSOFT_LOGIN_CLIENT_ID'):
+    SOCIALACCOUNT_PROVIDERS['dummy'] = {}
+
+
+# Helper function to determine LOGIN_URL based on Azure credentials
+def get_login_url():
+    """Determine the login URL based on whether Azure credentials are configured."""
+    if os.environ.get('MICROSOFT_LOGIN_CLIENT_ID'):
+        return '/accounts/microsoft/login/'
+    else:
+        return '/accounts/login/'  # Show provider chooser when no Azure creds
+
+
+# When Azure credentials are present, skip allauth chooser and go straight to Microsoft
+# Otherwise, show the provider chooser to allow dummy login
+LOGIN_URL = get_login_url()
+    
 LOGIN_REDIRECT_URL = '/' # Redirect to homepage after login
 LOGOUT_REDIRECT_URL = '/' # Redirect to homepage after logout
 

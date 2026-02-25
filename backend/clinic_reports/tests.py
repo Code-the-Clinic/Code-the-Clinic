@@ -1,4 +1,4 @@
-from django.test import TestCase, Client
+from django.test import TestCase, Client, override_settings
 from django.contrib.auth import get_user_model
 from django.urls import reverse
 import json
@@ -80,6 +80,7 @@ class ClinicReportViewTests(TestCase):
         report = ClinicReport.objects.get(first_name='Alice')
         self.assertIn('<script>', report.last_name)
 
+    @override_settings(LOGIN_URL='/accounts/microsoft/login/') # Simulate production situation (Azure credentials are available, so redirect to microsoft login) in test env
     def test_no_form_if_not_authenticated(self):
         # Use reverse to avoid hardcoding URLs
         resp = self.client.get(self.url)

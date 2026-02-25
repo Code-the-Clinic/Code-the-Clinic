@@ -121,7 +121,9 @@ def student_dashboard_view(request):
 
 def home_view(request):
     """Render the homepage."""
-    return render(request, 'core/home.html')
+    from django.conf import settings
+    context = {'login_url': settings.LOGIN_URL}
+    return render(request, 'core/home.html', context)
 
 @require_http_methods(["POST"])
 def fetch_data(request):
