@@ -4,7 +4,7 @@ name: Build and Push to GHCR
 on:
   push:
     branches:
-      - holland-cloud-migration
+      - main
 
 jobs:
   build-and-push:
