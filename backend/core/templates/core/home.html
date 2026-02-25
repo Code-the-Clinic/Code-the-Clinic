@@ -29,7 +29,7 @@
     <div class="section-title">Get Started</div>
     <div class="centered">
         <p class="muted">Sign in with myBama to submit reports and view dashboards.</p>
-        <a class="btn-primary" href="{% provider_login_url 'microsoft' %}">Login with myBama</a>
+        <a class="btn-primary" href="{{ login_url }}">Login with myBama</a>
     </div>
 {% endif %}
 {% endblock %}

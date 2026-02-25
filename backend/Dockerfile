@@ -18,8 +18,10 @@ RUN pip install --no-cache-dir -r requirements.txt
 COPY . .
 
 RUN python manage.py collectstatic --noinput && \
-    chown -R appuser:appgroup /app/staticfiles
+    chown -R appuser:appgroup /app
 
 USER appuser
 
-CMD ["python", "manage.py", "runserver", "0.0.0.0:8000"]
+EXPOSE 8000
+ENV PORT=8000
+CMD ["sh", "-c", "python manage.py migrate --noinput && gunicorn --worker-tmp-dir /dev/shm --bind 0.0.0.0:${PORT} --workers 3 --access-logfile - --error-logfile - --log-level debug config.wsgi:application"]

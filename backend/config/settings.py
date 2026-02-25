@@ -15,6 +15,22 @@ https://docs.djangoproject.com/en/5.2/ref/settings/
 from pathlib import Path
 import os
 from dotenv import load_dotenv
+from azure.identity import DefaultAzureCredential
+import time
+
+class AzureDbToken:
+    def __init__(self):
+        self.token = None
+        self.expiry = 0
+        self.cred = DefaultAzureCredential()
+
+    def __str__(self):
+        # If token is missing or expiring in less than 5 mins, refresh it
+        if not self.token or self.expiry < (time.time() + 300):
+            token_obj = self.cred.get_token("https://ossrdbms-aad.database.windows.net/.default")
+            self.token = token_obj.token
+            self.expiry = token_obj.expires_on
+        return self.token
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
@@ -33,12 +49,10 @@ SECRET_KEY = os.environ.get('DJANGO_SECRET_KEY')
 # Read DEBUG from environment so .env DEBUG=True is respected during development
 DEBUG = os.environ.get('DEBUG', 'False').lower() in ('1', 'true', 'yes')
 
-if DEBUG:
-    ALLOWED_HOSTS = []
-else:
-    # TODO: Add cloud host in production
-    # Allow local addresses to simulate production in test env
-    ALLOWED_HOSTS = ["localhost", "127.0.0.1", "0.0.0.0"]
+
+# Parse comma-separated ALLOWED_HOSTS from environment
+allowed_hosts_str = os.environ.get("ALLOWED_HOSTS", "")
+ALLOWED_HOSTS = [h.strip() for h in allowed_hosts_str.split(",") if h.strip()]
 
 # Application definition
 
@@ -55,9 +69,14 @@ INSTALLED_APPS = [
     'allauth',
     'allauth.account',
     'allauth.socialaccount',
+    'allauth.socialaccount.providers.microsoft',
     'core',
     'clinic_reports', # Clinic report form
 ]
+
+# For local dev without Azure creds, add dummy provider
+if not os.environ.get('MICROSOFT_LOGIN_CLIENT_ID'):
+    INSTALLED_APPS.append('allauth.socialaccount.providers.dummy')
 
 MIDDLEWARE = [
     'corsheaders.middleware.CorsMiddleware',
@@ -94,16 +113,27 @@ WSGI_APPLICATION = 'config.wsgi.application'
 # Database
 # https://docs.djangoproject.com/en/5.2/ref/settings/#databases
 
+IS_IN_AZURE = 'WEBSITE_SITE_NAME' in os.environ # Check if the app is running in Azure
+
 DATABASES = {
     "default": {
         "ENGINE": "django.db.backends.postgresql",
         "NAME": os.getenv("POSTGRES_DB"),
         "USER": os.getenv("POSTGRES_USER"),
-        "PASSWORD": os.getenv("POSTGRES_PASSWORD"),
         "HOST": os.getenv("POSTGRES_HOST"),
         "PORT": os.getenv("POSTGRES_PORT", "5432"),
     }
 }
+
+if IS_IN_AZURE:
+    DATABASES['default']['OPTIONS'] = {'sslmode': 'require'}
+    try:
+        DATABASES['default']['PASSWORD'] = AzureDbToken()
+    except Exception as e:
+        print(f"Critical: Failed to acquire Entra ID token in Azure environment. Error: {e}")
+
+else:
+    DATABASES['default']['PASSWORD'] = os.getenv("POSTGRES_PASSWORD")
 
 # Password validation
 # https://docs.djangoproject.com/en/5.2/ref/settings/#auth-password-validators
@@ -176,7 +206,7 @@ REST_FRAMEWORK = {
 SOCIALACCOUNT_PROVIDERS = {
     'microsoft': {
         'APP': {
-            'client_id': os.environ.get('AZURE_CLIENT_ID'),
+            'client_id': os.environ.get('MICROSOFT_LOGIN_CLIENT_ID'), # Same as azure client id but that name is reserved in Azure
             'secret': os.environ.get('AZURE_SECRET'),
         },
         'TENANT': os.environ.get('AZURE_TENANT_ID'), # TODO: Replace with UA's tenant in production
@@ -185,16 +215,25 @@ SOCIALACCOUNT_PROVIDERS = {
     }
 }
 
-# TODO: Remove this in production
-if not os.environ.get('AZURE_CLIENT_ID'):
-    # Use a dummy account for now since we don't have the Azure info
-    INSTALLED_APPS.append('allauth.socialaccount.providers.dummy')
-else:
-    # Use Azure
-    INSTALLED_APPS.append('allauth.socialaccount.providers.microsoft')
+# For local dev without Azure creds, add dummy provider config
+# TODO: Potentially remove this before final production cloud deployment
+if not os.environ.get('MICROSOFT_LOGIN_CLIENT_ID'):
+    SOCIALACCOUNT_PROVIDERS['dummy'] = {}
 
-# Frontend TODO: Change this after building out frontend for login page
-LOGIN_URL = '/accounts/microsoft/login/' # Skip allauth chooser, go straight to Microsoft
+
+# Helper function to determine LOGIN_URL based on Azure credentials
+def get_login_url():
+    """Determine the login URL based on whether Azure credentials are configured."""
+    if os.environ.get('MICROSOFT_LOGIN_CLIENT_ID'):
+        return '/accounts/microsoft/login/'
+    else:
+        return '/accounts/login/'  # Show provider chooser when no Azure creds
+
+
+# When Azure credentials are present, skip allauth chooser and go straight to Microsoft
+# Otherwise, show the provider chooser to allow dummy login
+LOGIN_URL = get_login_url()
+    
 LOGIN_REDIRECT_URL = '/' # Redirect to homepage after login
 LOGOUT_REDIRECT_URL = '/' # Redirect to homepage after logout
 
@@ -211,6 +250,9 @@ CORS_ALLOW_CREDENTIALS = True
 # Trusted origins (comma-separated) can be set via env for deployed domains
 # Example: CSRF_TRUSTED_ORIGINS='https://example.com,https://sub.example.com'
 CSRF_TRUSTED_ORIGINS = [x for x in os.environ.get('CSRF_TRUSTED_ORIGINS', '').split(',') if x]
+
+# For Azure: recognize X-Forwarded-Proto header from reverse proxy to correctly detect HTTPS
+SECURE_PROXY_SSL_HEADER = ('HTTP_X_FORWARDED_PROTO', 'https')
 
 # Use secure cookies when not in DEBUG (i.e., in production with HTTPS)
 CSRF_COOKIE_SECURE = not DEBUG

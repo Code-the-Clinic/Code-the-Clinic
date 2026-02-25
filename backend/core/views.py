@@ -55,7 +55,7 @@ def faculty_dashboard_view(request):
         ('Non-Sport Patient', 'non_sport'),
     ]:
         value = pie_totals[key]
-        if value > 0:
+        if value is not None and value > 0:
             pie_chart_data.append({'label': label, 'value': value})
     
     # Heat map data (always shows ALL sports, filtered only by semester)
@@ -121,7 +121,9 @@ def student_dashboard_view(request):
 
 def home_view(request):
     """Render the homepage."""
-    return render(request, 'core/home.html')
+    from django.conf import settings
+    context = {'login_url': settings.LOGIN_URL}
+    return render(request, 'core/home.html', context)
 
 @require_http_methods(["POST"])
 def fetch_data(request):
