@@ -7,6 +7,7 @@ from django.urls import reverse
 from django.contrib.auth import get_user_model
 from core.adapters import CustomSocialAccountAdapter
 from clinic_reports.models import ClinicReport, Sport
+from unittest.mock import patch
 
 User = get_user_model()
 
@@ -251,12 +252,14 @@ class DashboardViewTests(TestCase):
             is_staff=True
         )
 
+    @override_settings(LOGIN_URL='/accounts/microsoft/login/')
     def test_faculty_dashboard_requires_login(self):
         """Faculty dashboard should redirect anonymous users to login"""
         response = self.client.get(reverse('faculty_dashboard'))
         self.assertEqual(response.status_code, 302)
         self.assertIn('/accounts/microsoft/login/', response.url)
 
+    @override_settings(LOGIN_URL='/accounts/microsoft/login/')
     def test_student_dashboard_requires_login(self):
         """Student dashboard should redirect anonymous users to login"""
         response = self.client.get(reverse('student_dashboard'))
@@ -280,3 +283,22 @@ class DashboardViewTests(TestCase):
         self.client.force_login(self.student_user)
         response = self.client.get(reverse('faculty_dashboard'))
         self.assertEqual(response.status_code, 403) # Permission denied error
+
+
+class LoginUrlSettingsTests(TestCase):
+    """Test that LOGIN_URL is configured correctly based on Azure credentials"""
+    
+    @patch.dict(os.environ, {'MICROSOFT_LOGIN_CLIENT_ID': 'test-client-id'})
+    def test_login_url_with_azure_credentials(self):
+        """When Azure credentials are present, LOGIN_URL should go to Microsoft login"""
+        from config.settings import get_login_url
+        self.assertEqual(get_login_url(), '/accounts/microsoft/login/')
+    
+    @patch.dict(os.environ, {}, clear=False)
+    def test_login_url_without_azure_credentials(self):
+        """When Azure credentials are absent, LOGIN_URL should go to provider chooser"""
+        from config.settings import get_login_url
+        # Remove MICROSOFT_LOGIN_CLIENT_ID if it exists
+        os.environ.pop('MICROSOFT_LOGIN_CLIENT_ID', None)
+        self.assertEqual(get_login_url(), '/accounts/login/')
+

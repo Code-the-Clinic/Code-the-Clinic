@@ -4,6 +4,8 @@
 <html>
 <head>
     <title>{% block title %}Code the Clinic{% endblock %}</title>
+    <!-- Google Search Console verification -->
+    <meta name="google-site-verification" content="APjpUeeHk3PbQdpgrXMFFr57FOvo-ohp7o7z_injYTM" />
     <style>
         :root {
             --crimson: #9e1b32;
@@ -107,7 +109,7 @@
                         <a href="/dashboard/student/">Dashboard</a>
                     {% endif %}
                 {% else %}
-                    <a href="{% provider_login_url 'microsoft' %}">Dashboard</a>
+                    <a href="{{ login_url|default:'/accounts/login/' }}">Dashboard</a>
                 {% endif %}
                 <a href="/clinic-reports/">Submit Report</a>
                 {% if user.is_authenticated %}
@@ -116,7 +118,7 @@
                     <button type="submit">Logout</button>
                 </form>
                 {% else %}
-                <a href="{% provider_login_url 'microsoft' %}">Login</a>
+                <a href="{{ login_url|default:'/accounts/login/' }}">Login</a>
                 {% endif %}
             </div>
         </nav>

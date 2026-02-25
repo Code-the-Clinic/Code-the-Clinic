@@ -16,8 +16,23 @@ Including another URLconf
 """
 from django.contrib import admin
 from django.urls import path, include
+from django.http import JsonResponse
+from django.db import connection
+
+
+def _db_health_check(request):
+    try:
+        connection.ensure_connection()
+        with connection.cursor() as cursor:
+            cursor.execute("SELECT 1")
+            cursor.fetchone()
+        return JsonResponse({"status": "ok", "db": "ok"})
+    except Exception as exc:
+        return JsonResponse({"status": "error", "db": str(exc)}, status=500)
 
 urlpatterns = [
+    path('health/', lambda request: JsonResponse({"status": "ok"}), name='health'),
+    path('health/db/', lambda request: _db_health_check(request), name='health_db'),
     path('', include('core.urls')),
     path('admin/', admin.site.urls, name='admin'),
     path('accounts/', include('allauth.urls'), name='accounts'),
