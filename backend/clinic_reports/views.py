@@ -1,7 +1,6 @@
 from django.shortcuts import render
 from django.http import JsonResponse
 from django.views.decorators.http import require_http_methods
-from django.views.decorators.csrf import csrf_exempt
 from django.contrib.auth.decorators import login_required
 from django.core.validators import validate_email
 from django.core.exceptions import ValidationError
@@ -21,7 +20,6 @@ def form_view(request):
     return render(request, 'clinic_reports/form.html', context)
 
 
-@csrf_exempt # TODO: Remove this and use CSRF tokens to tighten security before launching in production!
 @require_http_methods(["POST"])
 def submit_report(request):
     """API endpoint to submit clinic report.
