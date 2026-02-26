@@ -127,32 +127,51 @@ def home_view(request):
 
 @require_http_methods(["POST"])
 def fetch_data(request):
-    """API endpoint to load data for dashboards (need to differentiate between students and faculty)
+    """API endpoint to load data for dashboards (faculty and student views)
+    
+    Accepts POST with JSON body containing optional filters:
+    - email: string (non-staff users forced to their own email)
+    - sport: string (sport name, e.g., "Football")
+    - semester: string ("Spring" or "Fall")
+    - year: int (e.g., 2024)
+    - week: int (1-16)
     
     Authorization:
     - Non-staff users can only view their own email's data
-    - Staff users can filter by any email or sport
+    - Staff users can filter by any email, sport, semester, year, or week
+    
+    Returns:
+    - stats: Aggregated totals across all filtered clinic reports
+    - by_sport: Breakdown of each care category by sport for heat maps
     """
     if not request.user.is_authenticated:
-        # Throw a 403 Forbidden error if user is not logged in
-        return JsonResponse({'success': False, 'error': 'Authentication required'})
+        return JsonResponse({'success': False, 'error': 'Authentication required'}, status=403)
+    
     try:
         filters = json.loads(request.body)
         clinic_reports = ClinicReport.objects.all()
 
         # Authorization: non-staff users can only view their own data
         if not request.user.is_staff:
-            # Force non-staff users to view only their own email
             filters['email'] = request.user.email
         
+        # Apply filters
         if filters.get('email'):
             clinic_reports = clinic_reports.filter(email=filters.get('email'))
 
         if filters.get('sport'):
-            # Filter by sport name, not ID, because this will make the API more intuitive to use
             clinic_reports = clinic_reports.filter(sport__name=filters.get('sport'))
+        
+        if filters.get('semester'):
+            clinic_reports = clinic_reports.filter(semester=filters.get('semester'))
+        
+        if filters.get('year'):
+            clinic_reports = clinic_reports.filter(created_at__year=filters.get('year'))
+        
+        if filters.get('week'):
+            clinic_reports = clinic_reports.filter(week=filters.get('week'))
 
-        # Get summary stats
+        # Get summary stats aggregated across all filtered records
         stats = clinic_reports.annotate(
             # Calculate the total patients served per row (1 row = 1 submitted form)
             weekly_total_patients=Coalesce(F('immediate_emergency_care'), 0) + 
@@ -197,10 +216,32 @@ def fetch_data(request):
             grand_total_served=Coalesce(Sum('weekly_total_patients'), Value(0))
         )
 
+        # Get breakdown by sport for heat map visualization
+        # Each sport shows totals for all 9 care categories
+        sports_data = {}
+        for sport in clinic_reports.values('sport__name').distinct():
+            sport_name = sport['sport__name']
+            sport_reports = clinic_reports.filter(sport__name=sport_name)
+            sport_totals = sport_reports.aggregate(
+                immediate=Coalesce(Sum('immediate_emergency_care'), Value(0)),
+                musculoskeletal=Coalesce(Sum('musculoskeletal_exam'), Value(0)),
+                non_musculoskeletal=Coalesce(Sum('non_musculoskeletal_exam'), Value(0)),
+                taping=Coalesce(Sum('taping_bracing'), Value(0)),
+                rehab=Coalesce(Sum('rehabilitation_reconditioning'), Value(0)),
+                modalities=Coalesce(Sum('modalities'), Value(0)),
+                pharmacology=Coalesce(Sum('pharmacology'), Value(0)),
+                prevention=Coalesce(Sum('injury_illness_prevention'), Value(0)),
+                non_sport=Coalesce(Sum('non_sport_patient'), Value(0)),
+            )
+            sports_data[sport_name] = sport_totals
+
         return JsonResponse({
             'success': True,
             'stats': stats,
+            'by_sport': sports_data,
         })
     
+    except json.JSONDecodeError:
+        return JsonResponse({'success': False, 'error': 'Invalid JSON in request body'}, status=400)
     except Exception as e:
         return JsonResponse({'success': False, 'error': str(e)}, status=400)
