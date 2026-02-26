@@ -1,0 +1,12 @@
+/* Define a class for circular images */
+.rounded-circle {
+    border-radius: 50%;
+    /* Optional: Adds a clean white border around the photo */
+    border: 4px solid white;
+    /* Optional: Adds a subtle shadow to make it pop off the page */
+    box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+    /* Ensures rectangular photos don't turn into ovals */
+    object-fit: cover;
+    /* Fixes aspect ratio to ensure it's a perfect square container */
+    aspect-ratio: 1 / 1;
+}
