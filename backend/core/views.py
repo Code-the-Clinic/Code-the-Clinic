@@ -1,7 +1,6 @@
 from django.shortcuts import render, redirect
 from django.http import JsonResponse
 from django.views.decorators.http import require_http_methods
-from django.views.decorators.csrf import csrf_exempt
 from django.contrib.auth.decorators import login_required
 from django.db.models import Avg, Sum, F, Case, When, IntegerField, Value, FloatField
 from django.db.models.functions import Coalesce
