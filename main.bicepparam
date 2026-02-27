@@ -27,5 +27,11 @@ param containerImage = 'ghcr.io/code-the-clinic/code-the-clinic:main'
 param containerPort = '8000'
 param siteContainerUserName = 'supergeek57'
 
+// Environment variables (replace items in <brackets> as needed)
+param allowedDomains = '<comma-separated string of university email domains>'
+param allowedHosts = 'localhost,127.0.0.1,0.0.0.0,<app-service-public-domain>,<app-service-ip-address>'
+param csrfTrustedOrigins = '<app-service-public-domain>'
+param microsoftLoginClientId = '<insert-client-id-from-azure-app-registration>'
+
 // Database parameters
-// param dbAdminObjectIds = []  // Uncomment and add Entra user/group object IDs for DB admins
+// param dbAdminObjectIds = []  // Uncomment and add Entra user/group object IDs to auto-add DB admins
