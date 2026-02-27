@@ -11,3 +11,4 @@ db.sqlite3
 backend/config/__pycache__/settings.cpython-311.pyc
 backend/config/__pycache__/urls.cpython-311.pyc
 my_notes.md
+main-local.bicepparam
