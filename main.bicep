@@ -24,6 +24,12 @@ param siteContainerUserName string
 param minTlsVersion string = '1.2'
 param healthCheckPath string = '/health/'
 
+// Environment variables (not secrets--secrets are stored in Key Vault!)
+param allowedDomains string
+param allowedHosts string
+param csrfTrustedOrigins string
+param microsoftLoginClientId string
+
 // Database parameters
 param tenantId string = subscription().tenantId
 @description('The Object ID of the Entra user/group to be the DB Admin')
@@ -623,11 +629,48 @@ resource sites_code_the_clinic_name_resource 'Microsoft.Web/sites@2024-11-01' = 
   }
 }
 
+// Set app environment variables
+resource siteConfigSettings 'Microsoft.Web/sites/config@2024-11-01' = {
+  name: 'appsettings'
+  parent: sites_code_the_clinic_name_resource
+  properties: {
+    // Secrets (you will need to add these in Key Vault)
+    AZURE_SECRET: '@Microsoft.KeyVault(VaultName=${vaults_code_the_clinic_vault_name_resource.name};SecretName=azure-secret)'
+    DJANGO_SECRET_KEY: '@Microsoft.KeyVault(VaultName=${vaults_code_the_clinic_vault_name_resource.name};SecretName=django-secret-key)'
+    POSTGRES_DB: '@Microsoft.KeyVault(VaultName=${vaults_code_the_clinic_vault_name_resource.name};SecretName=postgres-db)'
+    POSTGRES_HOST: '@Microsoft.KeyVault(VaultName=${vaults_code_the_clinic_vault_name_resource.name};SecretName=db-host)'
+    POSTGRES_USER: '@Microsoft.KeyVault(VaultName=${vaults_code_the_clinic_vault_name_resource.name};SecretName=postgres-user)'
+
+    // Regular environment variables (no Key Vault needed)
+    DEBUG: 'False' // Always set DEBUG=False in production
+    ALLOWED_DOMAINS: allowedDomains
+    ALLOWED_HOSTS: allowedHosts
+    AZURE_TENANT_ID: tenantId
+    CSRF_TRUSTED_ORIGINS: csrfTrustedOrigins
+    MICROSOFT_LOGIN_CLIENT_ID: microsoftLoginClientId
+    PORT: '8000'
+    WEBSITE_HEALTHCHECK_MAXPINGFAILURES: '10'
+    WEBSITE_HTTPLOGGING_RETENTION_DAYS: '10'
+    WEBSITES_ENABLE_APP_SERVICE_STORAGE: 'false'
+    WEBSITES_PORT: '8000'
+  }
+}
+
 resource sites_code_the_clinic_name_app_service_subnet_connection 'Microsoft.Web/sites/virtualNetworkConnections@2024-11-01' = {
   parent: sites_code_the_clinic_name_resource
   name: 'app-service-subnet'
   properties: {
     vnetResourceId: '${virtualNetworks_code_the_clinic_vnet_name_resource.id}/subnets/app-service-subnet'
     isSwift: true
+  }
+}
+
+resource kvRoleAssignment 'Microsoft.Authorization/roleAssignments@2022-04-01' = {
+  name: guid(vaults_code_the_clinic_vault_name_resource.id, sites_code_the_clinic_name_resource.id, 'Key Vault Secrets User')
+  scope: vaults_code_the_clinic_vault_name_resource
+  properties: {
+    roleDefinitionId: subscriptionResourceId('Microsoft.Authorization/roleDefinitions', '4633458b-17de-408a-b874-0445c86b69e6') // ID for "Key Vault Secrets User"
+    principalId: sites_code_the_clinic_name_resource.identity.principalId
+    principalType: 'ServicePrincipal'
   }
 }
