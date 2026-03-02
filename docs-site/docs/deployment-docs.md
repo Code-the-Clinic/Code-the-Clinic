@@ -55,12 +55,35 @@ az deployment group create \
     -p main.bicepparam
 ```
 ### Post-deployment todos (TODO: Add more detailed instructions for these)
+- Add yourself as a Key Vault Secrets Officer
+    - Go to your Key Vault => Access control (IAM) => Role assignments => New role assignment => Assign yourself the Key Vault Secrets Officer role. This will let you view, add, and edit secrets, which you will need to do to set up the application.
 - Add all secrets to Key Vault
+    - azure-client-id (Client ID from Azure app registration, NOT app service)
+    - azure-secret (Add a new client secret under your Azure app registration and add the secret to Key Vault)
+    - azure-tenant-id (Tenant ID from Azure app registration, NOT app service)
+    - django-secret-key (**Generate a new Django secret key and add it to Key Vault**)
+    - postgres-db (This isn't really a secret--it can be moved outside of key vault if needed. Name of the database within your PostgreSQL server in Azure where your Django tables are. You can find your databases in your PostgreSQL server settings => Databases.)
+    - db-host (the domain of your Postgre DB--can be found in the Overview section if you click on your Postgres DB in the Azure portal)
+    - postgres-user (the name of the App Service, since the App Service uses a Managed Identity to communicate with the DB)
+- Update environment variables
+    - For variables that are in Key Vault, use a string like this: `@Microsoft.KeyVault(SecretUri=<https://<vault-name>.vault.azure.net/secrets/<secret-name>/)`
+    - MICROSOFT_LOGIN_CLIENT_ID = In key vault (azure-client-id)
+    - AZURE_SECRET = In key vault (azure-secret)
+    - AZURE_TENANT_ID = In key vault (azure-tenant-id)
+    - DJANGO_SECRET_KEY = In key vault (django-secret-key)
+    - POSTGRES_DB = In key vault (postgres-db)
+    - POSTGRES_HOST = In key vault (db-host)
+    - POSTGRES_USER = In key vault (postgres-user)
+    - ALLOWED_HOSTS = 'localhost,127.0.0.1,0.0.0.0,<domain-of-app-service-application>,https://<domain-of-app-service-application>'
+    - Other environment variables should be OK to leave as the default values set in the template.
 - Run SQL to give the App Service permission to create a table in the DB
+    - <**TODO**>
 - Promote yourself to a superuser in Django (you will need to do this the first time you deploy the app so you can access the admin pages on the site)
+- If you are using a new Azure app registration (different from what we had set up before), make sure to go into the app registration and add as the redirect URL: (the public domain of the App Service app) + `/accounts/microsoft/login/callback/`
 
 ### Smoke testing
-- Go to "log stream" under the App Service settings. You should be able to see "platform logs" (logs from the underlying server that is running the app) and "runtime logs" (logs from the app itself). If you don't see any runtime logs, check the platform logs to see what might be going wrong. Platform logs are where you would see problems pulling the Docker container from GitHub Container Registry or problems pinging the app for health checks. Runtime logs are where you would see Django errors (failed to run migrations, normal website errors like 403/400/etc.)
+- If you are experiencing HTTP errors and need to get clear error messages, you can temporarily set DEBUG=True in the App Service's environment variables. However, this makes the application more vulnerable since an attacker could see exactly what was preventing them from accessing a certain page. For this reason, you should immediately change DEBUG back to False after testing, and ideally never set DEBUG=True in the Azure portal at all (just do your testing locally instead).
+- If the app service isn't starting, you can see detailed logs in "log stream" under the App Service settings => Monitoring. You should be able to see "platform logs" (logs from the underlying server that is running the app) and "runtime logs" (logs from the app itself). If you don't see any runtime logs, check the platform logs to see what might be going wrong. Platform logs are where you would see problems pulling the Docker container from GitHub Container Registry or problems pinging the app for health checks. Runtime logs are where you would see Django errors (failed to run migrations, normal website errors like 403/400/etc.)
 ### Troubleshooting and known issues
 - If the app seems to start (check runtime Log Stream in the app service for gunicorn logs) but you are getting "gateway timeout" or "application error" because Azure is failing to ping the application, check Deployment Center => Containers => main => Port and make sure it is set to 8000. If it isn't set to 8000, Azure will ping the wrong port and won't be able to reach Django.
 
