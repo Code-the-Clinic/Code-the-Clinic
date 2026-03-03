@@ -98,6 +98,8 @@ az stack group create --name clinic-test-stack --resource-group <new-resource-gr
         - Allow public access to this resource through the internet using a public IP address
         - Allow public access from any Azure service within Azure to this server
         - **IMPORTANT:** Make sure to uncheck these after you are done with the next step (running the SQL to let the App Service talk to the DB) since you want to keep your DB running within its private VNet for security.
+    - Add the App Service's identity to the DB
+        - Go to the PostgreSQL server => Authentication
     - <Run SQL: **TODO**>
 - Promote yourself to a superuser in Django (you will need to do this the first time you deploy the app so you can access the admin pages on the site)
 - If you are using a new Azure app registration (different from what we had set up before), make sure to go into the app registration and add as the redirect URL: (the public domain of the App Service app) + `/accounts/microsoft/login/callback/`
