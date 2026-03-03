@@ -241,6 +241,131 @@ class FetchDataTests(TestCase):
         self.assertEqual(data.get('average_patients_per_week'), 0.0)
 
 
+class FetchStudentDataTests(TestCase):
+    @classmethod
+    def setUpTestData(cls):
+        cls.football, _ = Sport.objects.get_or_create(name='Football', defaults={'active': True})
+        cls.soccer, _ = Sport.objects.get_or_create(name='Soccer', defaults={'active': True})
+
+    def setUp(self):
+        self.client = Client()
+        self.fetch_student_url = reverse('fetch_student_data')
+
+        self.student_user = User.objects.create_user(
+            username='student-self',
+            email='student-self@university.edu',
+            password='testpass123'
+        )
+        self.other_student = User.objects.create_user(
+            username='student-other',
+            email='student-other@university.edu',
+            password='testpass123'
+        )
+        self.staff_user = User.objects.create_user(
+            username='staff-for-student-endpoint',
+            email='staff-only@university.edu',
+            password='testpass123',
+            is_staff=True
+        )
+
+        ClinicReport.objects.create(
+            first_name='Self',
+            last_name='One',
+            email='student-self@university.edu',
+            sport=self.football,
+            immediate_emergency_care=1,
+            musculoskeletal_exam=1,
+            non_musculoskeletal_exam=0,
+            taping_bracing=0,
+            rehabilitation_reconditioning=0,
+            modalities=0,
+            pharmacology=0,
+            injury_illness_prevention=0,
+            non_sport_patient=0,
+            interacted_hcps=False,
+        )
+        ClinicReport.objects.create(
+            first_name='Self',
+            last_name='Two',
+            email='student-self@university.edu',
+            sport=self.football,
+            immediate_emergency_care=0,
+            musculoskeletal_exam=0,
+            non_musculoskeletal_exam=0,
+            taping_bracing=1,
+            rehabilitation_reconditioning=1,
+            modalities=0,
+            pharmacology=0,
+            injury_illness_prevention=0,
+            non_sport_patient=0,
+            interacted_hcps=False,
+        )
+        ClinicReport.objects.create(
+            first_name='Other',
+            last_name='User',
+            email='student-other@university.edu',
+            sport=self.soccer,
+            immediate_emergency_care=5,
+            musculoskeletal_exam=0,
+            non_musculoskeletal_exam=0,
+            taping_bracing=0,
+            rehabilitation_reconditioning=0,
+            modalities=0,
+            pharmacology=0,
+            injury_illness_prevention=0,
+            non_sport_patient=0,
+            interacted_hcps=False,
+        )
+
+    def post_fetch_student(self, user, payload):
+        self.client.force_login(user)
+        return self.client.post(
+            self.fetch_student_url,
+            data=json.dumps(payload),
+            content_type='application/json'
+        )
+
+    def test_fetch_student_data_requires_authentication(self):
+        response = self.client.post(
+            self.fetch_student_url,
+            data=json.dumps({}),
+            content_type='application/json'
+        )
+        self.assertEqual(response.status_code, 302)
+
+    def test_fetch_student_data_denies_staff_user(self):
+        response = self.post_fetch_student(self.staff_user, {})
+        data = json.loads(response.content)
+
+        self.assertEqual(response.status_code, 403)
+        self.assertFalse(data.get('success'))
+        self.assertIn('faculty endpoint', data.get('error', ''))
+
+    def test_fetch_student_data_returns_only_current_user_data(self):
+        response = self.post_fetch_student(self.student_user, {'email': 'student-other@university.edu'})
+        data = json.loads(response.content)
+        labels = {item['label']: item['value'] for item in data.get('pie_chart_data', [])}
+
+        self.assertEqual(response.status_code, 200)
+        self.assertTrue(data.get('success'))
+        # Only the current student totals should count: (1+1) + (1+1) = 4
+        self.assertEqual(data.get('total_patients'), 4)
+        self.assertAlmostEqual(data.get('average_patients_per_week'), 2.0, places=5)
+        self.assertEqual(labels.get('Immediate/Emergency'), 1)
+        self.assertEqual(labels.get('Musculoskeletal Exam'), 1)
+        self.assertEqual(labels.get('Taping/Bracing'), 1)
+        self.assertEqual(labels.get('Rehabilitation'), 1)
+        self.assertNotIn('Non-Musculoskeletal', labels)
+
+    def test_fetch_student_data_rejects_invalid_year(self):
+        response = self.post_fetch_student(self.student_user, {'year': 'Spring'})
+        data = json.loads(response.content)
+
+        self.assertEqual(response.status_code, 400)
+        self.assertFalse(data.get('success'))
+        self.assertIn('Invalid year', data.get('error', ''))
+
+
 class HomeViewTests(TestCase):
     def setUp(self):
         self.client = Client()

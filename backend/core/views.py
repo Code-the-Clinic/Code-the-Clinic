@@ -124,6 +124,85 @@ def home_view(request):
     context = {'login_url': settings.LOGIN_URL}
     return render(request, 'core/home.html', context)
 
+
+def _apply_dashboard_filters(clinic_reports, filters):
+    """Apply common dashboard filters to a ClinicReport queryset."""
+    if filters.get('sport'):
+        clinic_reports = clinic_reports.filter(sport__name=filters.get('sport'))
+
+    if filters.get('semester'):
+        clinic_reports = clinic_reports.filter(semester=filters.get('semester'))
+
+    if filters.get('week'):
+        clinic_reports = clinic_reports.filter(week=filters.get('week'))
+
+    if filters.get('year') is not None:
+        try:
+            year_value = int(filters.get('year'))
+        except (TypeError, ValueError):
+            raise ValueError('Invalid year. Expected numeric year (e.g., 2026).')
+        clinic_reports = clinic_reports.filter(created_at__year=year_value)
+
+    return clinic_reports
+
+
+def _build_dashboard_payload(clinic_reports):
+    """Build shared dashboard response payload for pie charts and summary metrics."""
+    # Calculate average patient load per report (submission/week)
+    average_patients_per_week = clinic_reports.annotate(
+        weekly_total_patients=Coalesce(F('immediate_emergency_care'), 0) +
+        Coalesce(F('musculoskeletal_exam'), 0) +
+        Coalesce(F('non_musculoskeletal_exam'), 0) +
+        Coalesce(F('taping_bracing'), 0) +
+        Coalesce(F('rehabilitation_reconditioning'), 0) +
+        Coalesce(F('modalities'), 0) +
+        Coalesce(F('pharmacology'), 0) +
+        Coalesce(F('injury_illness_prevention'), 0) +
+        Coalesce(F('non_sport_patient'), 0)
+    ).aggregate(
+        average=Coalesce(
+            Avg('weekly_total_patients'),
+            Value(0.0),
+            output_field=FloatField()
+        )
+    )['average']
+
+    # Calculate pie chart totals
+    pie_totals = clinic_reports.aggregate(
+        immediate=Sum('immediate_emergency_care') or 0,
+        musculoskeletal=Sum('musculoskeletal_exam') or 0,
+        non_musculoskeletal=Sum('non_musculoskeletal_exam') or 0,
+        taping=Sum('taping_bracing') or 0,
+        rehab=Sum('rehabilitation_reconditioning') or 0,
+        modalities=Sum('modalities') or 0,
+        pharmacology=Sum('pharmacology') or 0,
+        prevention=Sum('injury_illness_prevention') or 0,
+        non_sport=Sum('non_sport_patient') or 0,
+    )
+
+    pie_chart_data = []
+    for label, key in [
+        ('Immediate/Emergency', 'immediate'),
+        ('Musculoskeletal Exam', 'musculoskeletal'),
+        ('Non-Musculoskeletal', 'non_musculoskeletal'),
+        ('Taping/Bracing', 'taping'),
+        ('Rehabilitation', 'rehab'),
+        ('Modalities', 'modalities'),
+        ('Pharmacology', 'pharmacology'),
+        ('Injury Prevention', 'prevention'),
+        ('Non-Sport Patient', 'non_sport'),
+    ]:
+        value = pie_totals[key]
+        if value is not None and value > 0:
+            pie_chart_data.append({'label': label, 'value': value})
+
+    return {
+        'success': True,
+        'pie_chart_data': pie_chart_data,
+        'total_patients': sum(item['value'] for item in pie_chart_data),
+        'average_patients_per_week': average_patients_per_week,
+    }
+
 @require_http_methods(["POST"])
 @login_required
 def fetch_data(request):
@@ -145,81 +224,33 @@ def fetch_data(request):
     try:
         filters = json.loads(request.body)
         clinic_reports = ClinicReport.objects.all()
-
-        # Apply filters
-        if filters.get('sport'):
-            clinic_reports = clinic_reports.filter(sport__name=filters.get('sport'))
-        
-        if filters.get('semester'):
-            clinic_reports = clinic_reports.filter(semester=filters.get('semester'))
-        
-        if filters.get('week'):
-            clinic_reports = clinic_reports.filter(week=filters.get('week'))
-        
-        if filters.get('year') is not None:
-            try:
-                year_value = int(filters.get('year'))
-            except (TypeError, ValueError):
-                return JsonResponse({'success': False, 'error': 'Invalid year. Expected numeric year (e.g., 2026).'}, status=400)
-            clinic_reports = clinic_reports.filter(created_at__year=year_value)
-
-        # Calculate average patient load per report (submission/week)
-        average_patients_per_week = clinic_reports.annotate(
-            weekly_total_patients=Coalesce(F('immediate_emergency_care'), 0) +
-            Coalesce(F('musculoskeletal_exam'), 0) +
-            Coalesce(F('non_musculoskeletal_exam'), 0) +
-            Coalesce(F('taping_bracing'), 0) +
-            Coalesce(F('rehabilitation_reconditioning'), 0) +
-            Coalesce(F('modalities'), 0) +
-            Coalesce(F('pharmacology'), 0) +
-            Coalesce(F('injury_illness_prevention'), 0) +
-            Coalesce(F('non_sport_patient'), 0)
-        ).aggregate(
-            average=Coalesce(
-                Avg('weekly_total_patients'),
-                Value(0.0),
-                output_field=FloatField()
-            )
-        )['average']
-
-        # Calculate pie chart totals
-        pie_totals = clinic_reports.aggregate(
-            immediate=Sum('immediate_emergency_care') or 0,
-            musculoskeletal=Sum('musculoskeletal_exam') or 0,
-            non_musculoskeletal=Sum('non_musculoskeletal_exam') or 0,
-            taping=Sum('taping_bracing') or 0,
-            rehab=Sum('rehabilitation_reconditioning') or 0,
-            modalities=Sum('modalities') or 0,
-            pharmacology=Sum('pharmacology') or 0,
-            prevention=Sum('injury_illness_prevention') or 0,
-            non_sport=Sum('non_sport_patient') or 0,
-        )
-
-        # Prepare pie chart data in the same format as faculty_dashboard_view
-        pie_chart_data = []
-        for label, key in [
-            ('Immediate/Emergency', 'immediate'),
-            ('Musculoskeletal Exam', 'musculoskeletal'),
-            ('Non-Musculoskeletal', 'non_musculoskeletal'),
-            ('Taping/Bracing', 'taping'),
-            ('Rehabilitation', 'rehab'),
-            ('Modalities', 'modalities'),
-            ('Pharmacology', 'pharmacology'),
-            ('Injury Prevention', 'prevention'),
-            ('Non-Sport Patient', 'non_sport'),
-        ]:
-            value = pie_totals[key]
-            if value is not None and value > 0:
-                pie_chart_data.append({'label': label, 'value': value})
-
-        return JsonResponse({
-            'success': True,
-            'pie_chart_data': pie_chart_data,
-            'total_patients': sum(item['value'] for item in pie_chart_data),
-            'average_patients_per_week': average_patients_per_week,
-        })
+        clinic_reports = _apply_dashboard_filters(clinic_reports, filters)
+        return JsonResponse(_build_dashboard_payload(clinic_reports))
     
     except json.JSONDecodeError:
         return JsonResponse({'success': False, 'error': 'Invalid JSON'}, status=400)
+    except ValueError as e:
+        return JsonResponse({'success': False, 'error': str(e)}, status=400)
+    except Exception as e:
+        return JsonResponse({'success': False, 'error': str(e)}, status=400)
+
+
+@require_http_methods(["POST"])
+@login_required
+def fetch_student_data(request):
+    """API endpoint for student dashboard data (self-only)."""
+    if request.user.is_staff:
+        return JsonResponse({'success': False, 'error': 'Use the faculty endpoint for staff requests.'}, status=403)
+
+    try:
+        filters = json.loads(request.body)
+        clinic_reports = ClinicReport.objects.filter(email=request.user.email)
+        clinic_reports = _apply_dashboard_filters(clinic_reports, filters)
+        return JsonResponse(_build_dashboard_payload(clinic_reports))
+
+    except json.JSONDecodeError:
+        return JsonResponse({'success': False, 'error': 'Invalid JSON'}, status=400)
+    except ValueError as e:
+        return JsonResponse({'success': False, 'error': str(e)}, status=400)
     except Exception as e:
         return JsonResponse({'success': False, 'error': str(e)}, status=400)
