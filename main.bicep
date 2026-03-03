@@ -196,53 +196,12 @@ resource flexibleServers_code_the_clinic_db_name_Default 'Microsoft.DBforPostgre
   }
 }
 
-
-resource flexibleServers_code_the_clinic_db_name_azure_maintenance 'Microsoft.DBforPostgreSQL/flexibleServers/databases@2025-01-01-preview' = {
-  parent: flexibleServers_code_the_clinic_db_name_resource
-  name: 'azure_maintenance'
-  properties: {
-    charset: 'UTF8'
-    collation: 'en_US.utf8'
-  }
-}
-
-resource flexibleServers_code_the_clinic_db_name_azure_sys 'Microsoft.DBforPostgreSQL/flexibleServers/databases@2025-01-01-preview' = {
-  parent: flexibleServers_code_the_clinic_db_name_resource
-  name: 'azure_sys'
-  properties: {
-    charset: 'UTF8'
-    collation: 'en_US.utf8'
-  }
-}
-
 resource flexibleServers_code_the_clinic_db_name_flexibleServers_code_the_clinic_db_name 'Microsoft.DBforPostgreSQL/flexibleServers/databases@2025-01-01-preview' = {
   parent: flexibleServers_code_the_clinic_db_name_resource
   name: flexibleServers_code_the_clinic_db_name
   properties: {
     charset: 'UTF8'
     collation: 'en_US.utf8'
-  }
-}
-
-resource flexibleServers_code_the_clinic_db_name_postgres 'Microsoft.DBforPostgreSQL/flexibleServers/databases@2025-01-01-preview' = {
-  parent: flexibleServers_code_the_clinic_db_name_resource
-  name: 'postgres'
-  properties: {
-    charset: 'UTF8'
-    collation: 'en_US.utf8'
-  }
-}
-
-resource flexibleServers_code_the_clinic_db_name_flexibleServers_code_the_clinic_db_name_pe_c2060ad2_39f0_4ed2_8050_d0e4f8490363 'Microsoft.DBforPostgreSQL/flexibleServers/privateEndpointConnections@2025-01-01-preview' = {
-  parent: flexibleServers_code_the_clinic_db_name_resource
-  name: '${flexibleServers_code_the_clinic_db_name}-pe.c2060ad2-39f0-4ed2-8050-d0e4f8490363'
-  properties: {
-    privateEndpoint: {}
-    privateLinkServiceConnectionState: {
-      status: 'Approved'
-      description: 'Auto-Approved'
-      actionsRequired: 'None'
-    }
   }
 }
 
@@ -277,7 +236,7 @@ resource vaults_code_the_clinic_vault_name_resource 'Microsoft.KeyVault/vaults@2
     enableSoftDelete: true
     softDeleteRetentionInDays: 90
     enableRbacAuthorization: true
-    vaultUri: 'https://${vaults_code_the_clinic_vault_name}.${environment().suffixes.keyvaultDns}'
+    vaultUri: 'https://${vaults_code_the_clinic_vault_name}${environment().suffixes.keyvaultDns}'
     provisioningState: 'Succeeded'
     publicNetworkAccess: 'Enabled'
   }
@@ -350,22 +309,6 @@ resource vaults_code_the_clinic_vault_name_postgres_user 'Microsoft.KeyVault/vau
     attributes: {
       enabled: true
     }
-  }
-}
-
-resource privateDnsZones_privatelink_postgres_database_azure_com_name_code_the_clinic_db 'Microsoft.Network/privateDnsZones/A@2024-06-01' = {
-  parent: privateDnsZones_privatelink_postgres_database_azure_com_name_resource
-  name: 'code-the-clinic-db'
-  properties: {
-    metadata: {
-      creator: 'created by private endpoint code-the-clinic-db-pe with resource guid cee5551c-d8eb-4682-accd-7758eea1f99d'
-    }
-    ttl: 10
-    aRecords: [
-      {
-        ipv4Address: '10.0.0.4'
-      }
-    ]
   }
 }
 
@@ -484,15 +427,6 @@ resource sites_code_the_clinic_name_web 'Microsoft.Web/sites/config@2024-11-01' 
   }
 }
 
-resource sites_code_the_clinic_name_sites_code_the_clinic_name_c8b8cxb8bgareygs_northcentralus_01_azurewebsites_net 'Microsoft.Web/sites/hostNameBindings@2024-11-01' = {
-  parent: sites_code_the_clinic_name_resource
-  name: '${sites_code_the_clinic_name}-c8b8cxb8bgareygs.${locationLower}-01.azurewebsites.net'
-  properties: {
-    siteName: 'code-the-clinic'
-    hostNameType: 'Verified'
-  }
-}
-
 resource sites_code_the_clinic_name_main 'Microsoft.Web/sites/sitecontainers@2024-11-01' = {
   parent: sites_code_the_clinic_name_resource
   name: 'main'
@@ -576,12 +510,12 @@ resource sites_code_the_clinic_name_resource 'Microsoft.Web/sites@2024-11-01' = 
     enabled: true
     hostNameSslStates: [
       {
-        name: '${sites_code_the_clinic_name}-c8b8cxb8bgareygs.${locationLower}-01.azurewebsites.net'
+        name: '${sites_code_the_clinic_name}.azurewebsites.net'
         sslState: 'Disabled'
         hostType: 'Standard'
       }
       {
-        name: '${sites_code_the_clinic_name}-c8b8cxb8bgareygs.scm.${locationLower}-01.azurewebsites.net'
+        name: '${sites_code_the_clinic_name}.scm.azurewebsites.net'
         sslState: 'Disabled'
         hostType: 'Repository'
       }

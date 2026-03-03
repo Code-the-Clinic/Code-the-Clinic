@@ -4,7 +4,7 @@ hide:
 ---
 
 # How to deploy the application
-Hi! Here's how to run our application locally, run tests, and deploy it in the cloud. In case you need to change Azure accounts later (for example, to move the application into the university tenant), you can use the Azure CLI and the bicep template files we've included to deploy without spending hours clicking through Azure's terrible GUI :)
+Hi! Here's how to run our application locally, run tests, and deploy it in the cloud. In case you need to change Azure accounts later (for example, to move the application fully into the university tenant), you can use the Azure CLI and the bicep template files we've included to deploy without spending hours clicking through Azure's terrible GUI :)
 
 ## How to run in development
 - To run the docs and the main application: `docker-compose up`
@@ -47,21 +47,34 @@ Hi! Here's how to run our application locally, run tests, and deploy it in the c
 
 ### Deploying the application
 - Run `az login` to log into the Azure CLI and then select the subscription you want to copy the application into.
-- Run this command in your terminal to deploy the bicep file to a new Azure resource group: 
+- Run this command in your terminal to validate the bicep file and its associated params file for any errors:
+```bash
+az deployment group validate -g capstone -f main.bicep -p main-local.bicepparam --query "properties.validationResultItems[?severity=='Error']"
+```
+- Run this command to preview the resources that will be created:
+```bash
+az deployment group what-if --resource-group <new-resource-group> -f main.bicep -p main-local.bicepparam
+```
+- Run either of these commands to deploy the bicep file to a new Azure resource group: 
 ```bash
 az deployment group create \
     -g <new-azure-resource-group> \
     -f main.bicep \
     -p main.bicepparam
 ```
+```bash
+az stack group create --name clinic-test-stack --resource-group <new-resource-group> --template-file main.bicep --parameters main-local.bicepparam --deny-settings-mode none --action-on-unmanage detachAll
+```
 ### Post-deployment todos (TODO: Add more detailed instructions for these)
 - Add yourself as a Key Vault Secrets Officer
     - Go to your Key Vault => Access control (IAM) => Role assignments => New role assignment => Assign yourself the Key Vault Secrets Officer role. This will let you view, add, and edit secrets, which you will need to do to set up the application.
+- If you can't access the "Secrets" tab in your Key Vault because of a firewall rule:
+    - Go into the networking tab and temporarily select "allow public access from all networks"--make sure to change this back to what it was before (allow public access from specific virtual networks...") once you're done!
 - Add all secrets to Key Vault
     - azure-client-id (Client ID from Azure app registration, NOT app service)
     - azure-secret (Add a new client secret under your Azure app registration and add the secret to Key Vault)
     - azure-tenant-id (Tenant ID from Azure app registration, NOT app service)
-    - django-secret-key (**Generate a new Django secret key and add it to Key Vault**)
+    - django-secret-key (**TODO: Generate a new Django secret key and add it to Key Vault**)
     - postgres-db (This isn't really a secret--it can be moved outside of key vault if needed. Name of the database within your PostgreSQL server in Azure where your Django tables are. You can find your databases in your PostgreSQL server settings => Databases.)
     - db-host (the domain of your Postgre DB--can be found in the Overview section if you click on your Postgres DB in the Azure portal)
     - postgres-user (the name of the App Service, since the App Service uses a Managed Identity to communicate with the DB)
@@ -76,8 +89,16 @@ az deployment group create \
     - POSTGRES_USER = In key vault (postgres-user)
     - ALLOWED_HOSTS = 'localhost,127.0.0.1,0.0.0.0,<domain-of-app-service-application>,https://<domain-of-app-service-application>'
     - Other environment variables should be OK to leave as the default values set in the template.
+- Give the App Service permission to pull the latest Docker image from GHCR
+    - Get GitHub Personal Access Token (PAT) with read:packages permission
+    - Go to your new App Service => Deployment Center => click on "main" => paste the PAT into the password field and click "ok"
 - Run SQL to give the App Service permission to create a table in the DB
-    - <**TODO**>
+    - If you didn't specify Entra administrators in the Bicep params: Go to the PostgreSQL server, Security => Authentication, and add yourself as an Entra administrator
+    - Temporarily check these boxes under your PostgreSQL server => Networking:
+        - Allow public access to this resource through the internet using a public IP address
+        - Allow public access from any Azure service within Azure to this server
+        - **IMPORTANT:** Make sure to uncheck these after you are done with the next step (running the SQL to let the App Service talk to the DB) since you want to keep your DB running within its private VNet for security.
+    - <Run SQL: **TODO**>
 - Promote yourself to a superuser in Django (you will need to do this the first time you deploy the app so you can access the admin pages on the site)
 - If you are using a new Azure app registration (different from what we had set up before), make sure to go into the app registration and add as the redirect URL: (the public domain of the App Service app) + `/accounts/microsoft/login/callback/`
 
