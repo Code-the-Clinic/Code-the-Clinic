@@ -1,5 +1,6 @@
 import os
 import json
+from django.utils import timezone
 from django.test import TestCase, override_settings, Client
 from django.forms import ValidationError
 from types import SimpleNamespace
@@ -68,33 +69,50 @@ class FetchDataTests(TestCase):
             is_staff=True
         )
 
-        # Create two reports with distinct emails and counts
+        # Create reports with predictable category totals.
+        # Two reports share an email so their computed weeks are 1 and 2.
         ClinicReport.objects.create(
             first_name='Alice',
-            last_name='Student',
-            email='student@university.edu',
+            last_name='One',
+            email='alice@university.edu',
             sport=self.football,
             immediate_emergency_care=1,
             musculoskeletal_exam=2,
             non_musculoskeletal_exam=0,
-            taping_bracing=1,
+            taping_bracing=0,
             rehabilitation_reconditioning=0,
             modalities=0,
             pharmacology=0,
             injury_illness_prevention=0,
             non_sport_patient=0,
-            interacted_hcps=True,
+            interacted_hcps=False,
+        )
+        ClinicReport.objects.create(
+            first_name='Alice',
+            last_name='Two',
+            email='alice@university.edu',
+            sport=self.football,
+            immediate_emergency_care=2,
+            musculoskeletal_exam=0,
+            non_musculoskeletal_exam=0,
+            taping_bracing=0,
+            rehabilitation_reconditioning=1,
+            modalities=0,
+            pharmacology=0,
+            injury_illness_prevention=0,
+            non_sport_patient=0,
+            interacted_hcps=False,
         )
         ClinicReport.objects.create(
             first_name='Bob',
-            last_name='Other',
-            email='other@university.edu',
+            last_name='Three',
+            email='bob@university.edu',
             sport=self.soccer,
             immediate_emergency_care=0,
-            musculoskeletal_exam=1,
+            musculoskeletal_exam=0,
             non_musculoskeletal_exam=1,
-            taping_bracing=0,
-            rehabilitation_reconditioning=1,
+            taping_bracing=1,
+            rehabilitation_reconditioning=0,
             modalities=0,
             pharmacology=0,
             injury_illness_prevention=0,
@@ -111,64 +129,116 @@ class FetchDataTests(TestCase):
         )
         return response
 
-    def test_fetch_data_requires_auth(self):
+    def test_fetch_data_requires_authentication(self):
         response = self.client.post(
             self.fetch_url,
             data=json.dumps({}),
             content_type='application/json'
         )
-        data = json.loads(response.content)
-        self.assertFalse(data.get('success'))
-        self.assertIn('Authentication required', data.get('error', ''))
+        self.assertEqual(response.status_code, 302)
 
-    def test_non_staff_forced_to_own_email(self):
-        # Attempt to request another student's email
-        response = self.post_fetch(self.student_user, {'email': 'other@university.edu'})
-        data = json.loads(response.content)
-        stats = data.get('stats')
-
-        # The student user's weekly total = 1+2+0+1+0+0+0+0+0 = 4
-        self.assertEqual(stats.get('grand_total_served'), 4)
-        self.assertEqual(stats.get('total_musculoskeletal_exam'), 2)
-    
-    def test_non_staff_forced_to_own_email_with_empty_input(self):
-        # Attempt to request another student's email
+    def test_fetch_data_denies_non_staff_users(self):
         response = self.post_fetch(self.student_user, {})
         data = json.loads(response.content)
-        stats = data.get('stats')
+        self.assertEqual(response.status_code, 403)
+        self.assertFalse(data.get('success'))
+        self.assertIn('Permission denied', data.get('error', ''))
 
-        # The student user's weekly total = 1+2+0+1+0+0+0+0+0 = 4
-        self.assertEqual(stats.get('grand_total_served'), 4)
-        self.assertEqual(stats.get('total_musculoskeletal_exam'), 2)
-
-    def test_staff_can_filter_any_email(self):
-        response = self.post_fetch(self.staff_user, {'email': 'other@university.edu'})
+    def test_staff_fetch_without_filters_returns_expected_totals(self):
+        response = self.post_fetch(self.staff_user, {})
         data = json.loads(response.content)
-        stats = data.get('stats')
 
-        # The other user's weekly total = 0+1+1+0+1+0+0+0+0 = 3
-        self.assertEqual(stats.get('grand_total_served'), 3)
-        self.assertEqual(stats.get('total_non_musculoskeletal_exam'), 1)
+        self.assertEqual(response.status_code, 200)
+        self.assertTrue(data.get('success'))
+        self.assertEqual(data.get('total_patients'), 8)
+        self.assertAlmostEqual(data.get('average_patients_per_week'), 8 / 3, places=5)
+
+        labels = {item['label']: item['value'] for item in data.get('pie_chart_data', [])}
+        self.assertEqual(labels.get('Immediate/Emergency'), 3)
+        self.assertEqual(labels.get('Musculoskeletal Exam'), 2)
+        self.assertEqual(labels.get('Non-Musculoskeletal'), 1)
+        self.assertEqual(labels.get('Taping/Bracing'), 1)
+        self.assertEqual(labels.get('Rehabilitation'), 1)
 
     def test_staff_filter_by_sport(self):
         response = self.post_fetch(self.staff_user, {'sport': 'Football'})
         data = json.loads(response.content)
-        stats = data.get('stats')
+        labels = {item['label']: item['value'] for item in data.get('pie_chart_data', [])}
 
-        # Football report weekly total = 1+2+0+1+0+0+0+0+0 = 4
-        self.assertEqual(stats.get('grand_total_served'), 4)
-        self.assertEqual(stats.get('total_musculoskeletal_exam'), 2)
-        self.assertEqual(stats.get('total_interacted_hcps'), 1)
+        self.assertEqual(response.status_code, 200)
+        self.assertTrue(data.get('success'))
+        self.assertEqual(data.get('total_patients'), 6)
+        self.assertAlmostEqual(data.get('average_patients_per_week'), 3.0, places=5)
+        self.assertEqual(labels.get('Immediate/Emergency'), 3)
+        self.assertEqual(labels.get('Musculoskeletal Exam'), 2)
+        self.assertEqual(labels.get('Rehabilitation'), 1)
+        self.assertNotIn('Non-Musculoskeletal', labels)
 
-    def test_staff_no_filters(self):
-        response = self.post_fetch(self.staff_user, {})
+    def test_staff_filter_by_semester(self):
+        response = self.post_fetch(self.staff_user, {'semester': 'Spring'})
         data = json.loads(response.content)
-        stats = data.get('stats')
 
-        self.assertEqual(stats.get('grand_total_served'), 7)
-        self.assertEqual(stats.get('total_musculoskeletal_exam'), 3)
-        self.assertAlmostEqual(stats.get('average_patients_per_week'), 3.5)
-        self.assertEqual(stats.get('total_interacted_hcps'), 1)
+        self.assertEqual(response.status_code, 200)
+        self.assertTrue(data.get('success'))
+        self.assertEqual(data.get('total_patients'), 8)
+
+    def test_staff_filter_by_week(self):
+        response = self.post_fetch(self.staff_user, {'week': 2})
+        data = json.loads(response.content)
+        labels = {item['label']: item['value'] for item in data.get('pie_chart_data', [])}
+
+        self.assertEqual(response.status_code, 200)
+        self.assertTrue(data.get('success'))
+        self.assertEqual(data.get('total_patients'), 3)
+        self.assertEqual(labels.get('Immediate/Emergency'), 2)
+        self.assertEqual(labels.get('Rehabilitation'), 1)
+        self.assertNotIn('Musculoskeletal Exam', labels)
+
+    def test_staff_filter_by_year(self):
+        response = self.post_fetch(self.staff_user, {'year': timezone.now().year})
+        data = json.loads(response.content)
+
+        self.assertEqual(response.status_code, 200)
+        self.assertTrue(data.get('success'))
+        self.assertEqual(data.get('total_patients'), 8)
+
+    def test_staff_filter_by_year_rejects_non_numeric_value(self):
+        response = self.post_fetch(self.staff_user, {'year': 'Spr'})
+        data = json.loads(response.content)
+
+        self.assertEqual(response.status_code, 400)
+        self.assertFalse(data.get('success'))
+        self.assertIn('Invalid year', data.get('error', ''))
+
+    def test_fetch_data_rejects_invalid_json(self):
+        self.client.force_login(self.staff_user)
+        response = self.client.post(
+            self.fetch_url,
+            data='not-json',
+            content_type='application/json'
+        )
+        data = json.loads(response.content)
+
+        self.assertEqual(response.status_code, 400)
+        self.assertFalse(data.get('success'))
+        self.assertIn('Invalid JSON', data.get('error', ''))
+
+    def test_staff_fetch_with_no_matching_results_returns_zero_average(self):
+        response = self.post_fetch(
+            self.staff_user,
+            {
+                'sport': 'Football',
+                'week': 16,
+                'year': timezone.now().year,
+            }
+        )
+        data = json.loads(response.content)
+
+        self.assertEqual(response.status_code, 200)
+        self.assertTrue(data.get('success'))
+        self.assertEqual(data.get('total_patients'), 0)
+        self.assertEqual(data.get('pie_chart_data'), [])
+        self.assertEqual(data.get('average_patients_per_week'), 0.0)
 
 
 class HomeViewTests(TestCase):
