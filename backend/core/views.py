@@ -116,7 +116,10 @@ def faculty_dashboard_view(request):
 @login_required
 def student_dashboard_view(request):
     """Render the student dashboard."""
-    return render(request, 'core/student_dashboard.html')
+    context = {
+        'weeks': range(1, 17)  # Weeks 1-16
+    }
+    return render(request, 'core/student_dashboard.html', context)
 
 def home_view(request):
     """Render the homepage."""
