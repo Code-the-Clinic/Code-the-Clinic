@@ -16,7 +16,12 @@ def form_view(request):
     """Render the clinic report form. Requires an authenticated user."""
     sports = Sport.objects.filter(active=True).values('id', 'name')
     healthcare_providers = HealthcareProvider.objects.filter(active=True).values('id', 'name')
-    context = {'sports': sports, 'healthcare_providers': healthcare_providers}
+    weeks = list(range(1, 17))  # Weeks 1-16
+    context = {
+        'sports': sports,
+        'healthcare_providers': healthcare_providers,
+        'weeks': weeks
+    }
     return render(request, 'clinic_reports/form.html', context)
 
 
@@ -35,7 +40,7 @@ def submit_report(request):
     try:
         data = json.loads(request.body)
         required_fields = [
-            'first_name', 'last_name', 'email', 'sport',
+            'first_name', 'last_name', 'email', 'sport', 'week',
             'immediate_emergency_care', 'musculoskeletal_exam', 'non_musculoskeletal_exam',
             'taping_bracing', 'rehabilitation_reconditioning', 'modalities',
             'pharmacology', 'injury_illness_prevention', 'non_sport_patient', 'interacted_hcps'
@@ -75,11 +80,20 @@ def submit_report(request):
             except HealthcareProvider.DoesNotExist:
                 return JsonResponse({'success': False, 'error': 'Invalid healthcare provider selection'}, status=400)
 
+        # Validate week is in range 1-16
+        try:
+            week = int(data.get('week'))
+            if not (1 <= week <= 16):
+                return JsonResponse({'success': False, 'error': 'Week must be between 1 and 16'}, status=400)
+        except (TypeError, ValueError):
+            return JsonResponse({'success': False, 'error': 'Invalid week value'}, status=400)
+
         report = ClinicReport.objects.create(
             first_name=data.get('first_name'),
             last_name=data.get('last_name'),
             email=data.get('email'),
             sport=sport,
+            week=week,
             immediate_emergency_care=int(data.get('immediate_emergency_care', 0)),
             musculoskeletal_exam=int(data.get('musculoskeletal_exam', 0)),
             non_musculoskeletal_exam=int(data.get('non_musculoskeletal_exam', 0)),
