@@ -52,6 +52,10 @@ class ClinicReport(models.Model):
 
     semester = models.CharField(max_length=10, choices=SEMESTER_CHOICES, default='Spring')
     week = models.PositiveSmallIntegerField(null=True, blank=True)
+    # Year of the semester (derived from `created_at`). Nullable so existing rows
+    # can be migrated without forcing a default; migration can be altered to
+    # make this non-nullable later if desired.
+    year = models.PositiveSmallIntegerField(null=True, blank=True)
 
     # Auto-determine semester from created_at when saving.
     # Logic:
@@ -77,7 +81,18 @@ class ClinicReport(models.Model):
         # Only update semester if it changed
         if self.semester != semester_name:
             self.semester = semester_name
-            super().save(update_fields=['semester'])
+            changed = True
+        if self.week != computed_week:
+            self.week = computed_week
+            changed = True
+        # Set the year based on the created date (use the created variable computed above)
+        computed_year = year
+        if self.year != computed_year:
+            self.year = computed_year
+            changed = True
+
+        if changed:
+            super().save(update_fields=['semester', 'week', 'year'])
 
     def __str__(self):
         return f"{self.first_name} {self.last_name} - {self.sport} ({self.created_at.date()})"
