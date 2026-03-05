@@ -8,6 +8,8 @@ from django.http import HttpResponseBadRequest
 import json
 from .models import ClinicReport
 from .models import Sport, HealthcareProvider
+from django.db.models import Count
+from django.http import JsonResponse, HttpResponseForbidden
 
 # Security note: Student form submissions require authentication because we want to protect against DDoS attacks.
 # This way, only verified students and faculty can submit the form and create new traffic to the database.
@@ -95,3 +97,36 @@ def submit_report(request):
         return JsonResponse({'success': True, 'id': report.id})
     except Exception as e:
         return JsonResponse({'success': False, 'error': str(e)}, status=400)
+
+
+@login_required
+def pie_chart_by_sport(request):
+    """Return JSON counts grouped by sport.
+
+    Query params:
+      - year: integer (defaults to current year)
+      - semester: 'Spring' or 'Fall' (optional)
+
+    Response format: { labels: [...], counts: [...] }
+    """
+    # Only allow staff/faculty to access dashboard data
+    if not request.user.is_staff:
+        return HttpResponseForbidden('Staff access required')
+
+    year = request.GET.get('year')
+    semester = request.GET.get('semester')
+
+    qs = ClinicReport.objects.all()
+    if year:
+        try:
+            year_int = int(year)
+            qs = qs.filter(year=year_int)
+        except ValueError:
+            return JsonResponse({'error': 'Invalid year parameter'}, status=400)
+    if semester:
+        qs = qs.filter(semester=semester)
+
+    data = qs.values('sport__name').annotate(count=Count('id')).order_by('-count')
+    labels = [d['sport__name'] for d in data]
+    counts = [d['count'] for d in data]
+    return JsonResponse({'labels': labels, 'counts': counts})

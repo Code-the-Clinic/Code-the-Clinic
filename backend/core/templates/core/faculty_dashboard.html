@@ -27,15 +27,21 @@
                     </div>
                     <div>
                         <label style="font-weight: 500; display: block; margin-bottom: 4px; font-size: 12px; color: #666;">Sport</label>
-                        <select style="padding: 6px; border-radius: 4px; border: 1px solid #bbb; width: 100%; background: white;">
-                            <option>Football</option><option>Soccer</option>
+                        <select id="sportDropdown" style="padding: 6px; border-radius: 4px; border: 1px solid #bbb; width: 100%; background: white;">
+                            <option value="">All Sports</option>
+                            {% for s in sports %}
+                                <option value="{{ s|escape }}">{{ s }}</option>
+                            {% endfor %}
                         </select>
                     </div>
                     <div style="display: flex; gap: 10px; align-items: flex-end;">
                         <div style="flex: 1;">
                             <label style="font-weight: 500; display: block; margin-bottom: 4px; font-size: 12px; color: #666;">Semester</label>
                             <select id="semesterDropdown" style="padding: 6px; border-radius: 4px; border: 1px solid #bbb; width: 100%; background: white;">
-                                <option>Fall '24</option><option>Spring '25</option>
+                                <option value="">All Semesters</option>
+                                {% for sem in semesters %}
+                                    <option value="{{ sem }}">{{ sem }}</option>
+                                {% endfor %}
                             </select>
                         </div>
                         <div id="weekDropdownWrapper" style="display: none; flex: 1;">
@@ -210,14 +216,54 @@
 
     const pieOptions = { responsive: true, maintainAspectRatio: false, plugins: { legend: { position: 'bottom', labels: { boxWidth: 12, padding: 15 } } } };
 
-    new Chart(document.getElementById('pieChart').getContext('2d'), {
+    // Create an empty pie chart instance that will be updated with live data
+    const pieCtx = document.getElementById('pieChart').getContext('2d');
+    const pieChart = new Chart(pieCtx, {
         type: 'pie',
-        data: {
-            labels: ['Immediate', 'Musculoskeletal', 'Other'],
-            datasets: [{ data: [12, 19, 3], backgroundColor: ['#FF6384', '#36A2EB', '#FFCE56'] }]
-        },
+        data: { labels: [], datasets: [{ data: [], backgroundColor: [] }] },
         options: pieOptions
     });
+
+    // Helper to generate colors for slices
+    function getColor(index) {
+        const palette = ['#FF6384', '#36A2EB', '#FFCE56', '#4BC0C0', '#9966FF', '#FF9F40', '#8ACB88', '#D87A80', '#5DA5F3'];
+        return palette[index % palette.length];
+    }
+
+    async function fetchAndRenderPie() {
+        const sport = document.getElementById('sportDropdown').value;
+        const semester = document.getElementById('semesterDropdown').value;
+        // Use current year by default
+        const year = new Date().getFullYear();
+
+        const params = new URLSearchParams();
+        params.set('year', year);
+        if (semester) params.set('semester', semester);
+        if (sport) params.set('sport', sport);
+
+        try {
+            const resp = await fetch(`/clinic-reports/api/pie1/?${params.toString()}`);
+            if (!resp.ok) throw new Error('Failed to fetch data');
+            const json = await resp.json();
+            const labels = json.labels || [];
+            const counts = json.counts || [];
+            const colors = labels.map((_, i) => getColor(i));
+
+            pieChart.data.labels = labels;
+            pieChart.data.datasets[0].data = counts;
+            pieChart.data.datasets[0].backgroundColor = colors;
+            pieChart.update();
+        } catch (err) {
+            console.error('Error loading pie data', err);
+        }
+    }
+
+    // Wire dropdowns
+    document.getElementById('sportDropdown').addEventListener('change', fetchAndRenderPie);
+    document.getElementById('semesterDropdown').addEventListener('change', fetchAndRenderPie);
+
+    // Initial load
+    fetchAndRenderPie();
 
     new Chart(document.getElementById('pieChart2').getContext('2d'), {
         type: 'pie',

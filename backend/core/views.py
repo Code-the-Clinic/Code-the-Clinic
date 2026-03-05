@@ -93,6 +93,7 @@ def faculty_dashboard_view(request):
     # Get filter options
     semesters = ClinicReport.objects.values_list('semester', flat=True).distinct().exclude(semester__isnull=True).order_by('-semester')
     sports = Sport.objects.filter(clinicreport__isnull=False).distinct().values_list('name', flat=True).order_by('name')
+    years = ClinicReport.objects.values_list('created_at__year', flat=True).distinct().order_by('-created_at__year')
     
     context = {
         # Filters
@@ -100,6 +101,7 @@ def faculty_dashboard_view(request):
         'selected_semester': selected_semester,
         'semesters': sorted(set(semesters)),
         'sports': sorted(set(sports)),
+        'years': [y for y in years if y is not None],
         
         # Pie chart
         'pie_chart_data': pie_chart_data,
