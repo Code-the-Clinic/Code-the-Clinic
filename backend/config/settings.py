@@ -199,6 +199,17 @@ REST_FRAMEWORK = {
     # Pagination to avoid server crashes when loading a large dataset
     'DEFAULT_PAGINATION_CLASS': 'rest_framework.pagination.PageNumberPagination',
     'PAGE_SIZE': 100,
+
+    # Global API rate limiting to reduce abuse / DoS risk (CWE-770)
+    'DEFAULT_THROTTLE_CLASSES': [
+        'rest_framework.throttling.AnonRateThrottle',
+        'rest_framework.throttling.UserRateThrottle',
+    ],
+    'DEFAULT_THROTTLE_RATES': {
+        # Override via env in deployment as needed
+        'anon': os.environ.get('DRF_THROTTLE_ANON', '60/minute'),
+        'user': os.environ.get('DRF_THROTTLE_USER', '120/minute'),
+    },
 }
 
 # This allows us to use Microsoft Entra for login
