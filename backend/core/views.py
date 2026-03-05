@@ -10,7 +10,6 @@ from clinic_reports.models import ClinicReport, Sport
 
 # Security note: Viewing the faculty dashboard requires authentication
 @login_required
-@login_required
 def faculty_dashboard_view(request):
     """Faculty dashboard with heat map and pie chart"""
     if not request.user.is_staff:
@@ -19,6 +18,8 @@ def faculty_dashboard_view(request):
     # Get filter values
     selected_sport = request.GET.get('sport')
     selected_semester = request.GET.get('semester')
+    selected_time_filter = request.GET.get('time_filter')  # ADD THIS
+    selected_week = request.GET.get('week')
     
     # Base queryset for pie chart (filtered by both)
     pie_reports = ClinicReport.objects.all()
@@ -104,6 +105,8 @@ def faculty_dashboard_view(request):
         # Pie chart
         'pie_chart_data': pie_chart_data,
         'pie_total_patients': sum(item['value'] for item in pie_chart_data),
+
+        'weeks_list': range(1, 17),  # Weeks 1-16
         
         # Heat map
         'heatmap_categories': [c[0] for c in categories],
