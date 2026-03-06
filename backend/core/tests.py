@@ -211,7 +211,7 @@ class FetchDataTests(TestCase):
 
         self.assertEqual(response.status_code, 400)
         self.assertFalse(data.get('success'))
-        self.assertIn('Invalid year', data.get('error', ''))
+        self.assertIn('Invalid filter parameters', data.get('error', ''))
 
     def test_fetch_data_rejects_invalid_json(self):
         self.client.force_login(self.staff_user)
@@ -366,7 +366,7 @@ class FetchStudentDataTests(TestCase):
 
         self.assertEqual(response.status_code, 400)
         self.assertFalse(data.get('success'))
-        self.assertIn('Invalid year', data.get('error', ''))
+        self.assertIn('Invalid filter parameters', data.get('error', ''))
 
 
 class HomeViewTests(TestCase):
@@ -484,19 +484,17 @@ class DashboardViewTests(TestCase):
 
 
 class LoginUrlSettingsTests(TestCase):
-    """Test that LOGIN_URL is configured correctly based on Azure credentials"""
+    """Test that LOGIN_URL is configured correctly based on runtime environment."""
     
-    @patch.dict(os.environ, {'MICROSOFT_LOGIN_CLIENT_ID': 'test-client-id'})
-    def test_login_url_with_azure_credentials(self):
-        """When Azure credentials are present, LOGIN_URL should go to Microsoft login"""
+    @patch('config.settings.IS_IN_AZURE', True)
+    def test_login_url_in_azure_environment(self):
+        """When running in Azure App Service, LOGIN_URL should go to Microsoft login."""
         from config.settings import get_login_url
         self.assertEqual(get_login_url(), '/accounts/microsoft/login/')
     
-    @patch.dict(os.environ, {}, clear=False)
-    def test_login_url_without_azure_credentials(self):
-        """When Azure credentials are absent, LOGIN_URL should go to provider chooser"""
+    @patch('config.settings.IS_IN_AZURE', False)
+    def test_login_url_in_local_environment_uses_provider_chooser(self):
+        """Outside Azure, LOGIN_URL should use provider chooser even if MS creds exist."""
         from config.settings import get_login_url
-        # Remove MICROSOFT_LOGIN_CLIENT_ID if it exists
-        os.environ.pop('MICROSOFT_LOGIN_CLIENT_ID', None)
         self.assertEqual(get_login_url(), '/accounts/login/')
 

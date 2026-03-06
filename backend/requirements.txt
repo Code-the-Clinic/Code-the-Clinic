@@ -4,6 +4,7 @@ djangorestframework
 django-cors-headers
 python-dotenv
 django-allauth
+django-axes
 requests
 openpyxl
 whitenoise
