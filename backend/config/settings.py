@@ -54,6 +54,14 @@ DEBUG = os.environ.get('DEBUG', 'False').lower() in ('1', 'true', 'yes')
 allowed_hosts_str = os.environ.get("ALLOWED_HOSTS", "")
 ALLOWED_HOSTS = [h.strip() for h in allowed_hosts_str.split(",") if h.strip()]
 
+# WEBSITE_SITE_NAME is automatically set by Azure App Service (system variable)
+# It will NOT exist in local development, even if you have Azure credentials in .env
+IS_IN_AZURE = 'WEBSITE_SITE_NAME' in os.environ
+
+# Allow testing social-only auth locally by setting FORCE_SOCIALACCOUNT_ONLY=True in .env
+# In production (Azure), this is always enforced regardless of env var
+FORCE_SOCIALACCOUNT_ONLY = os.environ.get('FORCE_SOCIALACCOUNT_ONLY', 'False').lower() in ('1', 'true', 'yes')
+
 # Application definition
 
 INSTALLED_APPS = [
@@ -75,7 +83,7 @@ INSTALLED_APPS = [
 ]
 
 # For local dev without Azure creds, add dummy provider
-if not os.environ.get('MICROSOFT_LOGIN_CLIENT_ID'):
+if not IS_IN_AZURE:
     INSTALLED_APPS.append('allauth.socialaccount.providers.dummy')
 
 MIDDLEWARE = [
@@ -112,8 +120,6 @@ WSGI_APPLICATION = 'config.wsgi.application'
 
 # Database
 # https://docs.djangoproject.com/en/5.2/ref/settings/#databases
-
-IS_IN_AZURE = 'WEBSITE_SITE_NAME' in os.environ # Check if the app is running in Azure
 
 DATABASES = {
     "default": {
@@ -228,18 +234,17 @@ SOCIALACCOUNT_PROVIDERS = {
 }
 
 # For local dev without Azure creds, add dummy provider config
-# TODO: Potentially remove this before final production cloud deployment
-if not os.environ.get('MICROSOFT_LOGIN_CLIENT_ID'):
+if not IS_IN_AZURE:
     SOCIALACCOUNT_PROVIDERS['dummy'] = {}
 
 
 # Helper function to determine LOGIN_URL based on Azure credentials
 def get_login_url():
     """Determine the login URL based on whether Azure credentials are configured."""
-    if os.environ.get('MICROSOFT_LOGIN_CLIENT_ID'):
+    if IS_IN_AZURE:
         return '/accounts/microsoft/login/'
     else:
-        return '/accounts/login/'  # Show provider chooser when no Azure creds
+        return '/accounts/login/'  # Show provider chooser in local environment
 
 
 # When Azure credentials are present, skip allauth chooser and go straight to Microsoft
@@ -254,6 +259,15 @@ SITE_ID = 1
 
 # Use custom social account adapter to restrict to UA email domains
 SOCIALACCOUNT_ADAPTER = 'core.adapters.CustomSocialAccountAdapter'
+
+# Force social auth only in production (Azure), but allow local accounts for testing
+# This prevents bypassing Microsoft SSO via local Django accounts in production
+# Required setting for SOCIALACCOUNT_ONLY
+ACCOUNT_EMAIL_VERIFICATION = 'none'
+
+# Enforce social-only auth in Azure production, or locally if FORCE_SOCIALACCOUNT_ONLY=True
+# This allows testing the production behavior locally without Azure managed identity
+SOCIALACCOUNT_ONLY = IS_IN_AZURE or FORCE_SOCIALACCOUNT_ONLY
 
 # CSRF and cookie security settings
 # Allow browsers to send cookies with cross-origin XHR when configured
