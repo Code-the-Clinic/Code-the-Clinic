@@ -18,7 +18,9 @@ from django.contrib import admin
 from django.urls import path, include
 from django.http import JsonResponse
 from django.db import connection
+import logging
 
+logger = logging.getLogger(__name__)
 
 def _db_health_check(request):
     try:
@@ -28,11 +30,12 @@ def _db_health_check(request):
             cursor.fetchone()
         return JsonResponse({"status": "ok", "db": "ok"})
     except Exception as exc:
-        return JsonResponse({"status": "error", "db": str(exc)}, status=500)
+        logger.error(f"Database health check failed: {exc}")
+        return JsonResponse({"status": "error", "db": "Database connection failed"}, status=500)
 
 urlpatterns = [
     path('health/', lambda request: JsonResponse({"status": "ok"}), name='health'),
-    path('health/db/', lambda request: _db_health_check(request), name='health_db'),
+    path('health/db/', _db_health_check, name='health_db'),
     path('', include('core.urls')),
     path('admin/', admin.site.urls, name='admin'),
     path('accounts/', include('allauth.urls'), name='accounts'),

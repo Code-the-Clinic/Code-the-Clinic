@@ -130,7 +130,8 @@ if IS_IN_AZURE:
     try:
         DATABASES['default']['PASSWORD'] = AzureDbToken()
     except Exception as e:
-        print(f"Critical: Failed to acquire Entra ID token in Azure environment. Error: {e}")
+        import logging
+        logging.getLogger(__name__).critical(f"Failed to acquire Entra ID token in Azure environment. Error: {e}")
 
 else:
     DATABASES['default']['PASSWORD'] = os.getenv("POSTGRES_PASSWORD")
