@@ -8,6 +8,8 @@ from django.http import HttpResponseBadRequest
 import json
 from .models import ClinicReport
 from .models import Sport, HealthcareProvider
+from user_logging.models import UserActivityLog
+from user_logging.services import log_user_activity
 
 # Security note: Student form submissions require authentication because we want to protect against DDoS attacks.
 # This way, only verified students and faculty can submit the form and create new traffic to the database.
@@ -106,6 +108,19 @@ def submit_report(request):
             interacted_hcps=interacted_bool,
             healthcare_provider=healthcare_provider
         )
+
+        log_user_activity(
+            request=request,
+            user=request.user,
+            event_type=UserActivityLog.EventType.REPORT_SUBMITTED,
+            status_code=200,
+            details={
+                'report_id': report.id,
+                'sport': sport.name,
+                'week': week,
+            },
+        )
+
         return JsonResponse({'success': True, 'id': report.id})
     except Exception as e:
         return JsonResponse({'success': False, 'error': str(e)}, status=400)
