@@ -30,6 +30,7 @@ class ClinicReportViewTests(TestCase):
             'last_name': 'Example',
             'email': 'alice@university.edu',
             'sport': self.football.id,  # Form submissions use sport ID as json value
+            'week': 5,
             'immediate_emergency_care': 1,
             'musculoskeletal_exam': 2,
             'non_musculoskeletal_exam': 0,
@@ -48,6 +49,7 @@ class ClinicReportViewTests(TestCase):
             'last_name': 'Student',
             'email': 'bob@university.edu',
             'sport': self.football.id,
+            'week': 3,
             'immediate_emergency_care': 0,
             'musculoskeletal_exam': 1,
             'non_musculoskeletal_exam': 0,

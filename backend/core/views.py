@@ -10,7 +10,6 @@ from clinic_reports.models import ClinicReport, Sport
 
 # Security note: Viewing the faculty dashboard requires authentication
 @login_required
-@login_required
 def faculty_dashboard_view(request):
     """Faculty dashboard with heat map and pie chart"""
     if not request.user.is_staff:
@@ -19,6 +18,8 @@ def faculty_dashboard_view(request):
     # Get filter values
     selected_sport = request.GET.get('sport')
     selected_semester = request.GET.get('semester')
+    selected_time_filter = request.GET.get('time_filter')  # ADD THIS
+    selected_week = request.GET.get('week')
     
     # Base queryset for pie chart (filtered by both)
     pie_reports = ClinicReport.objects.all()
@@ -104,6 +105,8 @@ def faculty_dashboard_view(request):
         # Pie chart
         'pie_chart_data': pie_chart_data,
         'pie_total_patients': sum(item['value'] for item in pie_chart_data),
+
+        'weeks_list': range(1, 17),  # Weeks 1-16
         
         # Heat map
         'heatmap_categories': [c[0] for c in categories],
@@ -116,7 +119,10 @@ def faculty_dashboard_view(request):
 @login_required
 def student_dashboard_view(request):
     """Render the student dashboard."""
-    return render(request, 'core/student_dashboard.html')
+    context = {
+        'weeks': range(1, 17)  # Weeks 1-16
+    }
+    return render(request, 'core/student_dashboard.html', context)
 
 def home_view(request):
     """Render the homepage."""
@@ -124,82 +130,133 @@ def home_view(request):
     context = {'login_url': settings.LOGIN_URL}
     return render(request, 'core/home.html', context)
 
+
+def _apply_dashboard_filters(clinic_reports, filters):
+    """Apply common dashboard filters to a ClinicReport queryset."""
+    if filters.get('sport'):
+        clinic_reports = clinic_reports.filter(sport__name=filters.get('sport'))
+
+    if filters.get('semester'):
+        clinic_reports = clinic_reports.filter(semester=filters.get('semester'))
+
+    if filters.get('week'):
+        clinic_reports = clinic_reports.filter(week=filters.get('week'))
+
+    if filters.get('year') is not None:
+        try:
+            year_value = int(filters.get('year'))
+        except (TypeError, ValueError):
+            raise ValueError('Invalid year. Expected numeric year (e.g., 2026).')
+        clinic_reports = clinic_reports.filter(created_at__year=year_value)
+
+    return clinic_reports
+
+
+def _build_dashboard_payload(clinic_reports):
+    """Build shared dashboard response payload for pie charts and summary metrics."""
+    # Calculate average patient load per report (submission/week)
+    average_patients_per_week = clinic_reports.annotate(
+        weekly_total_patients=Coalesce(F('immediate_emergency_care'), 0) +
+        Coalesce(F('musculoskeletal_exam'), 0) +
+        Coalesce(F('non_musculoskeletal_exam'), 0) +
+        Coalesce(F('taping_bracing'), 0) +
+        Coalesce(F('rehabilitation_reconditioning'), 0) +
+        Coalesce(F('modalities'), 0) +
+        Coalesce(F('pharmacology'), 0) +
+        Coalesce(F('injury_illness_prevention'), 0) +
+        Coalesce(F('non_sport_patient'), 0)
+    ).aggregate(
+        average=Coalesce(
+            Avg('weekly_total_patients'),
+            Value(0.0),
+            output_field=FloatField()
+        )
+    )['average']
+
+    # Calculate pie chart totals
+    pie_totals = clinic_reports.aggregate(
+        immediate=Sum('immediate_emergency_care') or 0,
+        musculoskeletal=Sum('musculoskeletal_exam') or 0,
+        non_musculoskeletal=Sum('non_musculoskeletal_exam') or 0,
+        taping=Sum('taping_bracing') or 0,
+        rehab=Sum('rehabilitation_reconditioning') or 0,
+        modalities=Sum('modalities') or 0,
+        pharmacology=Sum('pharmacology') or 0,
+        prevention=Sum('injury_illness_prevention') or 0,
+        non_sport=Sum('non_sport_patient') or 0,
+    )
+
+    pie_chart_data = []
+    for label, key in [
+        ('Immediate/Emergency', 'immediate'),
+        ('Musculoskeletal Exam', 'musculoskeletal'),
+        ('Non-Musculoskeletal', 'non_musculoskeletal'),
+        ('Taping/Bracing', 'taping'),
+        ('Rehabilitation', 'rehab'),
+        ('Modalities', 'modalities'),
+        ('Pharmacology', 'pharmacology'),
+        ('Injury Prevention', 'prevention'),
+        ('Non-Sport Patient', 'non_sport'),
+    ]:
+        value = pie_totals[key]
+        if value is not None and value > 0:
+            pie_chart_data.append({'label': label, 'value': value})
+
+    return {
+        'success': True,
+        'pie_chart_data': pie_chart_data,
+        'total_patients': sum(item['value'] for item in pie_chart_data),
+        'average_patients_per_week': average_patients_per_week,
+    }
+
 @require_http_methods(["POST"])
+@login_required
 def fetch_data(request):
-    """API endpoint to load data for dashboards (need to differentiate between students and faculty)
+    """API endpoint to fetch pie chart data for faculty dashboard
+    
+    Accepts JSON payload with filters:
+    - sport: filter by sport name (optional)
+    - semester: filter by semester (optional)
+    - week: filter by week number (optional)
+    - year: filter by year (optional)
     
     Authorization:
-    - Non-staff users can only view their own email's data
-    - Staff users can filter by any email or sport
+    - Non-staff users cannot use this endpoint
+    - Staff users can filter by any combination of parameters
     """
-    if not request.user.is_authenticated:
-        # Throw a 403 Forbidden error if user is not logged in
-        return JsonResponse({'success': False, 'error': 'Authentication required'})
+    if not request.user.is_staff:
+        return JsonResponse({'success': False, 'error': 'Permission denied'}, status=403)
+    
     try:
         filters = json.loads(request.body)
         clinic_reports = ClinicReport.objects.all()
-
-        # Authorization: non-staff users can only view their own data
-        if not request.user.is_staff:
-            # Force non-staff users to view only their own email
-            filters['email'] = request.user.email
-        
-        if filters.get('email'):
-            clinic_reports = clinic_reports.filter(email=filters.get('email'))
-
-        if filters.get('sport'):
-            # Filter by sport name, not ID, because this will make the API more intuitive to use
-            clinic_reports = clinic_reports.filter(sport__name=filters.get('sport'))
-
-        # Get summary stats
-        stats = clinic_reports.annotate(
-            # Calculate the total patients served per row (1 row = 1 submitted form)
-            weekly_total_patients=Coalesce(F('immediate_emergency_care'), 0) + 
-            Coalesce(F('musculoskeletal_exam'), 0) +
-            Coalesce(F('non_musculoskeletal_exam'), 0) +
-            Coalesce(F('taping_bracing'), 0) +
-            Coalesce(F('rehabilitation_reconditioning'), 0) +
-            Coalesce(F('modalities'), 0) +
-            Coalesce(F('pharmacology'), 0) +
-            Coalesce(F('injury_illness_prevention'), 0) +
-            Coalesce(F('non_sport_patient'), 0)
-        ).aggregate(
-            # Calculate average patient load
-            average_patients_per_week=Coalesce(
-                Avg('weekly_total_patients'),
-                Value(0.0),
-                output_field=FloatField()
-            ),
-            
-            # Calculate total patients served by category
-            total_immediate_emergency_care=Coalesce(Sum('immediate_emergency_care'), Value(0)),
-            total_musculoskeletal_exam=Coalesce(Sum('musculoskeletal_exam'), Value(0)),
-            total_non_musculoskeletal_exam=Coalesce(Sum('non_musculoskeletal_exam'), Value(0)),
-            total_taping_bracing=Coalesce(Sum('taping_bracing'), Value(0)),
-            total_rehabilitation_reconditioning=Coalesce(Sum('rehabilitation_reconditioning'), Value(0)),
-            total_modalities=Coalesce(Sum('modalities'), Value(0)),
-            total_pharmacology=Coalesce(Sum('pharmacology'), Value(0)),
-            total_injury_illness_prevention=Coalesce(Sum('injury_illness_prevention'), Value(0)),
-            total_non_sport_patient=Coalesce(Sum('non_sport_patient'), Value(0)),
-            total_interacted_hcps=Coalesce(
-                Sum(
-                    Case(
-                        When(interacted_hcps=True, then=1),
-                        default=0,
-                        output_field=IntegerField()
-                    )
-                ),
-                Value(0)
-            ),
-
-            # Total patients served across all students and categories
-            grand_total_served=Coalesce(Sum('weekly_total_patients'), Value(0))
-        )
-
-        return JsonResponse({
-            'success': True,
-            'stats': stats,
-        })
+        clinic_reports = _apply_dashboard_filters(clinic_reports, filters)
+        return JsonResponse(_build_dashboard_payload(clinic_reports))
     
+    except json.JSONDecodeError:
+        return JsonResponse({'success': False, 'error': 'Invalid JSON'}, status=400)
+    except ValueError as e:
+        return JsonResponse({'success': False, 'error': str(e)}, status=400)
+    except Exception as e:
+        return JsonResponse({'success': False, 'error': str(e)}, status=400)
+
+
+@require_http_methods(["POST"])
+@login_required
+def fetch_student_data(request):
+    """API endpoint for student dashboard data (self-only)."""
+    if request.user.is_staff:
+        return JsonResponse({'success': False, 'error': 'Use the faculty endpoint for staff requests.'}, status=403)
+
+    try:
+        filters = json.loads(request.body)
+        clinic_reports = ClinicReport.objects.filter(email=request.user.email)
+        clinic_reports = _apply_dashboard_filters(clinic_reports, filters)
+        return JsonResponse(_build_dashboard_payload(clinic_reports))
+
+    except json.JSONDecodeError:
+        return JsonResponse({'success': False, 'error': 'Invalid JSON'}, status=400)
+    except ValueError as e:
+        return JsonResponse({'success': False, 'error': str(e)}, status=400)
     except Exception as e:
         return JsonResponse({'success': False, 'error': str(e)}, status=400)
