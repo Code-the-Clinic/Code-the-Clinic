@@ -126,10 +126,9 @@ if ALLOW_PASSWORD_ADMIN_LOGIN:
 AXES_FAILURE_LIMIT = 5
 # Lock out for 30 minutes
 AXES_COOLOFF_TIME = 0.5  # Hours (0.5 = 30 minutes)
-# Only track failed logins (not successful logins)
-AXES_ONLY_USER_FAILURES = True
-# Lock by username (not IP) to prevent IP spoofing bypass
-AXES_LOCK_OUT_BY_COMBINATION_USER_AND_IP = True
+# Lockout key includes both username and IP to reduce bypass risk.
+# Replaces deprecated AXES_ONLY_USER_FAILURES / AXES_LOCK_OUT_BY_COMBINATION_USER_AND_IP.
+AXES_LOCKOUT_PARAMETERS = ["username", "ip_address"]
 
 ROOT_URLCONF = 'config.urls'
 
@@ -312,9 +311,12 @@ CSRF_TRUSTED_ORIGINS = [x for x in os.environ.get('CSRF_TRUSTED_ORIGINS', '').sp
 # For Azure: recognize X-Forwarded-Proto header from reverse proxy to correctly detect HTTPS
 SECURE_PROXY_SSL_HEADER = ('HTTP_X_FORWARDED_PROTO', 'https')
 
-# Use secure cookies when not in DEBUG (i.e., in production with HTTPS)
-CSRF_COOKIE_SECURE = not DEBUG
-SESSION_COOKIE_SECURE = not DEBUG
+# Use secure cookies in Azure by default.
+# Local Docker/dev commonly runs over HTTP, so forcing Secure cookies there breaks
+# session-based auth flows (e.g., allauth dummy/microsoft state handling).
+SECURE_COOKIES = os.environ.get('SECURE_COOKIES', 'True' if IS_IN_AZURE else 'False').lower() in ('1', 'true', 'yes')
+CSRF_COOKIE_SECURE = SECURE_COOKIES
+SESSION_COOKIE_SECURE = SECURE_COOKIES
 
 # Sane defaults for SameSite to reduce CSRF exposure while allowing normal
 # navigation-based logins (use 'Strict' if you only need same-site access)
