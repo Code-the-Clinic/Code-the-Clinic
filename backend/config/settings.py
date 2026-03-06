@@ -62,6 +62,17 @@ IS_IN_AZURE = 'WEBSITE_SITE_NAME' in os.environ
 # In production (Azure), this is always enforced regardless of env var
 FORCE_SOCIALACCOUNT_ONLY = os.environ.get('FORCE_SOCIALACCOUNT_ONLY', 'False').lower() in ('1', 'true', 'yes')
 
+# Break-glass control for username/password authentication.
+# Default behavior:
+# - Local dev: enabled (convenient for testing)
+# - Azure prod: disabled (Microsoft SSO only)
+# To temporarily enable emergency password login in Azure, set
+# ALLOW_PASSWORD_ADMIN_LOGIN=True and restart the app.
+ALLOW_PASSWORD_ADMIN_LOGIN = os.environ.get(
+    'ALLOW_PASSWORD_ADMIN_LOGIN',
+    'False' if IS_IN_AZURE else 'True'
+).lower() in ('1', 'true', 'yes')
+
 # Application definition
 
 INSTALLED_APPS = [
@@ -78,6 +89,7 @@ INSTALLED_APPS = [
     'allauth.account',
     'allauth.socialaccount',
     'allauth.socialaccount.providers.microsoft',
+    'axes',  # Brute force protection for admin login
     'core',
     'clinic_reports', # Clinic report form
 ]
@@ -97,7 +109,27 @@ MIDDLEWARE = [
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
     'allauth.account.middleware.AccountMiddleware',
+    'axes.middleware.AxesMiddleware',  # Must be last for brute force protection
 ]
+
+# django-axes configuration for brute force protection
+AUTHENTICATION_BACKENDS = [
+    'axes.backends.AxesStandaloneBackend',  # Brute force protection
+    'allauth.account.auth_backends.AuthenticationBackend',  # Allauth social auth
+]
+
+# Only allow password auth when explicitly enabled (break-glass mode)
+if ALLOW_PASSWORD_ADMIN_LOGIN:
+    AUTHENTICATION_BACKENDS.insert(1, 'django.contrib.auth.backends.ModelBackend')
+
+# Lock out after 5 failed login attempts
+AXES_FAILURE_LIMIT = 5
+# Lock out for 30 minutes
+AXES_COOLOFF_TIME = 0.5  # Hours (0.5 = 30 minutes)
+# Only track failed logins (not successful logins)
+AXES_ONLY_USER_FAILURES = True
+# Lock by username (not IP) to prevent IP spoofing bypass
+AXES_LOCK_OUT_BY_COMBINATION_USER_AND_IP = True
 
 ROOT_URLCONF = 'config.urls'
 
