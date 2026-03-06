@@ -239,7 +239,7 @@ def fetch_data(request):
     except json.JSONDecodeError:
         return JsonResponse({'success': False, 'error': 'Invalid JSON'}, status=400)
     except ValueError as e:
-        logger.warning(f"Dashboard data fetch validation error: {e}")
+        logger.error(f"Dashboard data fetch validation error: {e}")
         return JsonResponse({'success': False, 'error': 'Invalid filter parameters'}, status=400)
     except Exception as e:
         logger.error(f"Dashboard data fetch error: {e}")
