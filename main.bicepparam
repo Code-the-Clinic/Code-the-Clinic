@@ -20,6 +20,7 @@ param locationLower = 'northcentralus'
 param networkAddressSpace = '10.0.0.0/16'
 param subnetDefault = '10.0.0.0/24'
 param subnetAppService = '10.0.1.0/26'
+param subnetDeploymentScript = '10.0.2.0/27'
 param vaultSubnetIpAddress = '130.160.194.1/32'
 
 // Application parameters
@@ -31,7 +32,6 @@ param siteContainerUserName = 'supergeek57'
 param allowedDomains = '<comma-separated string of university email domains>'
 param allowedHosts = 'localhost,127.0.0.1,0.0.0.0,<app-service-public-domain>,<app-service-ip-address>'
 param csrfTrustedOrigins = '<app-service-public-domain>'
-param microsoftLoginClientId = '<insert-client-id-from-azure-app-registration>'
 
 // Database parameters
 // param dbAdminObjectIds = []  // Uncomment and add Entra user/group object IDs to auto-add DB admins

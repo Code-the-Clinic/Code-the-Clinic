@@ -15,6 +15,7 @@ param locationLower string
 param networkAddressSpace string
 param subnetDefault string
 param subnetAppService string
+param subnetDeploymentScript string
 param vaultSubnetIpAddress string
 
 // Application parameters
@@ -28,7 +29,6 @@ param healthCheckPath string = '/health/'
 param allowedDomains string
 param allowedHosts string
 param csrfTrustedOrigins string
-param microsoftLoginClientId string
 
 // Database parameters
 param tenantId string = subscription().tenantId
@@ -53,7 +53,7 @@ resource flexibleServers_code_the_clinic_db_name_resource 'Microsoft.DBforPostgr
       autoGrow: 'Disabled'
     }
     network: {
-      publicNetworkAccess: 'Disabled'
+      publicNetworkAccess: 'Enabled'
     }
     dataEncryption: {
       type: 'SystemManaged'
@@ -145,6 +145,25 @@ resource virtualNetworks_code_the_clinic_vnet_name_resource 'Microsoft.Network/v
           privateLinkServiceNetworkPolicies: 'Enabled'
         }
       }
+      {
+        name: 'deployment-script-subnet'
+        properties: {
+          addressPrefixes: [
+            subnetDeploymentScript
+          ]
+          serviceEndpoints: []
+          delegations: [
+            {
+              name: 'Microsoft.ContainerInstance.containerGroups'
+              properties: {
+                serviceName: 'Microsoft.ContainerInstance/containerGroups'
+              }
+            }
+          ]
+          privateEndpointNetworkPolicies: 'Disabled'
+          privateLinkServiceNetworkPolicies: 'Enabled'
+        }
+      }
     ]
     virtualNetworkPeerings: []
     enableDdosProtection: false
@@ -205,6 +224,17 @@ resource flexibleServers_code_the_clinic_db_name_flexibleServers_code_the_clinic
   }
 }
 
+// Temporary bootstrap rule so Azure-hosted deployment script can reach PostgreSQL public endpoint.
+// Remove/lock down after deployment, then disable public network access again.
+resource flexibleServerAllowAzureServices 'Microsoft.DBforPostgreSQL/flexibleServers/firewallRules@2025-01-01-preview' = {
+  parent: flexibleServers_code_the_clinic_db_name_resource
+  name: 'AllowAzureServices'
+  properties: {
+    startIpAddress: '0.0.0.0'
+    endIpAddress: '0.0.0.0'
+  }
+}
+
 resource vaults_code_the_clinic_vault_name_resource 'Microsoft.KeyVault/vaults@2024-12-01-preview' = {
   name: vaults_code_the_clinic_vault_name
   location: locationLower
@@ -246,6 +276,7 @@ resource vaults_code_the_clinic_vault_name_azure_client_id 'Microsoft.KeyVault/v
   parent: vaults_code_the_clinic_vault_name_resource
   name: 'azure-client-id'
   properties: {
+    value: ''
     attributes: {
       enabled: true
     }
@@ -256,6 +287,7 @@ resource vaults_code_the_clinic_vault_name_azure_secret 'Microsoft.KeyVault/vaul
   parent: vaults_code_the_clinic_vault_name_resource
   name: 'azure-secret'
   properties: {
+    value: ''
     attributes: {
       enabled: true
     }
@@ -266,6 +298,7 @@ resource vaults_code_the_clinic_vault_name_azure_tenant_id 'Microsoft.KeyVault/v
   parent: vaults_code_the_clinic_vault_name_resource
   name: 'azure-tenant-id'
   properties: {
+    value: tenantId
     attributes: {
       enabled: true
     }
@@ -276,6 +309,7 @@ resource vaults_code_the_clinic_vault_name_db_host 'Microsoft.KeyVault/vaults/se
   parent: vaults_code_the_clinic_vault_name_resource
   name: 'db-host'
   properties: {
+    value: '${flexibleServers_code_the_clinic_db_name_resource.name}.postgres.database.azure.com'
     attributes: {
       enabled: true
     }
@@ -286,6 +320,7 @@ resource vaults_code_the_clinic_vault_name_django_secret_key 'Microsoft.KeyVault
   parent: vaults_code_the_clinic_vault_name_resource
   name: 'django-secret-key'
   properties: {
+    value: ''
     attributes: {
       enabled: true
     }
@@ -296,6 +331,7 @@ resource vaults_code_the_clinic_vault_name_postgres_db 'Microsoft.KeyVault/vault
   parent: vaults_code_the_clinic_vault_name_resource
   name: 'postgres-db'
   properties: {
+    value: flexibleServers_code_the_clinic_db_name_resource.name
     attributes: {
       enabled: true
     }
@@ -306,6 +342,18 @@ resource vaults_code_the_clinic_vault_name_postgres_user 'Microsoft.KeyVault/vau
   parent: vaults_code_the_clinic_vault_name_resource
   name: 'postgres-user'
   properties: {
+    value: sites_code_the_clinic_name_resource.name
+    attributes: {
+      enabled: true
+    }
+  }
+}
+
+resource vaults_code_the_clinic_vault_name_microsoft_login_client_id 'Microsoft.KeyVault/vaults/secrets@2024-12-01-preview' = {
+  parent: vaults_code_the_clinic_vault_name_resource
+  name: 'microsoft-login-client-id'
+  properties: {
+    value: ''
     attributes: {
       enabled: true
     }
@@ -568,9 +616,11 @@ resource siteConfigSettings 'Microsoft.Web/sites/config@2024-11-01' = {
   name: 'appsettings'
   parent: sites_code_the_clinic_name_resource
   properties: {
-    // Secrets (you will need to add these in Key Vault)
+    // Values read from Key Vault
     AZURE_SECRET: '@Microsoft.KeyVault(VaultName=${vaults_code_the_clinic_vault_name_resource.name};SecretName=azure-secret)'
+    AZURE_TENANT_ID: '@Microsoft.KeyVault(VaultName=${vaults_code_the_clinic_vault_name_resource.name};SecretName=azure-tenant-id)'
     DJANGO_SECRET_KEY: '@Microsoft.KeyVault(VaultName=${vaults_code_the_clinic_vault_name_resource.name};SecretName=django-secret-key)'
+    MICROSOFT_LOGIN_CLIENT_ID: '@Microsoft.KeyVault(VaultName=${vaults_code_the_clinic_vault_name_resource.name};SecretName=microsoft-login-client-id)'
     POSTGRES_DB: '@Microsoft.KeyVault(VaultName=${vaults_code_the_clinic_vault_name_resource.name};SecretName=postgres-db)'
     POSTGRES_HOST: '@Microsoft.KeyVault(VaultName=${vaults_code_the_clinic_vault_name_resource.name};SecretName=db-host)'
     POSTGRES_USER: '@Microsoft.KeyVault(VaultName=${vaults_code_the_clinic_vault_name_resource.name};SecretName=postgres-user)'
@@ -579,9 +629,7 @@ resource siteConfigSettings 'Microsoft.Web/sites/config@2024-11-01' = {
     DEBUG: 'False' // Always set DEBUG=False in production
     ALLOWED_DOMAINS: allowedDomains
     ALLOWED_HOSTS: allowedHosts
-    AZURE_TENANT_ID: tenantId
     CSRF_TRUSTED_ORIGINS: csrfTrustedOrigins
-    MICROSOFT_LOGIN_CLIENT_ID: microsoftLoginClientId
     PORT: '8000'
     WEBSITE_HEALTHCHECK_MAXPINGFAILURES: '10'
     WEBSITE_HTTPLOGGING_RETENTION_DAYS: '10'
@@ -607,4 +655,159 @@ resource kvRoleAssignment 'Microsoft.Authorization/roleAssignments@2022-04-01' =
     principalId: sites_code_the_clinic_name_resource.identity.principalId
     principalType: 'ServicePrincipal'
   }
+}
+
+resource deploymentScriptUserAssignedIdentity 'Microsoft.ManagedIdentity/userAssignedIdentities@2023-01-31' = {
+  name: '${sites_code_the_clinic_name}-dbscript-mi'
+  location: location
+}
+
+resource deploymentScriptServerContributorRoleAssignment 'Microsoft.Authorization/roleAssignments@2022-04-01' = {
+  name: guid(flexibleServers_code_the_clinic_db_name_resource.id, deploymentScriptUserAssignedIdentity.id, 'Contributor')
+  scope: flexibleServers_code_the_clinic_db_name_resource
+  properties: {
+    roleDefinitionId: subscriptionResourceId('Microsoft.Authorization/roleDefinitions', 'b24988ac-6180-42a0-ab88-20f7382dd24c') // Contributor
+    principalId: deploymentScriptUserAssignedIdentity.properties.principalId
+    principalType: 'ServicePrincipal'
+  }
+}
+
+resource dbIdentitySetupScript 'Microsoft.Resources/deploymentScripts@2023-08-01' = {
+  name: '${sites_code_the_clinic_name}-db-identity-setup'
+  location: location
+  kind: 'AzureCLI'
+  identity: {
+    type: 'UserAssigned'
+    userAssignedIdentities: {
+      '${deploymentScriptUserAssignedIdentity.id}': {}
+    }
+  }
+  properties: {
+    azCliVersion: '2.63.0'
+    timeout: 'PT30M'
+    cleanupPreference: 'OnSuccess'
+    retentionInterval: 'P1D'
+    environmentVariables: [
+      {
+        name: 'DB_HOST'
+        value: '${flexibleServers_code_the_clinic_db_name_resource.name}.postgres.database.azure.com'
+      }
+      {
+        name: 'DB_NAME'
+        value: flexibleServers_code_the_clinic_db_name_resource.name
+      }
+      {
+        name: 'RESOURCE_GROUP_NAME'
+        value: resourceGroup().name
+      }
+      {
+        name: 'SUBSCRIPTION_ID'
+        value: subscription().subscriptionId
+      }
+      {
+        name: 'ARM_ENDPOINT'
+        value: environment().resourceManager
+      }
+      {
+        name: 'TENANT_ID'
+        value: tenantId
+      }
+      {
+        name: 'APP_SERVICE_NAME'
+        value: sites_code_the_clinic_name_resource.name
+      }
+      {
+        name: 'APP_OBJECT_ID'
+        value: sites_code_the_clinic_name_resource.identity.principalId
+      }
+      {
+        name: 'SCRIPT_MI_NAME'
+        value: deploymentScriptUserAssignedIdentity.name
+      }
+      {
+        name: 'SCRIPT_MI_PRINCIPAL_ID'
+        value: deploymentScriptUserAssignedIdentity.properties.principalId
+      }
+      {
+        name: 'SCRIPT_MI_CLIENT_ID'
+        value: deploymentScriptUserAssignedIdentity.properties.clientId
+      }
+    ]
+    scriptContent: '''
+#!/usr/bin/env bash
+set -euo pipefail
+
+echo "Ensuring PostgreSQL client (psql) is available..."
+if ! command -v psql >/dev/null 2>&1; then
+  if command -v apt-get >/dev/null 2>&1; then
+    apt-get update -y && apt-get install -y postgresql-client
+  elif command -v tdnf >/dev/null 2>&1; then
+    tdnf install -y postgresql
+  elif command -v yum >/dev/null 2>&1; then
+    yum install -y postgresql
+  elif command -v dnf >/dev/null 2>&1; then
+    dnf install -y postgresql
+  elif command -v apk >/dev/null 2>&1; then
+    apk add --no-cache postgresql-client
+  else
+    echo "No supported package manager found to install psql."
+    exit 1
+  fi
+fi
+
+if ! command -v psql >/dev/null 2>&1; then
+  echo "psql is still unavailable after installation attempt."
+  exit 1
+fi
+
+echo "Signing in with deployment script managed identity..."
+az login --identity --username "$SCRIPT_MI_CLIENT_ID" --allow-no-subscriptions 1>/dev/null
+
+echo "Setting deployment script managed identity as PostgreSQL Entra admin..."
+az rest --method PUT \
+  --url "${ARM_ENDPOINT}/subscriptions/${SUBSCRIPTION_ID}/resourceGroups/${RESOURCE_GROUP_NAME}/providers/Microsoft.DBforPostgreSQL/flexibleServers/${DB_NAME}/administrators/${SCRIPT_MI_PRINCIPAL_ID}?api-version=2025-01-01-preview" \
+  --body "{\"properties\":{\"principalName\":\"${SCRIPT_MI_NAME}\",\"principalType\":\"ServicePrincipal\",\"tenantId\":\"${TENANT_ID}\"}}" 1>/dev/null
+
+echo "Waiting for PostgreSQL Entra admin propagation..."
+sleep 45
+
+echo "Getting PostgreSQL Entra token..."
+export PGPASSWORD=$(az account get-access-token --resource-type oss-rdbms --query accessToken -o tsv)
+
+echo "Applying DB identity mapping and grants for $APP_SERVICE_NAME..."
+psql "host=$DB_HOST port=5432 dbname=postgres user=$SCRIPT_MI_NAME sslmode=require" -v ON_ERROR_STOP=1 -v app_role="$APP_SERVICE_NAME" -v app_oid="$APP_OBJECT_ID" -v db_name="$DB_NAME" <<'SQL'
+SELECT format('CREATE ROLE %I WITH LOGIN', :'app_role')
+WHERE NOT EXISTS (
+  SELECT 1 FROM pg_catalog.pg_roles WHERE rolname = :'app_role'
+) \gexec
+
+SELECT format('SECURITY LABEL FOR pgaadauth ON ROLE %I IS %L', :'app_role', format('aadauth,oid=%s,type=service', :'app_oid')) \gexec
+SELECT format('GRANT CONNECT ON DATABASE %I TO %I', :'db_name', :'app_role') \gexec
+SQL
+
+psql "host=$DB_HOST port=5432 dbname=$DB_NAME user=$SCRIPT_MI_NAME sslmode=require" -v ON_ERROR_STOP=1 -v app_role="$APP_SERVICE_NAME" <<'SQL'
+SELECT format('GRANT USAGE ON SCHEMA public TO %I', :'app_role') \gexec
+SELECT format('GRANT CREATE ON SCHEMA public TO %I', :'app_role') \gexec
+SELECT format('GRANT ALL PRIVILEGES ON ALL TABLES IN SCHEMA public TO %I', :'app_role') \gexec
+SELECT format('GRANT ALL PRIVILEGES ON ALL SEQUENCES IN SCHEMA public TO %I', :'app_role') \gexec
+SELECT format('ALTER DEFAULT PRIVILEGES IN SCHEMA public GRANT ALL PRIVILEGES ON TABLES TO %I', :'app_role') \gexec
+SELECT format('ALTER DEFAULT PRIVILEGES IN SCHEMA public GRANT ALL PRIVILEGES ON SEQUENCES TO %I', :'app_role') \gexec
+SQL
+
+echo "Identity setup complete."
+
+echo ""
+echo "Bootstrap complete! Post-deployment cleanup:"
+echo "  1. Verify app works and can access database"
+echo "  2. DISABLE PostgreSQL public network access (set to 'Disabled')"
+echo "  3. Remove deployment script MI from PostgreSQL Entra admins"
+echo "  4. Remove Contributor role from deployment script MI on PostgreSQL server"
+'''
+  }
+  dependsOn: [
+    deploymentScriptServerContributorRoleAssignment
+    flexibleServerAllowAzureServices
+    flexibleServers_code_the_clinic_db_name_flexibleServers_code_the_clinic_db_name
+    privateEndpoints_code_the_clinic_db_pe_name_default
+  ]
 }

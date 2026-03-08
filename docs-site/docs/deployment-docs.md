@@ -44,12 +44,13 @@ Hi! Here's how to run our application locally, run tests, and deploy it in the c
 
 ### Pre-deployment todos
 - Fill in environment variables in main.bicepparam (before doing this, make your own local copy of main.bicepparam (main-local.bicepparam) that is gitignored so so environment variables aren't in a public github)
+- For dbAdminPrincipalName, run this command in Azure Cloud Shell or in your local terminal and copy/paste the result into your LOCAL bicepparam file: `az ad signed-in-user show --query "userPrincipalName" -o tsv`
 
 ### Deploying the application
 - Run `az login` to log into the Azure CLI and then select the subscription you want to copy the application into.
 - Run this command in your terminal to validate the bicep file and its associated params file for any errors:
 ```bash
-az deployment group validate -g capstone -f main.bicep -p main-local.bicepparam --query "properties.validationResultItems[?severity=='Error']"
+az deployment group validate -g <new-resource-group> -f main.bicep -p main-local.bicepparam --query "properties.validationResultItems[?severity=='Error']"
 ```
 - Run this command to preview the resources that will be created:
 ```bash
@@ -69,16 +70,18 @@ az stack group create --name clinic-test-stack --resource-group <new-resource-gr
 - Add yourself as a Key Vault Secrets Officer
     - Go to your Key Vault => Access control (IAM) => Role assignments => New role assignment => Assign yourself the Key Vault Secrets Officer role. This will let you view, add, and edit secrets, which you will need to do to set up the application.
 - If you can't access the "Secrets" tab in your Key Vault because of a firewall rule:
-    - Go into the networking tab and temporarily select "allow public access from all networks"--make sure to change this back to what it was before (allow public access from specific virtual networks...") once you're done!
+    - Go into the networking tab and temporarily add your client IP address under firewall rules. If this doesn't work (for example, if you are on campus and using a UA IP that constantly changes), you can temporarily select "allow public access from all networks"--just make sure to change this back to the original secure setting (allow public access from specific virtual networks...") once you're done!
 - Add all secrets to Key Vault
     - azure-client-id (Client ID from Azure app registration, NOT app service)
+    - microsoft-login-client-id (same as azure-client-id)
     - azure-secret (Add a new client secret under your Azure app registration and add the secret to Key Vault)
     - azure-tenant-id (Tenant ID from Azure app registration, NOT app service)
+        - If you aren't using a single-tenant setup for myBama authentication (i.e. the university's tenant), you can just set this to "common". Otherwise use the tenant ID from the Azure app registration.
     - django-secret-key (**TODO: Generate a new Django secret key and add it to Key Vault**)
     - postgres-db (This isn't really a secret--it can be moved outside of key vault if needed. Name of the database within your PostgreSQL server in Azure where your Django tables are. You can find your databases in your PostgreSQL server settings => Databases.)
     - db-host (the domain of your Postgre DB--can be found in the Overview section if you click on your Postgres DB in the Azure portal)
     - postgres-user (the name of the App Service, since the App Service uses a Managed Identity to communicate with the DB)
-- Update environment variables
+- Update environment variables (if needed) to match this state:
     - For variables that are in Key Vault, use a string like this: `@Microsoft.KeyVault(SecretUri=<https://<vault-name>.vault.azure.net/secrets/<secret-name>/)`
     - MICROSOFT_LOGIN_CLIENT_ID = In key vault (azure-client-id)
     - AZURE_SECRET = In key vault (azure-secret)
@@ -102,6 +105,8 @@ az stack group create --name clinic-test-stack --resource-group <new-resource-gr
         - Go to the PostgreSQL server => Authentication
     - <Run SQL: **TODO**>
 - Promote yourself to a superuser in Django (you will need to do this the first time you deploy the app so you can access the admin pages on the site)
+- [IMPORTANT] Remove public access to the database
+    - Go to the database => Networking and disable public access (the DB and the App Service will still be able to communicate via their shared VNET)
 - If you are using a new Azure app registration (different from what we had set up before), make sure to go into the app registration and add as the redirect URL: (the public domain of the App Service app) + `/accounts/microsoft/login/callback/`
 
 ### Smoke testing
