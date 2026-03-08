@@ -66,7 +66,7 @@ az deployment group create \
 ```bash
 az stack group create --name clinic-test-stack --resource-group <new-resource-group> --template-file main.bicep --parameters main-local.bicepparam --deny-settings-mode none --action-on-unmanage detachAll
 ```
-### Post-deployment todos (TODO: Add more detailed instructions for these)
+### Post-deployment todos
 - Add yourself as a Key Vault Secrets Officer
     - Go to your Key Vault => Access control (IAM) => Role assignments => New role assignment => Assign yourself the Key Vault Secrets Officer role. This will let you view, add, and edit secrets, which you will need to do to set up the application.
 - If you can't access the "Secrets" tab in your Key Vault because of a firewall rule:
@@ -95,19 +95,39 @@ az stack group create --name clinic-test-stack --resource-group <new-resource-gr
 - Give the App Service permission to pull the latest Docker image from GHCR
     - Get GitHub Personal Access Token (PAT) with read:packages permission
     - Go to your new App Service => Deployment Center => click on "main" => paste the PAT into the password field and click "ok"
-- Run SQL to give the App Service permission to create a table in the DB
-    - If you didn't specify Entra administrators in the Bicep params: Go to the PostgreSQL server, Security => Authentication, and add yourself as an Entra administrator
-    - Temporarily check these boxes under your PostgreSQL server => Networking:
-        - Allow public access to this resource through the internet using a public IP address
-        - Allow public access from any Azure service within Azure to this server
-        - **IMPORTANT:** Make sure to uncheck these after you are done with the next step (running the SQL to let the App Service talk to the DB) since you want to keep your DB running within its private VNet for security.
-    - Add the App Service's identity to the DB
-        - Go to the PostgreSQL server => Authentication
-    - <Run SQL: **TODO**>
+- NOTE: If the app isn't working at this point (after you restart it in the App Service overview page), temporarily swich DEBUG to True in the environment variables to see the stack trace. It's usually one of these problems:
+    - You didn't add the App Service's domain to ALLOWED_HOSTS (this usually results in a 400 error). Try adding the exact domain listed in the error message to the ALLOWED_HOSTS environment variable and restart the app.
+    - There was an issue with one of your Key Vault secrets and you fixed it, but the app isn't "seeing" it because it is just pulling a cached version of what's in Key Vault (this usually results in a 500 error). Try temporarily changing an environment variable and then changing it back--this should solve the problem.
+    - You try to login with myBama and see a Microsoft login error page that says something about a redirect URL. Make sure that your App Service's domain (exactly as specified in the error message) is listed as a Redirect URL under the App Registration you are using for myBama auth.
+    - You try to login with myBama and get a "cannot assign requested address" or similar OS error. If this happens, just refresh and try logging in again--this is a transient error that only happens once, and only happens for completely new users. After refreshing and re-authenticating, the app should work as expected.
 - Promote yourself to a superuser in Django (you will need to do this the first time you deploy the app so you can access the admin pages on the site)
+    - Temporarily add yourself as an Entra admin on the DB
+        - If you didn't specify Entra administrators in the Bicep params: Go to the PostgreSQL server, Security => Authentication, and add yourself as an Entra administrator
+    - Run these commands in the Azure Cloud Shell or local terminal, one at a time:
+        ```bash
+        USERNAME=$(az ad signed-in-user show --query "userPrincipalName" -o tsv)
+        TOKEN=$(az account get-access-token --resource-type oss-rdbms --query "[accessToken]" -o tsv)
+        az postgres flexible-server execute --name <postgres-server-name> --admin-user $USERNAME --admin-password $TOKEN --database-name=<db-name-should-be-same-as-postgres-server-name> --querytext "UPDATE auth_user SET is_staff = true, is_superuser = true WHERE email = '<your-crimson-email>';" 
+        ```
+    - Remove your Entra admin status in the PostgreSQL server settings
 - [IMPORTANT] Remove public access to the database
     - Go to the database => Networking and disable public access (the DB and the App Service will still be able to communicate via their shared VNET)
-- If you are using a new Azure app registration (different from what we had set up before), make sure to go into the app registration and add as the redirect URL: (the public domain of the App Service app) + `/accounts/microsoft/login/callback/`
+    - Recommended: Also delete the AllowAzureServices firewall rule, since after initial setup only the app service should be able to access the DB.
+- [IMPORTANT] Remove Contributor role assignment from the deployment-script managed identity (this identity was created solely to set up initial DB permissions and is no longer needed.)
+- [IMPORTANT] Revoke Entra admin status from the "test-dbscript" managed identity
+    - Run these commands in the Azure Cloud Shell or local terminal, one at a time:
+        ```bash
+        USERNAME=$(az ad signed-in-user show --query "userPrincipalName" -o tsv)
+        TOKEN=$(az account get-access-token --resource-type oss-rdbms --query "[accessToken]" -o tsv)
+        ```
+    - Run this command twice, once with db-name="postgres" and once with db-name="postgresql-server-name":
+        ```bash
+        az postgres flexible-server execute --name <postgres-server-name> --admin-user $USERNAME --admin-password $TOKEN --database-name=<db-name> --querytext "REASSIGN OWNED BY \"code-the-clinic-test-dbscript-mi\" TO \"<your-admin-role>\"; DROP OWNED BY "code-the-clinic-test-dbscript-mi";
+        ```
+    - Then delete the managed identity from the Entra admin list under your PostgreSQL server => Authentication
+    - (Recommended) Remove yourself as an Entra admin (you can always add yourself back later if there's an emergency where you need to directly access the DB)
+- [IMPORTANT] Make sure Key Vault access is restricted to only the virtual network containing the app service (you can check this in the key vault's Networking settings)
+- Once you are a Django admin, open the Excel file [Dropdown Options.xlsx](https://bama365-my.sharepoint.com/:x:/g/personal/hrhendersonboyer_crimson_ua_edu/IQByqE9LpDuiSqtylUDZcGq5AWHkIQcn_vfJskrzJZno9HU?e=qZJt1R) from the AT department, and then go to the Django admin portal. Add the list under "Clinical Sites" as new Sport records under the Sports section of the admin portal, and add the list under "Other Health Professions" as new Healthcare Provider records under the Healthcare Providers section of the admin portal.
 
 ### Smoke testing
 - If you are experiencing HTTP errors and need to get clear error messages, you can temporarily set DEBUG=True in the App Service's environment variables. However, this makes the application more vulnerable since an attacker could see exactly what was preventing them from accessing a certain page. For this reason, you should immediately change DEBUG back to False after testing, and ideally never set DEBUG=True in the Azure portal at all (just do your testing locally instead).
