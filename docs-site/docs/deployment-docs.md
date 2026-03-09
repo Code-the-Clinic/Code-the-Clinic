@@ -110,9 +110,6 @@ az stack group create --name clinic-test-stack --resource-group <new-resource-gr
         az postgres flexible-server execute --name <postgres-server-name> --admin-user $USERNAME --admin-password $TOKEN --database-name=<db-name-should-be-same-as-postgres-server-name> --querytext "UPDATE auth_user SET is_staff = true, is_superuser = true WHERE email = '<your-crimson-email>';" 
         ```
     - Remove your Entra admin status in the PostgreSQL server settings
-- [IMPORTANT] Remove public access to the database
-    - Go to the database => Networking and disable public access (the DB and the App Service will still be able to communicate via their shared VNET)
-    - Recommended: Also delete the AllowAzureServices firewall rule, since after initial setup only the app service should be able to access the DB.
 - [IMPORTANT] Remove Contributor role assignment from the deployment-script managed identity (this identity was created solely to set up initial DB permissions and is no longer needed.)
 - [IMPORTANT] Revoke Entra admin status from the "test-dbscript" managed identity
     - Run these commands in the Azure Cloud Shell or local terminal, one at a time:
@@ -126,6 +123,9 @@ az stack group create --name clinic-test-stack --resource-group <new-resource-gr
         ```
     - Then delete the managed identity from the Entra admin list under your PostgreSQL server => Authentication
     - (Recommended) Remove yourself as an Entra admin (you can always add yourself back later if there's an emergency where you need to directly access the DB)
+- [IMPORTANT] Remove public access to the database
+    - Go to the database => Networking and disable public access (the DB and the App Service will still be able to communicate via their shared VNET). If you ever need to connect to the database and run SQL, you can temporarily re-enable public access, but only allow your client IP--not access from all networks. Also, make sure to disable public access again as soon as you are done.
+    - Recommended: Also delete the AllowAzureServices firewall rule, since after initial setup only the app service should be able to access the DB.
 - [IMPORTANT] Make sure Key Vault access is restricted to only the virtual network containing the app service (you can check this in the key vault's Networking settings)
 - Once you are a Django admin, open the Excel file [Dropdown Options.xlsx](https://bama365-my.sharepoint.com/:x:/g/personal/hrhendersonboyer_crimson_ua_edu/IQByqE9LpDuiSqtylUDZcGq5AWHkIQcn_vfJskrzJZno9HU?e=qZJt1R) from the AT department, and then go to the Django admin portal. Add the list under "Clinical Sites" as new Sport records under the Sports section of the admin portal, and add the list under "Other Health Professions" as new Healthcare Provider records under the Healthcare Providers section of the admin portal.
 
