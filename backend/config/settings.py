@@ -326,3 +326,15 @@ SESSION_COOKIE_SAMESITE = os.environ.get('SESSION_COOKIE_SAMESITE', 'Lax')
 # Extra security headers (recommended for FERPA-sensitive apps)
 SECURE_BROWSER_XSS_FILTER = True
 SECURE_CONTENT_TYPE_NOSNIFF = True
+
+# HSTS: Enforce HTTPS for all future requests
+# Start with 1 hour (3600s), increase to 1 year (31536000s) after testing in production
+SECURE_HSTS_SECONDS = int(os.environ.get('SECURE_HSTS_SECONDS', '3600' if IS_IN_AZURE else '0'))
+SECURE_HSTS_INCLUDE_SUBDOMAINS = True
+SECURE_HSTS_PRELOAD = True
+
+# Enforce HTTPS redirect (Azure reverse proxy sets X-Forwarded-Proto correctly)
+SECURE_SSL_REDIRECT = os.environ.get('SECURE_SSL_REDIRECT', 'True' if IS_IN_AZURE else 'False').lower() in ('1', 'true', 'yes')
+
+# Referrer Policy: Don't leak user activity to external sites
+SECURE_REFERRER_POLICY = "same-origin"
