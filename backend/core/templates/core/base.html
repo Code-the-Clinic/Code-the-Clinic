@@ -109,7 +109,13 @@
                         <a href="/dashboard/student/">Dashboard</a>
                     {% endif %}
                 {% else %}
-                    <a href="{{ login_url|default:'/accounts/login/' }}">Dashboard</a>
+                    {% with login=login_url|default:'/accounts/login/' %}
+                        {% if login|slice:":11" != "javascript:" %}
+                            <a href="{{ login }}">Dashboard</a>
+                        {% else %}
+                            <a href="/accounts/login/">Dashboard</a>
+                        {% endif %}
+                    {% endwith %}
                 {% endif %}
                 <a href="/clinic-reports/">Submit Report</a>
                 {% if user.is_authenticated %}
@@ -118,7 +124,13 @@
                     <button type="submit">Logout</button>
                 </form>
                 {% else %}
-                <a href="{{ login_url|default:'/accounts/login/' }}">Login</a>
+                {% with login=login_url|default:'/accounts/login/' %}
+                    {% if login|slice:":11" != "javascript:" %}
+                        <a href="{{ login }}">Login</a>
+                    {% else %}
+                        <a href="/accounts/login/">Login</a>
+                    {% endif %}
+                {% endwith %}
                 {% endif %}
             </div>
         </nav>
