@@ -15,8 +15,11 @@ Including another URLconf
     2. Add a URL to urlpatterns:  path('blog/', include('blog.urls'))
 """
 from django.contrib import admin
+from django.conf import settings
 from django.urls import path, include
 from django.http import JsonResponse
+from django.shortcuts import redirect
+from django.utils.http import urlencode, url_has_allowed_host_and_scheme
 from django.db import connection
 import logging
 import os
@@ -38,10 +41,31 @@ def _db_health_check(request):
 # Defaults to 'admin/' for local development
 ADMIN_URL = os.environ.get('ADMIN_URL', 'admin/')
 
+
+def _admin_login(request):
+    """
+    In production, force admin auth through Microsoft SSO unless break-glass
+    password login is explicitly enabled.
+    """
+    if settings.ALLOW_PASSWORD_ADMIN_LOGIN:
+        return admin.site.login(request)
+
+    next_url = request.GET.get('next', f'/{ADMIN_URL}')
+    if not url_has_allowed_host_and_scheme(
+        url=next_url,
+        allowed_hosts={request.get_host()},
+        require_https=request.is_secure(),
+    ):
+        next_url = f'/{ADMIN_URL}'
+
+    query = urlencode({'next': next_url})
+    return redirect(f'/accounts/microsoft/login/?{query}')
+
 urlpatterns = [
     path('health/', lambda request: JsonResponse({"status": "ok"}), name='health'),
     path('health/db/', _db_health_check, name='health_db'),
     path('', include('core.urls')),
+    path(f'{ADMIN_URL}login/', _admin_login, name='admin_login'),
     path(ADMIN_URL, admin.site.urls, name='admin'),
     path('accounts/', include('allauth.urls'), name='accounts'),
     path('clinic-reports/', include('clinic_reports.urls'), name='form'),
