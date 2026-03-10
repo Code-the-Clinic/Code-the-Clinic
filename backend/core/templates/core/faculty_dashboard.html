@@ -210,6 +210,7 @@
 </div>
 
 <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js" integrity="sha384-9nhczxUqK87bcKHh20fSQcTGD4qq5GhayNYSYWqwBkINBhOfQLg/P5HG5lF1urn4" crossorigin="anonymous"></script>
+{{ pie_chart_data|json_script:"pie-chart-data" }}
 <script>
     // Toggle week dropdown visibility based on time selection
     function setupTimeToggle() {
@@ -279,8 +280,8 @@
         setupTimeToggle();
         setupAutoSubmit();
         
-        // Get data from Django context
-        const pieChartData = {{ pie_chart_data|safe }};
+        // Get data from Django context (safe via json_script)
+        const pieChartData = JSON.parse(document.getElementById('pie-chart-data').textContent);
         console.log('📊 Django context ', pieChartData);
         
         const pieOptions = { 

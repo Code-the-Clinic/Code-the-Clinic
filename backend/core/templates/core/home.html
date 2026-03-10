@@ -29,7 +29,13 @@
     <div class="section-title">Get Started</div>
     <div class="centered">
         <p class="muted">Sign in with myBama to submit reports and view dashboards.</p>
-        <a class="btn-primary" href="{{ login_url }}">Login with myBama</a>
+        {% with login=login_url|default:'/accounts/login/' %}
+            {% if login|slice:":11" != "javascript:" %}
+                <a class="btn-primary" href="{{ login }}">Login with myBama</a>
+            {% else %}
+                <a class="btn-primary" href="/accounts/login/">Login with myBama</a>
+            {% endif %}
+        {% endwith %}
     </div>
 {% endif %}
 {% endblock %}
