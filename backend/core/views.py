@@ -6,7 +6,10 @@ from django.db.models import Avg, Sum, F, Case, When, IntegerField, Value, Float
 from django.db.models.functions import Coalesce
 from django.core.exceptions import PermissionDenied
 import json
+import logging
 from clinic_reports.models import ClinicReport, Sport
+
+logger = logging.getLogger(__name__)
 
 # Security note: Viewing the faculty dashboard requires authentication
 @login_required
@@ -236,9 +239,11 @@ def fetch_data(request):
     except json.JSONDecodeError:
         return JsonResponse({'success': False, 'error': 'Invalid JSON'}, status=400)
     except ValueError as e:
-        return JsonResponse({'success': False, 'error': str(e)}, status=400)
+        logger.error(f"Dashboard data fetch validation error: {e}")
+        return JsonResponse({'success': False, 'error': 'Invalid filter parameters'}, status=400)
     except Exception as e:
-        return JsonResponse({'success': False, 'error': str(e)}, status=400)
+        logger.error(f"Dashboard data fetch error: {e}")
+        return JsonResponse({'success': False, 'error': 'Failed to fetch dashboard data'}, status=500)
 
 
 @require_http_methods(["POST"])
@@ -257,6 +262,8 @@ def fetch_student_data(request):
     except json.JSONDecodeError:
         return JsonResponse({'success': False, 'error': 'Invalid JSON'}, status=400)
     except ValueError as e:
-        return JsonResponse({'success': False, 'error': str(e)}, status=400)
+        logger.warning(f"Student data fetch validation error: {e}")
+        return JsonResponse({'success': False, 'error': 'Invalid filter parameters'}, status=400)
     except Exception as e:
-        return JsonResponse({'success': False, 'error': str(e)}, status=400)
+        logger.error(f"Student data fetch error: {e}")
+        return JsonResponse({'success': False, 'error': 'Failed to fetch student data'}, status=500)

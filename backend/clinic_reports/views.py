@@ -6,8 +6,11 @@ from django.core.validators import validate_email
 from django.core.exceptions import ValidationError
 from django.http import HttpResponseBadRequest
 import json
+import logging
 from .models import ClinicReport
 from .models import Sport, HealthcareProvider
+
+logger = logging.getLogger(__name__)
 
 # Security note: Student form submissions require authentication because we want to protect against DDoS attacks.
 # This way, only verified students and faculty can submit the form and create new traffic to the database.
@@ -108,4 +111,5 @@ def submit_report(request):
         )
         return JsonResponse({'success': True, 'id': report.id})
     except Exception as e:
-        return JsonResponse({'success': False, 'error': str(e)}, status=400)
+        logger.error(f"Clinic report submission error: {e}")
+        return JsonResponse({'success': False, 'error': 'Failed to submit clinic report'}, status=400)
