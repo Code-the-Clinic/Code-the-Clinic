@@ -9,6 +9,8 @@ import json
 import logging
 from .models import ClinicReport
 from .models import Sport, HealthcareProvider
+from user_logging.models import UserActivityLog
+from user_logging.services import log_user_activity
 
 logger = logging.getLogger(__name__)
 
@@ -109,6 +111,19 @@ def submit_report(request):
             interacted_hcps=interacted_bool,
             healthcare_provider=healthcare_provider
         )
+
+        log_user_activity(
+            request=request,
+            user=request.user,
+            event_type=UserActivityLog.EventType.REPORT_SUBMITTED,
+            status_code=200,
+            details={
+                'report_id': report.id,
+                'sport': sport.name,
+                'week': week,
+            },
+        )
+
         return JsonResponse({'success': True, 'id': report.id})
     except Exception as e:
         logger.error(f"Clinic report submission error: {e}")

@@ -92,6 +92,7 @@ INSTALLED_APPS = [
     'axes',  # Brute force protection for admin login
     'core',
     'clinic_reports', # Clinic report form
+    'user_logging',
 ]
 
 # For local dev without Azure creds, add dummy provider
@@ -106,6 +107,7 @@ MIDDLEWARE = [
     'django.middleware.common.CommonMiddleware',
     'django.middleware.csrf.CsrfViewMiddleware',
     'django.contrib.auth.middleware.AuthenticationMiddleware',
+    'user_logging.middleware.UserActivityMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
     'allauth.account.middleware.AccountMiddleware',
@@ -197,7 +199,9 @@ AUTH_PASSWORD_VALIDATORS = [
 
 LANGUAGE_CODE = 'en-us'
 
-TIME_ZONE = 'UTC'
+# Use local timezone for admin/UI datetime display; can be overridden per environment.
+# Example: DJANGO_TIME_ZONE='America/Chicago'
+TIME_ZONE = os.environ.get('DJANGO_TIME_ZONE', 'America/Chicago')
 
 USE_I18N = True
 
