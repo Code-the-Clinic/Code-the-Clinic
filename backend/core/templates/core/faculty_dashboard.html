@@ -14,22 +14,22 @@
             <form id="filterForm" method="GET" style="width: 100%; max-width: 380px; margin-bottom: 24px;">
                 <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px 18px; background: #f8f9fa; padding: 15px; border-radius: 6px; border: 1px solid #eee;">
                     <div>
-                        <label style="font-weight: 500; display: block; margin-bottom: 4px; font-size: 12px; color: #666;">Group By</label>
-                        <select name="group_by" style="padding: 6px; border-radius: 4px; border: 1px solid #bbb; width: 100%; background: white;">
+                        <label for="group_by" style="font-weight: 500; display: block; margin-bottom: 4px; font-size: 12px; color: #666;">Group By</label>
+                        <select id="group_by" name="group_by" style="padding: 6px; border-radius: 4px; border: 1px solid #bbb; width: 100%; background: white;">
                             <option value="sport" {% if request.GET.group_by == 'sport' or not request.GET.group_by %}selected{% endif %}>Sport</option>
                             <option value="students">Students</option>
                         </select>
                     </div>
                     <div>
-                        <label style="font-weight: 500; display: block; margin-bottom: 4px; font-size: 12px; color: #666;">Time</label>
+                        <label for="timeDropdown" style="font-weight: 500; display: block; margin-bottom: 4px; font-size: 12px; color: #666;">Time</label>
                         <select id="timeDropdown" name="time_filter" style="padding: 6px; border-radius: 4px; border: 1px solid #bbb; width: 100%; background: white;">
                             <option value="semester" {% if request.GET.time_filter == 'semester' or not request.GET.time_filter %}selected{% endif %}>Semester</option>
                             <option value="week" {% if request.GET.time_filter == 'week' %}selected{% endif %}>Week</option>
                         </select>
                     </div>
                     <div>
-                        <label style="font-weight: 500; display: block; margin-bottom: 4px; font-size: 12px; color: #666;">Sport</label>
-                        <select name="sport" style="padding: 6px; border-radius: 4px; border: 1px solid #bbb; width: 100%; background: white;">
+                        <label for="sport_filter" style="font-weight: 500; display: block; margin-bottom: 4px; font-size: 12px; color: #666;">Sport</label>
+                        <select id="sport_filter" name="sport" style="padding: 6px; border-radius: 4px; border: 1px solid #bbb; width: 100%; background: white;">
                             <option value="">All Sports</option>
                             {% for sport_name in sports %}
                             <option value="{{ sport_name }}" {% if selected_sport == sport_name %}selected{% endif %}>{{ sport_name }}</option>
@@ -38,8 +38,8 @@
                     </div>
                     <div style="display: flex; gap: 10px; align-items: flex-end;">
                         <div style="flex: 1;">
-                            <label style="font-weight: 500; display: block; margin-bottom: 4px; font-size: 12px; color: #666;">Semester</label>
-                            <select name="semester" style="padding: 6px; border-radius: 4px; border: 1px solid #bbb; width: 100%; background: white;">
+                            <label for="semester_filter" style="font-weight: 500; display: block; margin-bottom: 4px; font-size: 12px; color: #666;">Semester</label>
+                            <select id="semester_filter" name="semester" style="padding: 6px; border-radius: 4px; border: 1px solid #bbb; width: 100%; background: white;">
                                 <option value="">All Semesters</option>
                                 {% for sem in semesters %}
                                 <option value="{{ sem }}" {% if selected_semester == sem %}selected{% endif %}>{{ sem }}</option>
@@ -47,7 +47,7 @@
                             </select>
                         </div>
                         <div id="weekDropdownWrapper" style="display: none; flex: 1;">
-                            <label style="font-weight: 500; display: block; margin-bottom: 4px; font-size: 12px; color: #666;">Week</label>
+                            <label for="weekDropdown" style="font-weight: 500; display: block; margin-bottom: 4px; font-size: 12px; color: #666;">Week</label>
                             <select id="weekDropdown" name="week" style="padding: 6px; border-radius: 4px; border: 1px solid #bbb; width: 100%; background: white;">
                                 <option value="">Select Week</option>
                                 {% for week_num in weeks_list %}
@@ -60,7 +60,7 @@
             </form>
             <h3 style="margin: 0 0 15px 0; color: #2c3e50; font-size: 18px;">Care Chart</h3>
             <div style="flex-grow: 1; display: flex; align-items: center; justify-content: center; width: 100%;">
-                <canvas id="pieChart" width="280" height="280"></canvas>
+                <canvas id="pieChart" width="280" height="280" role="img" aria-label="Pie chart showing distribution of clinical experiences by care type for the selected filters."></canvas>
             </div>
         </div>
 
@@ -99,7 +99,7 @@
             </div>
             <h3 style="margin: 0 0 15px 0; color: #2c3e50; font-size: 18px;">Care Utilization by Sport</h3>
             <div style="flex-grow: 1; display: flex; align-items: center; justify-content: center; width: 100%;">
-                <canvas id="pieChart2" width="280" height="280"></canvas>
+                <canvas id="pieChart2" width="280" height="280" role="img" aria-label="Pie chart showing utilization of care by sport for the selected semester and week."></canvas>
             </div>
         </div>
     </div>
@@ -109,26 +109,26 @@
         <h3 style="margin: 0 0 15px 0; color: #2c3e50;">Clinical Experience Trends</h3>
         <div style="display: flex; gap: 15px; flex-wrap: wrap; background: #f8f9fa; padding: 15px; border-radius: 6px; border: 1px solid #eee; margin-bottom: 20px;">
             <div>
-                <label style="font-weight: 500; display: block; margin-bottom: 4px; font-size: 13px; color: #666;">View Lines By</label>
+                <label for="trendGroupBy" style="font-weight: 500; display: block; margin-bottom: 4px; font-size: 13px; color: #666;">View Lines By</label>
                 <select id="trendGroupBy" style="padding: 6px 12px; border-radius: 4px; border: 1px solid #bbb; width: 180px; background: white;">
                     <option value="experience">Clinical Experience</option>
                 </select>
             </div>
             <div>
-                <label style="font-weight: 500; display: block; margin-bottom: 4px; font-size: 13px; color: #666;">Filter Student</label>
-                <select style="padding: 6px 12px; border-radius: 4px; border: 1px solid #bbb; width: 175px; background: white;">
+                <label for="trendStudentFilter" style="font-weight: 500; display: block; margin-bottom: 4px; font-size: 13px; color: #666;">Filter Student</label>
+                <select id="trendStudentFilter" style="padding: 6px 12px; border-radius: 4px; border: 1px solid #bbb; width: 175px; background: white;">
                     <option>All Students</option>
                 </select>
             </div>
             <div style="margin-left: auto;">
-                <label style="font-weight: 500; display: block; margin-bottom: 4px; font-size: 13px; color: #666;">Semester</label>
-                <select style="padding: 6px 12px; border-radius: 4px; border: 1px solid #bbb; width: 100px; background: white;">
+                <label for="trendSemester" style="font-weight: 500; display: block; margin-bottom: 4px; font-size: 13px; color: #666;">Semester</label>
+                <select id="trendSemester" style="padding: 6px 12px; border-radius: 4px; border: 1px solid #bbb; width: 100px; background: white;">
                     <option>Fall '24</option>
                 </select>
             </div>
         </div>
         <div style="position: relative; height: 350px; width: 100%;">
-            <canvas id="trendChart"></canvas>
+            <canvas id="trendChart" role="img" aria-label="Line chart showing weekly counts of clinical experiences by care type over the selected semester."></canvas>
         </div>
     </div>
 

@@ -11,7 +11,7 @@
         <div class="dashboard-card">
             <h3 style="margin: 0 0 15px 0; color: #2c3e50; font-size: 16px;">Patient Care by Type</h3>
             <div style="position: relative; height: 300px; width: 100%;">
-                <canvas id="careCategoryChart"></canvas>
+                <canvas id="careCategoryChart" role="img" aria-label="Pie chart showing your patients by care type for the selected semester and week."></canvas>
             </div>
         </div>
 
@@ -46,14 +46,14 @@
         <h3 style="margin: 0 0 15px 0; color: #2c3e50; font-size: 16px;">Filter by</h3>
         <div style="display: flex; gap: 15px; flex-wrap: wrap;">
             <div>
-                <label style="font-weight: 500; display: block; margin-bottom: 4px; font-size: 13px; color: #666;">Semester</label>
+                <label for="semester-filter" style="font-weight: 500; display: block; margin-bottom: 4px; font-size: 13px; color: #666;">Semester</label>
                 <select id="semester-filter" style="padding: 8px 12px; border-radius: 4px; border: 1px solid #bbb; background: white;">
                     <option value="">All Semesters</option>
                     <option value="current">Current Semester</option>
                 </select>
             </div>
             <div>
-                <label style="font-weight: 500; display: block; margin-bottom: 4px; font-size: 13px; color: #666;">Week</label>
+                <label for="week-filter" style="font-weight: 500; display: block; margin-bottom: 4px; font-size: 13px; color: #666;">Week</label>
                 <select id="week-filter" style="padding: 8px 12px; border-radius: 4px; border: 1px solid #bbb; background: white;">
                     <option value="">All Weeks</option>
                     {% for week in weeks %}
