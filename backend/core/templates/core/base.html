@@ -60,8 +60,16 @@
             font-size: 16px;
         }
         .nav a:hover,
-        .nav button:hover {
+        .nav a:focus-visible,
+        .nav button:hover,
+        .nav button:focus-visible {
             color: var(--crimson-dark);
+            text-decoration: underline;
+        }
+
+        .btn-primary:hover,
+        .btn-primary:focus-visible {
+            text-decoration: underline;
         }
         h1, h2 {
             color: var(--text);
