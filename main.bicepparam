@@ -26,7 +26,11 @@ param vaultSubnetIpAddress = '130.160.194.1/32'
 // Application parameters
 param containerImage = 'ghcr.io/code-the-clinic/code-the-clinic:main'
 param containerPort = '8000'
-param siteContainerUserName = 'supergeek57'
+// siteContainerUserName: Used for pulling container from GHCR into Azure.
+// Must be a GitHub username for someone who has permissions on the repository,
+// and they will need to enter a personal access token in Azure later (instructions
+// in deployment-docs.md) to give the App Service permission to pull from GHCR
+param siteContainerUserName = 'your-github-username'
 
 // Environment variables (replace items in <brackets> as needed)
 param allowedDomains = '<comma-separated string of university email domains>'
