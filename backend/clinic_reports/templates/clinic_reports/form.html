@@ -10,6 +10,17 @@
       gap: 20px;
       margin-bottom: 15px;
     }
+    fieldset.form-group {
+      border: 0;
+      padding: 0;
+      margin: 0;
+    }
+    legend {
+      font-weight: bold;
+      margin-bottom: 5px;
+      color: #555;
+      font-size: 14px;
+    }
     .form-row.full {
       grid-template-columns: 1fr;
     }
@@ -154,13 +165,13 @@
       <!-- Interaction with other Health Care Professionals -->
       <div class="section-title">Interprofessional Interaction</div>
       <div class="form-row full">
-        <div class="form-group">
-          <label>Did you interact with other Health Care Professionals during your clinical education this week?</label>
+        <fieldset class="form-group">
+          <legend>Did you interact with other Health Care Professionals during your clinical education this week?</legend>
           <div style="display:flex; gap:12px; margin-top:8px;">
             <label style="font-weight:normal;"><input type="radio" name="interacted_hcps" value="1" required> Yes</label>
             <label style="font-weight:normal;"><input type="radio" name="interacted_hcps" value="0"> No</label>
           </div>
-        </div>
+        </fieldset>
       </div>
 
       <!-- Healthcare Provider Selection - shown only when interacted_hcps is Yes -->
