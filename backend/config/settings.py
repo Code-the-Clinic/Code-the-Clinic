@@ -54,6 +54,25 @@ DEBUG = os.environ.get('DEBUG', 'False').lower() in ('1', 'true', 'yes')
 allowed_hosts_str = os.environ.get("ALLOWED_HOSTS", "")
 ALLOWED_HOSTS = [h.strip() for h in allowed_hosts_str.split(",") if h.strip()]
 
+# WEBSITE_SITE_NAME is automatically set by Azure App Service (system variable)
+# It will NOT exist in local development, even if you have Azure credentials in .env
+IS_IN_AZURE = 'WEBSITE_SITE_NAME' in os.environ
+
+# Allow testing social-only auth locally by setting FORCE_SOCIALACCOUNT_ONLY=True in .env
+# In production (Azure), this is always enforced regardless of env var
+FORCE_SOCIALACCOUNT_ONLY = os.environ.get('FORCE_SOCIALACCOUNT_ONLY', 'False').lower() in ('1', 'true', 'yes')
+
+# Break-glass control for username/password authentication.
+# Default behavior:
+# - Local dev: enabled (convenient for testing)
+# - Azure prod: disabled (Microsoft SSO only)
+# To temporarily enable emergency password login in Azure, set
+# ALLOW_PASSWORD_ADMIN_LOGIN=True and restart the app.
+ALLOW_PASSWORD_ADMIN_LOGIN = os.environ.get(
+    'ALLOW_PASSWORD_ADMIN_LOGIN',
+    'False' if IS_IN_AZURE else 'True'
+).lower() in ('1', 'true', 'yes')
+
 # Application definition
 
 INSTALLED_APPS = [
@@ -70,12 +89,13 @@ INSTALLED_APPS = [
     'allauth.account',
     'allauth.socialaccount',
     'allauth.socialaccount.providers.microsoft',
+    'axes',  # Brute force protection for admin login
     'core',
     'clinic_reports', # Clinic report form
 ]
 
 # For local dev without Azure creds, add dummy provider
-if not os.environ.get('MICROSOFT_LOGIN_CLIENT_ID'):
+if not IS_IN_AZURE:
     INSTALLED_APPS.append('allauth.socialaccount.providers.dummy')
 
 MIDDLEWARE = [
@@ -89,7 +109,26 @@ MIDDLEWARE = [
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
     'allauth.account.middleware.AccountMiddleware',
+    'axes.middleware.AxesMiddleware',  # Must be last for brute force protection
 ]
+
+# django-axes configuration for brute force protection
+AUTHENTICATION_BACKENDS = [
+    'axes.backends.AxesStandaloneBackend',  # Brute force protection
+    'allauth.account.auth_backends.AuthenticationBackend',  # Allauth social auth
+]
+
+# Only allow password auth when explicitly enabled (break-glass mode)
+if ALLOW_PASSWORD_ADMIN_LOGIN:
+    AUTHENTICATION_BACKENDS.insert(1, 'django.contrib.auth.backends.ModelBackend')
+
+# Lock out after 5 failed login attempts
+AXES_FAILURE_LIMIT = 5
+# Lock out for 30 minutes
+AXES_COOLOFF_TIME = 0.5  # Hours (0.5 = 30 minutes)
+# Lockout key includes both username and IP to reduce bypass risk.
+# Replaces deprecated AXES_ONLY_USER_FAILURES / AXES_LOCK_OUT_BY_COMBINATION_USER_AND_IP.
+AXES_LOCKOUT_PARAMETERS = ["username", "ip_address"]
 
 ROOT_URLCONF = 'config.urls'
 
@@ -113,8 +152,6 @@ WSGI_APPLICATION = 'config.wsgi.application'
 # Database
 # https://docs.djangoproject.com/en/5.2/ref/settings/#databases
 
-IS_IN_AZURE = 'WEBSITE_SITE_NAME' in os.environ # Check if the app is running in Azure
-
 DATABASES = {
     "default": {
         "ENGINE": "django.db.backends.postgresql",
@@ -130,7 +167,8 @@ if IS_IN_AZURE:
     try:
         DATABASES['default']['PASSWORD'] = AzureDbToken()
     except Exception as e:
-        print(f"Critical: Failed to acquire Entra ID token in Azure environment. Error: {e}")
+        import logging
+        logging.getLogger(__name__).critical(f"Failed to acquire Entra ID token in Azure environment. Error: {e}")
 
 else:
     DATABASES['default']['PASSWORD'] = os.getenv("POSTGRES_PASSWORD")
@@ -227,18 +265,17 @@ SOCIALACCOUNT_PROVIDERS = {
 }
 
 # For local dev without Azure creds, add dummy provider config
-# TODO: Potentially remove this before final production cloud deployment
-if not os.environ.get('MICROSOFT_LOGIN_CLIENT_ID'):
+if not IS_IN_AZURE:
     SOCIALACCOUNT_PROVIDERS['dummy'] = {}
 
 
 # Helper function to determine LOGIN_URL based on Azure credentials
 def get_login_url():
     """Determine the login URL based on whether Azure credentials are configured."""
-    if os.environ.get('MICROSOFT_LOGIN_CLIENT_ID'):
+    if IS_IN_AZURE:
         return '/accounts/microsoft/login/'
     else:
-        return '/accounts/login/'  # Show provider chooser when no Azure creds
+        return '/accounts/login/'  # Show provider chooser in local environment
 
 
 # When Azure credentials are present, skip allauth chooser and go straight to Microsoft
@@ -254,6 +291,15 @@ SITE_ID = 1
 # Use custom social account adapter to restrict to UA email domains
 SOCIALACCOUNT_ADAPTER = 'core.adapters.CustomSocialAccountAdapter'
 
+# Force social auth only in production (Azure), but allow local accounts for testing
+# This prevents bypassing Microsoft SSO via local Django accounts in production
+# Required setting for SOCIALACCOUNT_ONLY
+ACCOUNT_EMAIL_VERIFICATION = 'none'
+
+# Enforce social-only auth in Azure production, or locally if FORCE_SOCIALACCOUNT_ONLY=True
+# This allows testing the production behavior locally without Azure managed identity
+SOCIALACCOUNT_ONLY = IS_IN_AZURE or FORCE_SOCIALACCOUNT_ONLY
+
 # CSRF and cookie security settings
 # Allow browsers to send cookies with cross-origin XHR when configured
 CORS_ALLOW_CREDENTIALS = True
@@ -265,9 +311,12 @@ CSRF_TRUSTED_ORIGINS = [x for x in os.environ.get('CSRF_TRUSTED_ORIGINS', '').sp
 # For Azure: recognize X-Forwarded-Proto header from reverse proxy to correctly detect HTTPS
 SECURE_PROXY_SSL_HEADER = ('HTTP_X_FORWARDED_PROTO', 'https')
 
-# Use secure cookies when not in DEBUG (i.e., in production with HTTPS)
-CSRF_COOKIE_SECURE = not DEBUG
-SESSION_COOKIE_SECURE = not DEBUG
+# Use secure cookies in Azure by default.
+# Local Docker/dev commonly runs over HTTP, so forcing Secure cookies there breaks
+# session-based auth flows (e.g., allauth dummy/microsoft state handling).
+SECURE_COOKIES = os.environ.get('SECURE_COOKIES', 'True' if IS_IN_AZURE else 'False').lower() in ('1', 'true', 'yes')
+CSRF_COOKIE_SECURE = SECURE_COOKIES
+SESSION_COOKIE_SECURE = SECURE_COOKIES
 
 # Sane defaults for SameSite to reduce CSRF exposure while allowing normal
 # navigation-based logins (use 'Strict' if you only need same-site access)
@@ -277,3 +326,15 @@ SESSION_COOKIE_SAMESITE = os.environ.get('SESSION_COOKIE_SAMESITE', 'Lax')
 # Extra security headers (recommended for FERPA-sensitive apps)
 SECURE_BROWSER_XSS_FILTER = True
 SECURE_CONTENT_TYPE_NOSNIFF = True
+
+# HSTS: Enforce HTTPS for all future requests
+# Start with 1 hour (3600s), increase to 1 year (31536000s) after testing in production
+SECURE_HSTS_SECONDS = int(os.environ.get('SECURE_HSTS_SECONDS', '3600' if IS_IN_AZURE else '0'))
+SECURE_HSTS_INCLUDE_SUBDOMAINS = True
+SECURE_HSTS_PRELOAD = True
+
+# Enforce HTTPS redirect (Azure reverse proxy sets X-Forwarded-Proto correctly)
+SECURE_SSL_REDIRECT = os.environ.get('SECURE_SSL_REDIRECT', 'True' if IS_IN_AZURE else 'False').lower() in ('1', 'true', 'yes')
+
+# Referrer Policy: Don't leak user activity to external sites
+SECURE_REFERRER_POLICY = "same-origin"
