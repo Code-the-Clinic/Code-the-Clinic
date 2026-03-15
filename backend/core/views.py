@@ -18,7 +18,6 @@ def faculty_dashboard_view(request):
     # Get filter values
     selected_sport = request.GET.get('sport')
     selected_semester = request.GET.get('semester')
-    selected_time_filter = request.GET.get('time_filter')  # ADD THIS
     selected_week = request.GET.get('week')
     
     # Base queryset for pie chart (filtered by both)
@@ -92,22 +91,20 @@ def faculty_dashboard_view(request):
         heatmap_data.append(row)
     
     # Get filter options
-    semesters = ClinicReport.objects.values_list('semester', flat=True).distinct().exclude(semester__isnull=True).order_by('-semester')
+    # Get all unique (semester, year) pairs from the database
+    semesters = ClinicReport.objects.annotate(year=F('created_at__year')).values_list('semester', 'year').distinct().order_by('-year', '-semester')
     sports = Sport.objects.filter(clinicreport__isnull=False).distinct().values_list('name', flat=True).order_by('name')
     
     context = {
         # Filters
         'selected_sport': selected_sport,
         'selected_semester': selected_semester,
-        'semesters': sorted(set(semesters)),
+        'semesters': list(semesters),  # List of (semester, year) tuples
         'sports': sorted(set(sports)),
-        
         # Pie chart
         'pie_chart_data': pie_chart_data,
         'pie_total_patients': sum(item['value'] for item in pie_chart_data),
-
         'weeks_list': range(1, 17),  # Weeks 1-16
-        
         # Heat map
         'heatmap_categories': [c[0] for c in categories],
         'heatmap_sports': list(all_sports.values_list('name', flat=True)),

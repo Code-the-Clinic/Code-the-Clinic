@@ -37,12 +37,12 @@
                         </select>
                     </div>
                     <div style="display: flex; gap: 10px; align-items: flex-end;">
-                        <div style="flex: 1;">
+                        <div id="semesterDropdownWrapper" style="flex: 1;">
                             <label style="font-weight: 500; display: block; margin-bottom: 4px; font-size: 12px; color: #666;">Semester</label>
                             <select name="semester" style="padding: 6px; border-radius: 4px; border: 1px solid #bbb; width: 100%; background: white;">
                                 <option value="">All Semesters</option>
-                                {% for sem in semesters %}
-                                <option value="{{ sem }}" {% if selected_semester == sem %}selected{% endif %}>{{ sem }}</option>
+                                {% for sem, year in semesters %}
+                                <option value="{{ sem }} {{ year }}" {% if selected_semester == sem %}selected{% endif %}>{{ sem }} '{{ year|stringformat:"s"|slice:"-2:" }}</option>
                                 {% endfor %}
                             </select>
                         </div>
@@ -55,6 +55,7 @@
                                 {% endfor %}
                             </select>
                         </div>
+                        <!-- Removed custom time range fields -->
                     </div>
                 </div>
             </form>
@@ -215,36 +216,28 @@
     function setupTimeToggle() {
         const timeDropdown = document.getElementById('timeDropdown');
         const weekWrapper = document.getElementById('weekDropdownWrapper');
-        
-        console.log('🔧 setupTimeToggle called');
-        console.log('🔧 timeDropdown exists:', !!timeDropdown);
-        console.log('🔧 weekWrapper exists:', !!weekWrapper);
-        
-        if (timeDropdown && weekWrapper) {
-            console.log('🔧 timeDropdown.value:', timeDropdown.value);
+        const semesterWrapper = document.getElementById('semesterDropdownWrapper');
+        if (timeDropdown && weekWrapper && semesterWrapper) {
+            function updateVisibility() {
+                if (timeDropdown.value === 'week') {
+                    semesterWrapper.style.display = 'block';
+                    weekWrapper.style.display = 'block';
+                } else {
+                    semesterWrapper.style.display = 'block';
+                    weekWrapper.style.display = 'none';
+                }
+            }
             
             // Set initial state on page load
-            if (timeDropdown.value === 'week') {
-                console.log('✅ Showing week dropdown (time_filter=week)');
-                weekWrapper.style.display = 'block';
-            } else {
-                console.log('✅ Hiding week dropdown (time_filter=semester)');
-                weekWrapper.style.display = 'none';
-            }
+            updateVisibility();
             
             // Listen for changes
             timeDropdown.addEventListener('change', function() {
                 console.log('🔄 Time dropdown changed to:', this.value);
-                if (this.value === 'week') {
-                    console.log('✅ Showing week dropdown');
-                    weekWrapper.style.display = 'block';
-                } else {
-                    console.log('✅ Hiding week dropdown');
-                    weekWrapper.style.display = 'none';
-                }
+                updateVisibility();
             });
         } else {
-            console.error('❌ timeDropdown or weekWrapper not found!');
+            console.error('❌ One or more dropdown wrappers not found!');
         }
     }
 
