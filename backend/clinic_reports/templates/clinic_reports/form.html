@@ -58,19 +58,22 @@
       <div class="section-title">Personal Information</div>
       <div class="form-row">
         <div class="form-group">
-          <label for="first_name">First Name</label>
-          <input id="first_name" name="first_name" placeholder="First name" required />
+          <label>First Name</label>
+          <input id="first_name" type="text" value="{{ user.first_name }}" disabled />
         </div>
         <div class="form-group">
-          <label for="last_name">Last Name</label>
-          <input id="last_name" name="last_name" placeholder="Last name" required />
+          <label>Last Name</label>
+          <input id="last_name" type="text" value="{{ user.last_name }}" disabled />
         </div>
       </div>
 
       <div class="form-row full">
         <div class="form-group">
-          <label for="email">Email</label>
-          <input id="email" name="email" type="email" required />
+          <label>Email</label>
+          <input id="email" type="email" value="{{ user.email }}" disabled />
+          <small style="margin-top:6px; color:#777; font-size:12px;">
+            This information is autofilled from myBama. If it doesn't look right, please contact your program director.
+          </small>
         </div>
       </div>
 

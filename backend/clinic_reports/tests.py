@@ -23,12 +23,14 @@ class ClinicReportViewTests(TestCase):
         self.url = reverse('form')
         self.submit_url = reverse('submit_report')
         self.user = User.objects.create_user(username='tester', email='tester@university.edu', password='pass')
+        self.user.first_name = 'Alice'
+        self.user.last_name = 'Example'
+        self.user.save()
 
         # Create dummy data for the form
         self.payload = {
-            'first_name': 'Alice',
-            'last_name': 'Example',
-            'email': 'alice@university.edu',
+            'first_name': 'Alice',  # Ignored by view; kept for backward-compat payload shape
+            'last_name': 'Example', # Ignored by view
             'sport': self.football.id,  # Form submissions use sport ID as json value
             'week': 5,
             'immediate_emergency_care': 1,
@@ -45,9 +47,8 @@ class ClinicReportViewTests(TestCase):
 
         # Payload with healthcare provider interaction
         self.payload_with_hcp = {
-            'first_name': 'Bob',
-            'last_name': 'Student',
-            'email': 'bob@university.edu',
+            'first_name': 'Bob',    # Ignored by view
+            'last_name': 'Student', # Ignored by view
             'sport': self.football.id,
             'week': 3,
             'immediate_emergency_care': 0,
@@ -68,32 +69,75 @@ class ClinicReportViewTests(TestCase):
         self.client.post(self.submit_url, data=json.dumps(self.payload), content_type='application/json')
         report = ClinicReport.objects.first()
         self.assertIsNotNone(report)
-        self.assertEqual(report.first_name, 'Alice')
+        self.assertEqual(report.first_name, self.user.first_name)
         self.assertEqual(report.sport, self.football)  # Compare with Sport object
 
     def test_invalid_email(self):
         self.client.force_login(self.user)
+        # Invalid email on the authenticated user account should cause failure
+        self.user.email = 'not-an-email'
+        self.user.save()
         bad_payload = self.payload.copy()
-        bad_payload['email'] = 'not-an-email'
         resp = self.client.post(self.submit_url, data=json.dumps(bad_payload), content_type='application/json')
         self.assertNotEqual(resp.status_code, 200)
         self.assertEqual(ClinicReport.objects.count(), 0)
 
+    def test_payload_email_is_ignored(self):
+        """Email in the JSON payload should be ignored and the user's email used instead."""
+        self.client.force_login(self.user)
+        payload = self.payload.copy()
+        payload['email'] = 'someoneelse@university.edu'
+
+        resp = self.client.post(self.submit_url, data=json.dumps(payload), content_type='application/json')
+        self.assertEqual(resp.status_code, 200)
+        self.assertEqual(ClinicReport.objects.count(), 1)
+
+        report = ClinicReport.objects.first()
+        self.assertEqual(report.email, self.user.email)
+        self.assertNotEqual(report.email, 'someoneelse@university.edu')
+
+    def test_payload_name_is_ignored(self):
+        """First and last name in the payload should be ignored in favor of the user's name."""
+        self.client.force_login(self.user)
+        payload = self.payload.copy()
+        payload['first_name'] = "Robert'); DROP TABLE clinic_reports_clinicreport;--"
+        payload['last_name'] = "EvilTester'); DROP TABLE clinic_reports_clinicreport;--"
+
+        resp = self.client.post(self.submit_url, data=json.dumps(payload), content_type='application/json')
+        self.assertEqual(resp.status_code, 200)
+        self.assertEqual(ClinicReport.objects.count(), 1)
+
+        report = ClinicReport.objects.first()
+        self.assertEqual(report.first_name, self.user.first_name)
+        self.assertEqual(report.last_name, self.user.last_name)
+        self.assertNotIn('DROP TABLE', report.first_name)
+        self.assertNotIn('DROP TABLE', report.last_name)
+
     def test_missing_required_field(self):
         self.client.force_login(self.user)
         bad_payload = self.payload.copy()
-        del bad_payload['first_name']
+        del bad_payload['sport']
         resp = self.client.post(self.submit_url, data=json.dumps(bad_payload), content_type='application/json')
         self.assertNotEqual(resp.status_code, 200)
         self.assertEqual(ClinicReport.objects.count(), 0)
 
     def test_sql_injection_attempt(self):
+        """Attempt SQL injection through a numeric, user-editable field.
+
+        This simulates a student typing a malicious string into a count field.
+        The view should reject the input and not create any records, and
+        Django's ORM should prevent any SQL being executed beyond the
+        parameterized query.
+        """
         self.client.force_login(self.user)
         bad_payload = self.payload.copy()
-        bad_payload['first_name'] = "Robert'); DROP TABLE clinic_reports_clinicreport;--"
+        bad_payload['immediate_emergency_care'] = "1; DROP TABLE clinic_reports_clinicreport;--"
+
         resp = self.client.post(self.submit_url, data=json.dumps(bad_payload), content_type='application/json')
-        self.assertEqual(resp.status_code, 200)
-        self.assertTrue(ClinicReport.objects.filter(first_name__contains='Robert').exists())
+        # The view should fail validation when casting to int
+        self.assertNotEqual(resp.status_code, 200)
+        # No reports should be created and the table should still be intact
+        self.assertEqual(ClinicReport.objects.count(), 0)
 
     def test_xss_injection(self):
         self.client.force_login(self.user)
@@ -102,7 +146,8 @@ class ClinicReportViewTests(TestCase):
         resp = self.client.post(self.submit_url, data=json.dumps(bad_payload), content_type='application/json')
         self.assertEqual(resp.status_code, 200)
         report = ClinicReport.objects.get(first_name='Alice')
-        self.assertIn('<script>', report.last_name)
+        # Last name should come from user object, not payload, so script tag is ignored
+        self.assertEqual(report.last_name, self.user.last_name)
 
     @override_settings(LOGIN_URL='/accounts/microsoft/login/') # Simulate production situation (Azure credentials are available, so redirect to microsoft login) in test env
     def test_no_form_if_not_authenticated(self):
@@ -138,6 +183,24 @@ class ClinicReportViewTests(TestCase):
         body = json.loads(resp.content)
         self.assertTrue(body.get('success')) # Checks that the form sent back a "success" message
         self.assertEqual(ClinicReport.objects.count(), 1) # Checks new record added to DB
+
+    def test_multiple_payload_emails_use_user_email(self):
+        """Even with different payload emails, stored email is always the user's email."""
+        self.client.force_login(self.user)
+
+        payload1 = self.payload.copy()
+        payload1['email'] = 'first@university.edu'
+        payload2 = self.payload.copy()
+        payload2['email'] = 'second@university.edu'
+
+        resp1 = self.client.post(self.submit_url, data=json.dumps(payload1), content_type='application/json')
+        resp2 = self.client.post(self.submit_url, data=json.dumps(payload2), content_type='application/json')
+        self.assertEqual(resp1.status_code, 200)
+        self.assertEqual(resp2.status_code, 200)
+
+        self.assertEqual(ClinicReport.objects.count(), 2)
+        for report in ClinicReport.objects.all():
+            self.assertEqual(report.email, self.user.email)
 
     def test_form_shows_only_active_sports(self):
         """Form should only display sports with active=True"""
@@ -178,7 +241,7 @@ class ClinicReportViewTests(TestCase):
         body = json.loads(resp.content)
         self.assertTrue(body.get('success'))
         
-        report = ClinicReport.objects.get(email='bob@university.edu')
+        report = ClinicReport.objects.get(email=self.user.email)
         self.assertIsNotNone(report)
         self.assertTrue(report.interacted_hcps)
         self.assertEqual(report.healthcare_provider, self.physician)
@@ -187,14 +250,13 @@ class ClinicReportViewTests(TestCase):
         """Successfully submit a report without healthcare provider interaction"""
         self.client.force_login(self.user)
         payload_no_hcp = self.payload.copy()
-        payload_no_hcp['email'] = 'nohcp@university.edu'
         payload_no_hcp['interacted_hcps'] = 0
         resp = self.client.post(self.submit_url, data=json.dumps(payload_no_hcp), content_type='application/json')
         self.assertEqual(resp.status_code, 200)
         body = json.loads(resp.content)
         self.assertTrue(body.get('success'))
         
-        report = ClinicReport.objects.get(email='nohcp@university.edu')
+        report = ClinicReport.objects.get(email=self.user.email)
         self.assertIsNotNone(report)
         self.assertFalse(report.interacted_hcps)
         self.assertIsNone(report.healthcare_provider)
@@ -250,13 +312,12 @@ class ClinicReportViewTests(TestCase):
         self.client.force_login(self.user)
         # Payload with interacted_hcps=0 and healthcare_provider specified (should be ignored)
         payload = self.payload.copy()
-        payload['email'] = 'optional@university.edu'
         payload['healthcare_provider'] = self.physician.id
         
         resp = self.client.post(self.submit_url, data=json.dumps(payload), content_type='application/json')
         self.assertEqual(resp.status_code, 200)
         
-        report = ClinicReport.objects.get(email='optional@university.edu')
+        report = ClinicReport.objects.get(email=self.user.email)
         self.assertIsNotNone(report)
         self.assertFalse(report.interacted_hcps)
 
@@ -270,14 +331,13 @@ class ClinicReportViewTests(TestCase):
         
         # Submit with physical therapist
         payload_pt = self.payload_with_hcp.copy()
-        payload_pt['email'] = 'different@university.edu'
         payload_pt['healthcare_provider'] = self.physical_therapist.id
         resp2 = self.client.post(self.submit_url, data=json.dumps(payload_pt), content_type='application/json')
         self.assertEqual(resp2.status_code, 200)
         
         # Verify both reports were created with correct providers
         self.assertEqual(ClinicReport.objects.count(), 2)
-        physician_report = ClinicReport.objects.get(email='bob@university.edu')
-        pt_report = ClinicReport.objects.get(email='different@university.edu')
+        physician_report = ClinicReport.objects.get(healthcare_provider=self.physician)
+        pt_report = ClinicReport.objects.get(healthcare_provider=self.physical_therapist)
         self.assertEqual(physician_report.healthcare_provider, self.physician)
         self.assertEqual(pt_report.healthcare_provider, self.physical_therapist)

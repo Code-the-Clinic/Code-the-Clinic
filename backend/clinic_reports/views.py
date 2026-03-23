@@ -43,7 +43,7 @@ def submit_report(request):
     try:
         data = json.loads(request.body)
         required_fields = [
-            'first_name', 'last_name', 'email', 'sport', 'week',
+            'sport', 'week',
             'immediate_emergency_care', 'musculoskeletal_exam', 'non_musculoskeletal_exam',
             'taping_bracing', 'rehabilitation_reconditioning', 'modalities',
             'pharmacology', 'injury_illness_prevention', 'non_sport_patient', 'interacted_hcps'
@@ -62,11 +62,21 @@ def submit_report(request):
         if interacted_bool and not data.get('healthcare_provider'):
             return JsonResponse({'success': False, 'error': 'Healthcare provider is required when you interacted with other healthcare professionals'}, status=400)
 
-        # Email validation
+        # Name and email validation (from authenticated user account, not the form)
+        user_email = request.user.email
+        user_first_name = request.user.first_name
+        user_last_name = request.user.last_name
+
+        if not user_first_name or not user_last_name:
+            return JsonResponse({'success': False, 'error': 'Your account is missing a first or last name. Please contact an administrator.'}, status=400)
+
+        if not user_email:
+            return JsonResponse({'success': False, 'error': 'No email is associated with your account. Please contact an administrator.'}, status=400)
+
         try:
-            validate_email(data['email'])
+            validate_email(user_email)
         except ValidationError:
-            return JsonResponse({'success': False, 'error': 'Invalid email address'}, status=400)
+            return JsonResponse({'success': False, 'error': 'Invalid email address on your account. Please contact an administrator.'}, status=400)
 
         sport_id = data.get('sport')
         try:
@@ -92,9 +102,11 @@ def submit_report(request):
             return JsonResponse({'success': False, 'error': 'Invalid week value'}, status=400)
 
         report = ClinicReport.objects.create(
-            first_name=data.get('first_name'),
-            last_name=data.get('last_name'),
-            email=data.get('email'),
+            # Force name and email to the authenticated user's values so
+            # students cannot change identity-related fields on the form.
+            first_name=user_first_name,
+            last_name=user_last_name,
+            email=user_email,
             sport=sport,
             week=week,
             immediate_emergency_care=int(data.get('immediate_emergency_care', 0)),
