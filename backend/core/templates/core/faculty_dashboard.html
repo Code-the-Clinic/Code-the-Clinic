@@ -11,12 +11,13 @@
         <!-- LEFT CHART - Care Chart -->
         <div style="flex: 1 1 400px; min-width: 350px; max-width: 500px; height: 550px; background: white; padding: 24px; border-radius: 8px; box-shadow: 0 2px 10px rgba(0,0,0,0.08); display: flex; flex-direction: column; align-items: center; box-sizing: border-box;">
             <!-- FORM WRAPPER FOR AUTO-SUBMIT FILTERS -->
-            <form id="filterForm" method="GET" style="width: 100%; max-width: 380px; margin-bottom: 24px;">
-                <!-- Preserve second form's GET parameters -->
-                {% if request.GET.care_category %}<input type="hidden" name="care_category" value="{{ request.GET.care_category }}">{% endif %}
-                {% if request.GET.semester2 %}<input type="hidden" name="semester2" value="{{ request.GET.semester2 }}">{% endif %}
-                {% if request.GET.week2 %}<input type="hidden" name="week2" value="{{ request.GET.week2 }}">{% endif %}
-                {% if request.GET.student_filter2 %}<input type="hidden" name="student_filter2" value="{{ request.GET.student_filter2 }}">{% endif %}
+            <form id="filterForm" method="POST" style="width: 100%; max-width: 380px; margin-bottom: 24px;">
+                {% csrf_token %}
+                <!-- Preserve second form's parameters -->
+                {% if care_category %}<input type="hidden" name="care_category" value="{{ care_category }}">{% endif %}
+                {% if selected_semester2 %}<input type="hidden" name="semester2" value="{{ selected_semester2 }}">{% endif %}
+                {% if selected_week2 %}<input type="hidden" name="week2" value="{{ selected_week2 }}">{% endif %}
+                {% if selected_student2 %}<input type="hidden" name="student_filter2" value="{{ selected_student2 }}">{% endif %}
 
                 <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px 18px; background: #f8f9fa; padding: 15px; border-radius: 6px; border: 1px solid #eee;">
                     <div>
@@ -39,7 +40,7 @@
                     </div>
                     <div>
                         <label style="font-weight: 500; display: block; margin-bottom: 4px; font-size: 12px; color: #666;">Student</label>
-                        <input list="facultyStudents" name="student" style="padding: 6px; border-radius: 4px; border: 1px solid #bbb; width: 100%; box-sizing: border-box; background: white;" placeholder="Search students..." value="{{ request.GET.student|default:'' }}">
+                        <input list="facultyStudents" name="student" style="padding: 6px; border-radius: 4px; border: 1px solid #bbb; width: 100%; box-sizing: border-box; background: white;" placeholder="Search students..." value="{{ selected_student|default:'' }}">
                         <datalist id="facultyStudents">
                             <option value="All Students"></option>
                             {% for student in students %}
@@ -52,7 +53,7 @@
                         <select name="week" style="padding: 6px; border-radius: 4px; border: 1px solid #bbb; width: 100%; background: white;">
                             <option value="">All Weeks</option>
                             {% for week_num in weeks_list %}
-                            <option value="{{ week_num }}" {% if request.GET.week == week_num|stringformat:"s" %}selected{% endif %}>{{ week_num }}</option>
+                            <option value="{{ week_num }}" {% if selected_week == week_num|stringformat:"s" %}selected{% endif %}>{{ week_num }}</option>
                             {% endfor %}
                         </select>
                     </div>
@@ -66,28 +67,27 @@
 
         <!-- RIGHT CHART - Care Utilization by Sport -->
         <div style="flex: 1 1 400px; min-width: 350px; max-width: 500px; height: 550px; background: white; padding: 24px; border-radius: 8px; box-shadow: 0 2px 10px rgba(0,0,0,0.08); display: flex; flex-direction: column; align-items: center; box-sizing: border-box;">
-            <form id="filterForm2" method="GET" style="width: 100%; max-width: 380px; margin-bottom: 24px;">
-                <!-- Preserve first form's GET parameters -->
-                {% if request.GET.group_by %}<input type="hidden" name="group_by" value="{{ request.GET.group_by }}">{% endif %}
-                {% if request.GET.time_filter %}<input type="hidden" name="time_filter" value="{{ request.GET.time_filter }}">{% endif %}
-                {% if request.GET.student %}<input type="hidden" name="student" value="{{ request.GET.student }}">{% endif %}
-                {% if request.GET.sport %}<input type="hidden" name="sport" value="{{ request.GET.sport }}">{% endif %}
-                {% if request.GET.semester %}<input type="hidden" name="semester" value="{{ request.GET.semester }}">{% endif %}
-                {% if request.GET.week %}<input type="hidden" name="week" value="{{ request.GET.week }}">{% endif %}
+            <form id="filterForm2" method="POST" style="width: 100%; max-width: 380px; margin-bottom: 24px;">
+                {% csrf_token %}
+                <!-- Preserve first form's parameters -->
+                {% if selected_student %}<input type="hidden" name="student" value="{{ selected_student }}">{% endif %}
+                {% if selected_sport %}<input type="hidden" name="sport" value="{{ selected_sport }}">{% endif %}
+                {% if selected_semester %}<input type="hidden" name="semester" value="{{ selected_semester }}">{% endif %}
+                {% if selected_week %}<input type="hidden" name="week" value="{{ selected_week }}">{% endif %}
 
                 <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px 18px; background: #f8f9fa; padding: 15px; border-radius: 6px; border: 1px solid #eee;">
                     <div>
                         <label style="font-weight: 500; display: block; margin-bottom: 4px; font-size: 12px; color: #666;">Care Type</label>
                         <select name="care_category" style="padding: 6px; border-radius: 4px; border: 1px solid #bbb; width: 100%; background: white;">
-                            <option value="immediate_emergency_care" {% if request.GET.care_category == 'immediate_emergency_care' %}selected{% endif %}>Immediate / Emergency Care</option>
-                            <option value="musculoskeletal_exam" {% if request.GET.care_category == 'musculoskeletal_exam' %}selected{% endif %}>Musculoskeletal Exam</option>
-                            <option value="non_musculoskeletal_exam" {% if request.GET.care_category == 'non_musculoskeletal_exam' %}selected{% endif %}>Non-Musculoskeletal Exam</option>
-                            <option value="taping_bracing" {% if request.GET.care_category == 'taping_bracing' %}selected{% endif %}>Taping / Bracing</option>
-                            <option value="rehabilitation_reconditioning" {% if request.GET.care_category == 'rehabilitation_reconditioning' %}selected{% endif %}>Rehabilitation / Reconditioning</option>
-                            <option value="modalities" {% if request.GET.care_category == 'modalities' %}selected{% endif %}>Modalities</option>
-                            <option value="pharmacology" {% if request.GET.care_category == 'pharmacology' %}selected{% endif %}>Pharmacology</option>
-                            <option value="injury_illness_prevention" {% if request.GET.care_category == 'injury_illness_prevention' %}selected{% endif %}>Injury / Illness Prevention</option>
-                            <option value="non_sport_patient" {% if request.GET.care_category == 'non_sport_patient' %}selected{% endif %}>Non-Sport Patient</option>
+                            <option value="immediate_emergency_care" {% if care_category == 'immediate_emergency_care' %}selected{% endif %}>Immediate / Emergency Care</option>
+                            <option value="musculoskeletal_exam" {% if care_category == 'musculoskeletal_exam' %}selected{% endif %}>Musculoskeletal Exam</option>
+                            <option value="non_musculoskeletal_exam" {% if care_category == 'non_musculoskeletal_exam' %}selected{% endif %}>Non-Musculoskeletal Exam</option>
+                            <option value="taping_bracing" {% if care_category == 'taping_bracing' %}selected{% endif %}>Taping / Bracing</option>
+                            <option value="rehabilitation_reconditioning" {% if care_category == 'rehabilitation_reconditioning' %}selected{% endif %}>Rehabilitation / Reconditioning</option>
+                            <option value="modalities" {% if care_category == 'modalities' %}selected{% endif %}>Modalities</option>
+                            <option value="pharmacology" {% if care_category == 'pharmacology' %}selected{% endif %}>Pharmacology</option>
+                            <option value="injury_illness_prevention" {% if care_category == 'injury_illness_prevention' %}selected{% endif %}>Injury / Illness Prevention</option>
+                            <option value="non_sport_patient" {% if care_category == 'non_sport_patient' %}selected{% endif %}>Non-Sport Patient</option>
                         </select>
                     </div>
                     <div>
@@ -95,20 +95,20 @@
                         <select name="semester2" style="padding: 6px; border-radius: 4px; border: 1px solid #bbb; width: 100%; background: white;">
                             <option value="">All Semesters</option>
                             {% for sem in semesters %}
-                            <option value="{{ sem }}" {% if request.GET.semester2 == sem %}selected{% endif %}>{{ sem }}</option>
+                            <option value="{{ sem }}" {% if selected_semester2 == sem %}selected{% endif %}>{{ sem }}</option>
                             {% endfor %}
                         </select>
                     </div>
                     <div>
                         <label style="font-weight: 500; display: block; margin-bottom: 4px; font-size: 12px; color: #666;">Student</label>
-                        <input list="facultyStudents" name="student_filter2" style="padding: 6px; border-radius: 4px; border: 1px solid #bbb; width: 100%; box-sizing: border-box; background: white;" placeholder="Search students..." value="{{ request.GET.student_filter2|default:'' }}">
+                        <input list="facultyStudents" name="student_filter2" style="padding: 6px; border-radius: 4px; border: 1px solid #bbb; width: 100%; box-sizing: border-box; background: white;" placeholder="Search students..." value="{{ selected_student2|default:'' }}">
                     </div>
                     <div>
                         <label style="font-weight: 500; display: block; margin-bottom: 4px; font-size: 12px; color: #666;">Week</label>
                         <select name="week2" style="padding: 6px; border-radius: 4px; border: 1px solid #bbb; width: 100%; background: white;">
                             <option value="">All Weeks</option>
                             {% for week_num in weeks_list %}
-                            <option value="{{ week_num }}" {% if request.GET.week2 == week_num|stringformat:"s" %}selected{% endif %}>{{ week_num }}</option>
+                            <option value="{{ week_num }}" {% if selected_week2 == week_num|stringformat:"s" %}selected{% endif %}>{{ week_num }}</option>
                             {% endfor %}
                         </select>
                     </div>
@@ -124,16 +124,17 @@
     <!-- Rest of your template (trend chart, heatmap table) stays the same -->
     <div style="background: white; padding: 24px; border-radius: 8px; box-shadow: 0 2px 10px rgba(0,0,0,0.08); width: 100%; box-sizing: border-box; margin-bottom: 32px;">
         <h3 style="margin: 0 0 15px 0; color: #2c3e50;">Clinical Experience Trends</h3>
-        <form id="filterForm3" method="GET">
-            <!-- Preserve other GET params from other forms if needed, skip for now to simplify, or add them -->
-            {% if request.GET.sport %}<input type="hidden" name="sport" value="{{ request.GET.sport }}">{% endif %}
-            {% if request.GET.semester %}<input type="hidden" name="semester" value="{{ request.GET.semester }}">{% endif %}
-            {% if request.GET.student %}<input type="hidden" name="student" value="{{ request.GET.student }}">{% endif %}
-            {% if request.GET.week %}<input type="hidden" name="week" value="{{ request.GET.week }}">{% endif %}
-            {% if request.GET.care_category %}<input type="hidden" name="care_category" value="{{ request.GET.care_category }}">{% endif %}
-            {% if request.GET.semester2 %}<input type="hidden" name="semester2" value="{{ request.GET.semester2 }}">{% endif %}
-            {% if request.GET.student_filter2 %}<input type="hidden" name="student_filter2" value="{{ request.GET.student_filter2 }}">{% endif %}
-            {% if request.GET.week2 %}<input type="hidden" name="week2" value="{{ request.GET.week2 }}">{% endif %}
+        <form id="filterForm3" method="POST">
+            {% csrf_token %}
+            <!-- Preserve other params from other forms -->
+            {% if selected_sport %}<input type="hidden" name="sport" value="{{ selected_sport }}">{% endif %}
+            {% if selected_semester %}<input type="hidden" name="semester" value="{{ selected_semester }}">{% endif %}
+            {% if selected_student %}<input type="hidden" name="student" value="{{ selected_student }}">{% endif %}
+            {% if selected_week %}<input type="hidden" name="week" value="{{ selected_week }}">{% endif %}
+            {% if care_category %}<input type="hidden" name="care_category" value="{{ care_category }}">{% endif %}
+            {% if selected_semester2 %}<input type="hidden" name="semester2" value="{{ selected_semester2 }}">{% endif %}
+            {% if selected_student2 %}<input type="hidden" name="student_filter2" value="{{ selected_student2 }}">{% endif %}
+            {% if selected_week2 %}<input type="hidden" name="week2" value="{{ selected_week2 }}">{% endif %}
 
             <div style="display: flex; gap: 15px; flex-wrap: wrap; background: #f8f9fa; padding: 15px; border-radius: 6px; border: 1px solid #eee; margin-bottom: 20px;">
                 <div>
@@ -162,7 +163,7 @@
                 </div>
                 <div>
                     <label style="font-weight: 500; display: block; margin-bottom: 4px; font-size: 13px; color: #666;">Student</label>
-                    <input list="trendStudents" name="trend_student" style="padding: 6px 12px; border-radius: 4px; border: 1px solid #bbb; width: 180px; box-sizing: border-box; background: white;" placeholder="Search students..." value="{{ request.GET.trend_student|default:'' }}">
+                    <input list="trendStudents" name="trend_student" style="padding: 6px 12px; border-radius: 4px; border: 1px solid #bbb; width: 180px; box-sizing: border-box; background: white;" placeholder="Search students..." value="{{ selected_trend_student|default:'' }}">
                     <datalist id="trendStudents">
                         <option value="All Students"></option>
                         {% for student in students %}
@@ -190,21 +191,22 @@
     <div style="background: white; padding: 24px; border-radius: 8px; box-shadow: 0 2px 10px rgba(0,0,0,0.08); width: 100%; box-sizing: border-box;">
         <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 20px;">
             <h3 style="margin: 0; color: #2c3e50;">Key Metrics</h3>
-            
-            <form id="filterForm4" method="GET" style="display: flex; gap: 15px;">
+
+            <form id="filterForm4" method="POST" style="display: flex; gap: 15px;">
+                {% csrf_token %}
                 <!-- Preserve other filters -->
-                {% if request.GET.sport %}<input type="hidden" name="sport" value="{{ request.GET.sport }}">{% endif %}
-                {% if request.GET.semester %}<input type="hidden" name="semester" value="{{ request.GET.semester }}">{% endif %}
-                {% if request.GET.student %}<input type="hidden" name="student" value="{{ request.GET.student }}">{% endif %}
-                {% if request.GET.week %}<input type="hidden" name="week" value="{{ request.GET.week }}">{% endif %}
-                {% if request.GET.care_category %}<input type="hidden" name="care_category" value="{{ request.GET.care_category }}">{% endif %}
-                {% if request.GET.semester2 %}<input type="hidden" name="semester2" value="{{ request.GET.semester2 }}">{% endif %}
-                {% if request.GET.student_filter2 %}<input type="hidden" name="student_filter2" value="{{ request.GET.student_filter2 }}">{% endif %}
-                {% if request.GET.week2 %}<input type="hidden" name="week2" value="{{ request.GET.week2 }}">{% endif %}
-                {% if request.GET.trend_sport %}<input type="hidden" name="trend_sport" value="{{ request.GET.trend_sport }}">{% endif %}
-                {% if request.GET.trend_care %}<input type="hidden" name="trend_care" value="{{ request.GET.trend_care }}">{% endif %}
-                {% if request.GET.trend_student %}<input type="hidden" name="trend_student" value="{{ request.GET.trend_student }}">{% endif %}
-                {% if request.GET.trend_semester %}<input type="hidden" name="trend_semester" value="{{ request.GET.trend_semester }}">{% endif %}
+                {% if selected_sport %}<input type="hidden" name="sport" value="{{ selected_sport }}">{% endif %}
+                {% if selected_semester %}<input type="hidden" name="semester" value="{{ selected_semester }}">{% endif %}
+                {% if selected_student %}<input type="hidden" name="student" value="{{ selected_student }}">{% endif %}
+                {% if selected_week %}<input type="hidden" name="week" value="{{ selected_week }}">{% endif %}
+                {% if care_category %}<input type="hidden" name="care_category" value="{{ care_category }}">{% endif %}
+                {% if selected_semester2 %}<input type="hidden" name="semester2" value="{{ selected_semester2 }}">{% endif %}
+                {% if selected_student2 %}<input type="hidden" name="student_filter2" value="{{ selected_student2 }}">{% endif %}
+                {% if selected_week2 %}<input type="hidden" name="week2" value="{{ selected_week2 }}">{% endif %}
+                {% if selected_trend_sport %}<input type="hidden" name="trend_sport" value="{{ selected_trend_sport }}">{% endif %}
+                {% if selected_trend_care %}<input type="hidden" name="trend_care" value="{{ selected_trend_care }}">{% endif %}
+                {% if selected_trend_student %}<input type="hidden" name="trend_student" value="{{ selected_trend_student }}">{% endif %}
+                {% if selected_trend_semester %}<input type="hidden" name="trend_semester" value="{{ selected_trend_semester }}">{% endif %}
                 
                 <div>
                     <select name="metric_semester" style="padding: 6px 12px; border-radius: 4px; border: 1px solid #bbb; width: 140px; background: white; font-size: 13px;">

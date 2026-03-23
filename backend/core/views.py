@@ -14,21 +14,29 @@ logger = logging.getLogger(__name__)
 # Security note: Viewing the faculty dashboard requires authentication
 @login_required
 def faculty_dashboard_view(request):
-    """Faculty dashboard with heat map and pie chart"""
+    """Faculty dashboard with heat map and pie chart.
+
+    Filters are now accepted via POST as well as GET so that
+    sensitive values (e.g. student names/emails) do not appear
+    in the URL query string when dropdowns change.
+    """
     if not request.user.is_staff:
         raise PermissionDenied("You don't have permission to access this page.")
-    
+
+    # Use POST for filters when available to avoid leaking them into the URL
+    params = request.GET if request.method == 'GET' else request.POST
+
     # Get filter values
-    selected_sport = request.GET.get('sport')
-    selected_student = request.GET.get('student')
-    selected_semester_raw = request.GET.get('semester')
-    selected_week = request.GET.get('week')
-    
+    selected_sport = params.get('sport')
+    selected_student = params.get('student')
+    selected_semester_raw = params.get('semester')
+    selected_week = params.get('week')
+
     # Get filters for the 2nd pie chart
-    care_category = request.GET.get('care_category', 'immediate_emergency_care')
-    selected_semester_raw2 = request.GET.get('semester2')
-    selected_week2 = request.GET.get('week2')
-    selected_student2 = request.GET.get('student_filter2')
+    care_category = params.get('care_category', 'immediate_emergency_care')
+    selected_semester_raw2 = params.get('semester2')
+    selected_week2 = params.get('week2')
+    selected_student2 = params.get('student_filter2')
     
     # Parse selected semester for pie chart 1
     selected_semester_base = selected_semester_raw
@@ -133,8 +141,8 @@ def faculty_dashboard_view(request):
             })
     
     # Key Metrics (Summary Statistics)
-    metric_student = request.GET.get('metric_student')
-    metric_semester_raw = request.GET.get('metric_semester')
+    metric_student = params.get('metric_student')
+    metric_semester_raw = params.get('metric_semester')
     
     metric_reports = ClinicReport.objects.all()
     
@@ -221,10 +229,10 @@ def faculty_dashboard_view(request):
     students = [{'display': f"{s['first_name']} {s['last_name']} ({s['email']})", 'email': s['email']} for s in students_query]
     
     # Trend Chart Data
-    selected_trend_sport = request.GET.get('trend_sport')
-    selected_trend_care = request.GET.get('trend_care')
-    selected_trend_student = request.GET.get('trend_student')
-    selected_trend_semester = request.GET.get('trend_semester')
+    selected_trend_sport = params.get('trend_sport')
+    selected_trend_care = params.get('trend_care')
+    selected_trend_student = params.get('trend_student')
+    selected_trend_semester = params.get('trend_semester')
     
     trend_reports = ClinicReport.objects.all()
     if selected_trend_semester:
@@ -323,6 +331,12 @@ def faculty_dashboard_view(request):
         'selected_trend_care': selected_trend_care,
         'selected_trend_student': selected_trend_student,
         'selected_trend_semester': selected_trend_semester,
+
+        # Additional selected values used to preserve filters across forms
+        'care_category': care_category,
+        'selected_semester2': selected_semester_raw2,
+        'selected_week2': selected_week2,
+        'selected_student2': selected_student2,
     }
     
     return render(request, 'core/faculty_dashboard.html', context)
