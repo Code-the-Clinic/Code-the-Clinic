@@ -12,21 +12,13 @@
         <div style="flex: 1 1 400px; min-width: 350px; max-width: 500px; height: 550px; background: white; padding: 24px; border-radius: 8px; box-shadow: 0 2px 10px rgba(0,0,0,0.08); display: flex; flex-direction: column; align-items: center; box-sizing: border-box;">
             <!-- FORM WRAPPER FOR AUTO-SUBMIT FILTERS -->
             <form id="filterForm" method="GET" style="width: 100%; max-width: 380px; margin-bottom: 24px;">
+                <!-- Preserve second form's GET parameters -->
+                {% if request.GET.care_category %}<input type="hidden" name="care_category" value="{{ request.GET.care_category }}">{% endif %}
+                {% if request.GET.semester2 %}<input type="hidden" name="semester2" value="{{ request.GET.semester2 }}">{% endif %}
+                {% if request.GET.week2 %}<input type="hidden" name="week2" value="{{ request.GET.week2 }}">{% endif %}
+                {% if request.GET.student_filter2 %}<input type="hidden" name="student_filter2" value="{{ request.GET.student_filter2 }}">{% endif %}
+
                 <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px 18px; background: #f8f9fa; padding: 15px; border-radius: 6px; border: 1px solid #eee;">
-                    <div>
-                        <label style="font-weight: 500; display: block; margin-bottom: 4px; font-size: 12px; color: #666;">Group By</label>
-                        <select name="group_by" style="padding: 6px; border-radius: 4px; border: 1px solid #bbb; width: 100%; background: white;">
-                            <option value="sport" {% if request.GET.group_by == 'sport' or not request.GET.group_by %}selected{% endif %}>Sport</option>
-                            <option value="students">Students</option>
-                        </select>
-                    </div>
-                    <div>
-                        <label style="font-weight: 500; display: block; margin-bottom: 4px; font-size: 12px; color: #666;">Time</label>
-                        <select id="timeDropdown" name="time_filter" style="padding: 6px; border-radius: 4px; border: 1px solid #bbb; width: 100%; background: white;">
-                            <option value="semester" {% if request.GET.time_filter == 'semester' or not request.GET.time_filter %}selected{% endif %}>Semester</option>
-                            <option value="week" {% if request.GET.time_filter == 'week' %}selected{% endif %}>Week</option>
-                        </select>
-                    </div>
                     <div>
                         <label style="font-weight: 500; display: block; margin-bottom: 4px; font-size: 12px; color: #666;">Sport</label>
                         <select name="sport" style="padding: 6px; border-radius: 4px; border: 1px solid #bbb; width: 100%; background: white;">
@@ -36,25 +28,33 @@
                             {% endfor %}
                         </select>
                     </div>
-                    <div style="display: flex; gap: 10px; align-items: flex-end;">
-                        <div style="flex: 1;">
-                            <label style="font-weight: 500; display: block; margin-bottom: 4px; font-size: 12px; color: #666;">Semester</label>
-                            <select name="semester" style="padding: 6px; border-radius: 4px; border: 1px solid #bbb; width: 100%; background: white;">
-                                <option value="">All Semesters</option>
-                                {% for sem in semesters %}
-                                <option value="{{ sem }}" {% if selected_semester == sem %}selected{% endif %}>{{ sem }}</option>
-                                {% endfor %}
-                            </select>
-                        </div>
-                        <div id="weekDropdownWrapper" style="display: none; flex: 1;">
-                            <label style="font-weight: 500; display: block; margin-bottom: 4px; font-size: 12px; color: #666;">Week</label>
-                            <select id="weekDropdown" name="week" style="padding: 6px; border-radius: 4px; border: 1px solid #bbb; width: 100%; background: white;">
-                                <option value="">Select Week</option>
-                                {% for week_num in weeks_list %}
-                                <option value="{{ week_num }}" {% if request.GET.week == week_num|stringformat:"s" %}selected{% endif %}>{{ week_num }}</option>
-                                {% endfor %}
-                            </select>
-                        </div>
+                    <div>
+                        <label style="font-weight: 500; display: block; margin-bottom: 4px; font-size: 12px; color: #666;">Semester</label>
+                        <select name="semester" style="padding: 6px; border-radius: 4px; border: 1px solid #bbb; width: 100%; background: white;">
+                            <option value="">All Semesters</option>
+                            {% for sem in semesters %}
+                            <option value="{{ sem }}" {% if selected_semester == sem %}selected{% endif %}>{{ sem }}</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                    <div>
+                        <label style="font-weight: 500; display: block; margin-bottom: 4px; font-size: 12px; color: #666;">Student</label>
+                        <input list="facultyStudents" name="student" style="padding: 6px; border-radius: 4px; border: 1px solid #bbb; width: 100%; box-sizing: border-box; background: white;" placeholder="Search students..." value="{{ request.GET.student|default:'' }}">
+                        <datalist id="facultyStudents">
+                            <option value="All Students"></option>
+                            {% for student in students %}
+                            <option value="{{ student.display }}"></option>
+                            {% endfor %}
+                        </datalist>
+                    </div>
+                    <div>
+                        <label style="font-weight: 500; display: block; margin-bottom: 4px; font-size: 12px; color: #666;">Week</label>
+                        <select name="week" style="padding: 6px; border-radius: 4px; border: 1px solid #bbb; width: 100%; background: white;">
+                            <option value="">All Weeks</option>
+                            {% for week_num in weeks_list %}
+                            <option value="{{ week_num }}" {% if request.GET.week == week_num|stringformat:"s" %}selected{% endif %}>{{ week_num }}</option>
+                            {% endfor %}
+                        </select>
                     </div>
                 </div>
             </form>
@@ -66,37 +66,54 @@
 
         <!-- RIGHT CHART - Care Utilization by Sport -->
         <div style="flex: 1 1 400px; min-width: 350px; max-width: 500px; height: 550px; background: white; padding: 24px; border-radius: 8px; box-shadow: 0 2px 10px rgba(0,0,0,0.08); display: flex; flex-direction: column; align-items: center; box-sizing: border-box;">
-            <div style="width: 100%; max-width: 380px; margin-bottom: 24px;">
+            <form id="filterForm2" method="GET" style="width: 100%; max-width: 380px; margin-bottom: 24px;">
+                <!-- Preserve first form's GET parameters -->
+                {% if request.GET.group_by %}<input type="hidden" name="group_by" value="{{ request.GET.group_by }}">{% endif %}
+                {% if request.GET.time_filter %}<input type="hidden" name="time_filter" value="{{ request.GET.time_filter }}">{% endif %}
+                {% if request.GET.student %}<input type="hidden" name="student" value="{{ request.GET.student }}">{% endif %}
+                {% if request.GET.sport %}<input type="hidden" name="sport" value="{{ request.GET.sport }}">{% endif %}
+                {% if request.GET.semester %}<input type="hidden" name="semester" value="{{ request.GET.semester }}">{% endif %}
+                {% if request.GET.week %}<input type="hidden" name="week" value="{{ request.GET.week }}">{% endif %}
+
                 <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px 18px; background: #f8f9fa; padding: 15px; border-radius: 6px; border: 1px solid #eee;">
                     <div>
-                        <label style="font-weight: 500; display: block; margin-bottom: 4px; font-size: 12px; color: #666;">Group By</label>
-                        <select style="padding: 6px; border-radius: 4px; border: 1px solid #bbb; width: 100%; background: white;">
-                            <option>Immediate Care</option><option>Rehab</option>
+                        <label style="font-weight: 500; display: block; margin-bottom: 4px; font-size: 12px; color: #666;">Care Type</label>
+                        <select name="care_category" style="padding: 6px; border-radius: 4px; border: 1px solid #bbb; width: 100%; background: white;">
+                            <option value="immediate_emergency_care" {% if request.GET.care_category == 'immediate_emergency_care' %}selected{% endif %}>Immediate / Emergency Care</option>
+                            <option value="musculoskeletal_exam" {% if request.GET.care_category == 'musculoskeletal_exam' %}selected{% endif %}>Musculoskeletal Exam</option>
+                            <option value="non_musculoskeletal_exam" {% if request.GET.care_category == 'non_musculoskeletal_exam' %}selected{% endif %}>Non-Musculoskeletal Exam</option>
+                            <option value="taping_bracing" {% if request.GET.care_category == 'taping_bracing' %}selected{% endif %}>Taping / Bracing</option>
+                            <option value="rehabilitation_reconditioning" {% if request.GET.care_category == 'rehabilitation_reconditioning' %}selected{% endif %}>Rehabilitation / Reconditioning</option>
+                            <option value="modalities" {% if request.GET.care_category == 'modalities' %}selected{% endif %}>Modalities</option>
+                            <option value="pharmacology" {% if request.GET.care_category == 'pharmacology' %}selected{% endif %}>Pharmacology</option>
+                            <option value="injury_illness_prevention" {% if request.GET.care_category == 'injury_illness_prevention' %}selected{% endif %}>Injury / Illness Prevention</option>
+                            <option value="non_sport_patient" {% if request.GET.care_category == 'non_sport_patient' %}selected{% endif %}>Non-Sport Patient</option>
                         </select>
                     </div>
                     <div>
-                        <label style="font-weight: 500; display: block; margin-bottom: 4px; font-size: 12px; color: #666;">Time</label>
-                        <select id="timeDropdown2" style="padding: 6px; border-radius: 4px; border: 1px solid #bbb; width: 100%; background: white;">
-                            <option value="semester">Semester</option>
-                            <option value="week">Week</option>
+                        <label style="font-weight: 500; display: block; margin-bottom: 4px; font-size: 12px; color: #666;">Semester</label>
+                        <select name="semester2" style="padding: 6px; border-radius: 4px; border: 1px solid #bbb; width: 100%; background: white;">
+                            <option value="">All Semesters</option>
+                            {% for sem in semesters %}
+                            <option value="{{ sem }}" {% if request.GET.semester2 == sem %}selected{% endif %}>{{ sem }}</option>
+                            {% endfor %}
                         </select>
                     </div>
-                    <div style="display: flex; gap: 10px; align-items: flex-end;">
-                        <div style="flex: 1;">
-                            <label style="font-weight: 500; display: block; margin-bottom: 4px; font-size: 12px; color: #666;">Semester</label>
-                            <select style="padding: 6px; border-radius: 4px; border: 1px solid #bbb; width: 100%; background: white;">
-                                <option>Fall '24</option>
-                            </select>
-                        </div>
-                        <div id="weekDropdownWrapper2" style="display: none; flex: 1;">
-                            <label style="font-weight: 500; display: block; margin-bottom: 4px; font-size: 12px; color: #666;">Week</label>
-                            <select style="padding: 6px; border-radius: 4px; border: 1px solid #bbb; width: 100%; background: white;">
-                                <option>1</option>
-                            </select>
-                        </div>
+                    <div>
+                        <label style="font-weight: 500; display: block; margin-bottom: 4px; font-size: 12px; color: #666;">Student</label>
+                        <input list="facultyStudents" name="student_filter2" style="padding: 6px; border-radius: 4px; border: 1px solid #bbb; width: 100%; box-sizing: border-box; background: white;" placeholder="Search students..." value="{{ request.GET.student_filter2|default:'' }}">
+                    </div>
+                    <div>
+                        <label style="font-weight: 500; display: block; margin-bottom: 4px; font-size: 12px; color: #666;">Week</label>
+                        <select name="week2" style="padding: 6px; border-radius: 4px; border: 1px solid #bbb; width: 100%; background: white;">
+                            <option value="">All Weeks</option>
+                            {% for week_num in weeks_list %}
+                            <option value="{{ week_num }}" {% if request.GET.week2 == week_num|stringformat:"s" %}selected{% endif %}>{{ week_num }}</option>
+                            {% endfor %}
+                        </select>
                     </div>
                 </div>
-            </div>
+            </form>
             <h3 style="margin: 0 0 15px 0; color: #2c3e50; font-size: 18px;">Care Utilization by Sport</h3>
             <div style="flex-grow: 1; display: flex; align-items: center; justify-content: center; width: 100%;">
                 <canvas id="pieChart2" width="280" height="280"></canvas>
@@ -107,168 +124,167 @@
     <!-- Rest of your template (trend chart, heatmap table) stays the same -->
     <div style="background: white; padding: 24px; border-radius: 8px; box-shadow: 0 2px 10px rgba(0,0,0,0.08); width: 100%; box-sizing: border-box; margin-bottom: 32px;">
         <h3 style="margin: 0 0 15px 0; color: #2c3e50;">Clinical Experience Trends</h3>
-        <div style="display: flex; gap: 15px; flex-wrap: wrap; background: #f8f9fa; padding: 15px; border-radius: 6px; border: 1px solid #eee; margin-bottom: 20px;">
-            <div>
-                <label style="font-weight: 500; display: block; margin-bottom: 4px; font-size: 13px; color: #666;">View Lines By</label>
-                <select id="trendGroupBy" style="padding: 6px 12px; border-radius: 4px; border: 1px solid #bbb; width: 180px; background: white;">
-                    <option value="experience">Clinical Experience</option>
-                </select>
+        <form id="filterForm3" method="GET">
+            <!-- Preserve other GET params from other forms if needed, skip for now to simplify, or add them -->
+            {% if request.GET.sport %}<input type="hidden" name="sport" value="{{ request.GET.sport }}">{% endif %}
+            {% if request.GET.semester %}<input type="hidden" name="semester" value="{{ request.GET.semester }}">{% endif %}
+            {% if request.GET.student %}<input type="hidden" name="student" value="{{ request.GET.student }}">{% endif %}
+            {% if request.GET.week %}<input type="hidden" name="week" value="{{ request.GET.week }}">{% endif %}
+            {% if request.GET.care_category %}<input type="hidden" name="care_category" value="{{ request.GET.care_category }}">{% endif %}
+            {% if request.GET.semester2 %}<input type="hidden" name="semester2" value="{{ request.GET.semester2 }}">{% endif %}
+            {% if request.GET.student_filter2 %}<input type="hidden" name="student_filter2" value="{{ request.GET.student_filter2 }}">{% endif %}
+            {% if request.GET.week2 %}<input type="hidden" name="week2" value="{{ request.GET.week2 }}">{% endif %}
+
+            <div style="display: flex; gap: 15px; flex-wrap: wrap; background: #f8f9fa; padding: 15px; border-radius: 6px; border: 1px solid #eee; margin-bottom: 20px;">
+                <div>
+                    <label style="font-weight: 500; display: block; margin-bottom: 4px; font-size: 13px; color: #666;">Sport</label>
+                    <select name="trend_sport" style="padding: 6px 12px; border-radius: 4px; border: 1px solid #bbb; width: 180px; background: white;">
+                        <option value="all">All Sports</option>
+                        {% for sport_name in sports %}
+                        <option value="{{ sport_name }}" {% if selected_trend_sport == sport_name %}selected{% endif %}>{{ sport_name }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+                <div>
+                    <label style="font-weight: 500; display: block; margin-bottom: 4px; font-size: 13px; color: #666;">Care Type</label>
+                    <select name="trend_care" style="padding: 6px 12px; border-radius: 4px; border: 1px solid #bbb; width: 180px; background: white;">
+                        <option value="all">All Care Types</option>
+                        <option value="immediate_emergency_care" {% if selected_trend_care == 'immediate_emergency_care' %}selected{% endif %}>Immediate / Emergency Care</option>
+                        <option value="musculoskeletal_exam" {% if selected_trend_care == 'musculoskeletal_exam' %}selected{% endif %}>Musculoskeletal Exam</option>
+                        <option value="non_musculoskeletal_exam" {% if selected_trend_care == 'non_musculoskeletal_exam' %}selected{% endif %}>Non-Musculoskeletal Exam</option>
+                        <option value="taping_bracing" {% if selected_trend_care == 'taping_bracing' %}selected{% endif %}>Taping / Bracing</option>
+                        <option value="rehabilitation_reconditioning" {% if selected_trend_care == 'rehabilitation_reconditioning' %}selected{% endif %}>Rehabilitation / Reconditioning</option>
+                        <option value="modalities" {% if selected_trend_care == 'modalities' %}selected{% endif %}>Modalities</option>
+                        <option value="pharmacology" {% if selected_trend_care == 'pharmacology' %}selected{% endif %}>Pharmacology</option>
+                        <option value="injury_illness_prevention" {% if selected_trend_care == 'injury_illness_prevention' %}selected{% endif %}>Injury / Illness Prevention</option>
+                        <option value="non_sport_patient" {% if selected_trend_care == 'non_sport_patient' %}selected{% endif %}>Non-Sport Patient</option>
+                    </select>
+                </div>
+                <div>
+                    <label style="font-weight: 500; display: block; margin-bottom: 4px; font-size: 13px; color: #666;">Student</label>
+                    <input list="trendStudents" name="trend_student" style="padding: 6px 12px; border-radius: 4px; border: 1px solid #bbb; width: 180px; box-sizing: border-box; background: white;" placeholder="Search students..." value="{{ request.GET.trend_student|default:'' }}">
+                    <datalist id="trendStudents">
+                        <option value="All Students"></option>
+                        {% for student in students %}
+                        <option value="{{ student.display }}"></option>
+                        {% endfor %}
+                    </datalist>
+                </div>
+                <div>
+                    <label style="font-weight: 500; display: block; margin-bottom: 4px; font-size: 13px; color: #666;">Semester</label>
+                    <select name="trend_semester" style="padding: 6px 12px; border-radius: 4px; border: 1px solid #bbb; width: 120px; background: white;">
+                        <option value="">All Semesters</option>
+                        {% for sem in semesters %}
+                        <option value="{{ sem }}" {% if selected_trend_semester == sem %}selected{% endif %}>{{ sem }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
             </div>
-            <div>
-                <label style="font-weight: 500; display: block; margin-bottom: 4px; font-size: 13px; color: #666;">Filter Student</label>
-                <select style="padding: 6px 12px; border-radius: 4px; border: 1px solid #bbb; width: 175px; background: white;">
-                    <option>All Students</option>
-                </select>
-            </div>
-            <div style="margin-left: auto;">
-                <label style="font-weight: 500; display: block; margin-bottom: 4px; font-size: 13px; color: #666;">Semester</label>
-                <select style="padding: 6px 12px; border-radius: 4px; border: 1px solid #bbb; width: 100px; background: white;">
-                    <option>Fall '24</option>
-                </select>
-            </div>
-        </div>
+        </form>
         <div style="position: relative; height: 350px; width: 100%;">
             <canvas id="trendChart"></canvas>
         </div>
     </div>
 
+    <!-- SUMMARY STATISTICS -->
     <div style="background: white; padding: 24px; border-radius: 8px; box-shadow: 0 2px 10px rgba(0,0,0,0.08); width: 100%; box-sizing: border-box;">
-        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
-            <h3 style="margin: 0; color: #2c3e50;">Clinical Experience Intensity</h3>
-            <div style="display: flex; align-items: center; gap: 8px; font-size: 12px; color: #666;">
-                <span>Less Care</span>
-                <div style="display: flex; gap: 2px;">
-                    <div style="width: 15px; height: 15px; background: #ebedf0; border-radius: 2px;"></div>
-                    <div style="width: 15px; height: 15px; background: #9be9a8; border-radius: 2px;"></div>
-                    <div style="width: 15px; height: 15px; background: #40c463; border-radius: 2px;"></div>
-                    <div style="width: 15px; height: 15px; background: #30a14e; border-radius: 2px;"></div>
-                    <div style="width: 15px; height: 15px; background: #216e39; border-radius: 2px;"></div>
+        <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 20px;">
+            <h3 style="margin: 0; color: #2c3e50;">Key Metrics</h3>
+            
+            <form id="filterForm4" method="GET" style="display: flex; gap: 15px;">
+                <!-- Preserve other filters -->
+                {% if request.GET.sport %}<input type="hidden" name="sport" value="{{ request.GET.sport }}">{% endif %}
+                {% if request.GET.semester %}<input type="hidden" name="semester" value="{{ request.GET.semester }}">{% endif %}
+                {% if request.GET.student %}<input type="hidden" name="student" value="{{ request.GET.student }}">{% endif %}
+                {% if request.GET.week %}<input type="hidden" name="week" value="{{ request.GET.week }}">{% endif %}
+                {% if request.GET.care_category %}<input type="hidden" name="care_category" value="{{ request.GET.care_category }}">{% endif %}
+                {% if request.GET.semester2 %}<input type="hidden" name="semester2" value="{{ request.GET.semester2 }}">{% endif %}
+                {% if request.GET.student_filter2 %}<input type="hidden" name="student_filter2" value="{{ request.GET.student_filter2 }}">{% endif %}
+                {% if request.GET.week2 %}<input type="hidden" name="week2" value="{{ request.GET.week2 }}">{% endif %}
+                {% if request.GET.trend_sport %}<input type="hidden" name="trend_sport" value="{{ request.GET.trend_sport }}">{% endif %}
+                {% if request.GET.trend_care %}<input type="hidden" name="trend_care" value="{{ request.GET.trend_care }}">{% endif %}
+                {% if request.GET.trend_student %}<input type="hidden" name="trend_student" value="{{ request.GET.trend_student }}">{% endif %}
+                {% if request.GET.trend_semester %}<input type="hidden" name="trend_semester" value="{{ request.GET.trend_semester }}">{% endif %}
+                
+                <div>
+                    <select name="metric_semester" style="padding: 6px 12px; border-radius: 4px; border: 1px solid #bbb; width: 140px; background: white; font-size: 13px;">
+                        <option value="">All Semesters</option>
+                        {% for sem in semesters %}
+                        <option value="{{ sem }}" {% if selected_metric_semester == sem %}selected{% endif %}>{{ sem }}</option>
+                        {% endfor %}
+                    </select>
                 </div>
-                <span>More Care</span>
-            </div>
+                <div>
+                    <input list="metricStudents" name="metric_student" style="padding: 6px 12px; border-radius: 4px; border: 1px solid #bbb; width: 180px; box-sizing: border-box; background: white; font-size: 13px;" placeholder="Search students..." value="{{ selected_metric_student|default:'' }}">
+                    <datalist id="metricStudents">
+                        <option value="All Students"></option>
+                        {% for student in students %}
+                        <option value="{{ student.display }}"></option>
+                        {% endfor %}
+                    </datalist>
+                </div>
+            </form>
         </div>
+        
+        <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 20px;">
+            <div style="background: #f8f9fa; padding: 20px; border-radius: 8px; border: 1px solid #eee; text-align: center;">
+                <div style="font-size: 13px; color: #666; font-weight: 500; margin-bottom: 8px; text-transform: uppercase; letter-spacing: 0.5px;">Total Experiences</div>
+                <div style="font-size: 28px; font-weight: 700; color: #36A2EB;">{{ metric_total_experiences }}</div>
+            </div>
+            
+            <div style="background: #f8f9fa; padding: 20px; border-radius: 8px; border: 1px solid #eee; text-align: center;">
+                <div style="font-size: 13px; color: #666; font-weight: 500; margin-bottom: 8px; text-transform: uppercase; letter-spacing: 0.5px;">Active Students</div>
+                <div style="font-size: 28px; font-weight: 700; color: #4BC0C0;">{{ metric_active_students }}</div>
+            </div>
 
-        <div style="overflow-x: auto;">
-            <table style="width: 100%; border-collapse: separate; border-spacing: 4px; font-size: 13px;">
-                <thead>
-                    <tr>
-                        <th style="text-align: left; padding: 8px; color: #666; font-weight: 500; width: 200px;">Experience Type</th>
-                        <th style="padding: 8px; color: #666;">Mon</th>
-                        <th style="padding: 8px; color: #666;">Tue</th>
-                        <th style="padding: 8px; color: #666;">Wed</th>
-                        <th style="padding: 8px; color: #666;">Thu</th>
-                        <th style="padding: 8px; color: #666;">Fri</th>
-                        <th style="padding: 8px; color: #666;">Sat</th>
-                        <th style="padding: 8px; color: #666;">Sun</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    <tr>
-                        <td style="padding: 8px; font-weight: 500;">Immediate Care</td>
-                        <td style="background: #9be9a8; height: 40px; border-radius: 4px; text-align: center; color: #216e39;">4</td>
-                        <td style="background: #ebedf0; border-radius: 4px;"></td>
-                        <td style="background: #40c463; border-radius: 4px; text-align: center; color: white;">8</td>
-                        <td style="background: #9be9a8; border-radius: 4px; text-align: center; color: #216e39;">3</td>
-                        <td style="background: #30a14e; border-radius: 4px; text-align: center; color: white;">12</td>
-                        <td style="background: #216e39; border-radius: 4px; text-align: center; color: white;">19</td>
-                        <td style="background: #ebedf0; border-radius: 4px;"></td>
-                    </tr>
-                    <tr>
-                        <td style="padding: 8px; font-weight: 500;">Musculoskeletal</td>
-                        <td style="background: #30a14e; height: 40px; border-radius: 4px; text-align: center; color: white;">15</td>
-                        <td style="background: #40c463; border-radius: 4px; text-align: center; color: white;">9</td>
-                        <td style="background: #30a14e; border-radius: 4px; text-align: center; color: white;">14</td>
-                        <td style="background: #40c463; border-radius: 4px; text-align: center; color: white;">11</td>
-                        <td style="background: #9be9a8; border-radius: 4px; text-align: center; color: #216e39;">5</td>
-                        <td style="background: #ebedf0; border-radius: 4px;"></td>
-                        <td style="background: #ebedf0; border-radius: 4px;"></td>
-                    </tr>
-                    <tr>
-                        <td style="padding: 8px; font-weight: 500;">Rehabilitation</td>
-                        <td style="background: #216e39; height: 40px; border-radius: 4px; text-align: center; color: white;">22</td>
-                        <td style="background: #216e39; border-radius: 4px; text-align: center; color: white;">25</td>
-                        <td style="background: #30a14e; border-radius: 4px; text-align: center; color: white;">18</td>
-                        <td style="background: #216e39; border-radius: 4px; text-align: center; color: white;">21</td>
-                        <td style="background: #30a14e; border-radius: 4px; text-align: center; color: white;">16</td>
-                        <td style="background: #ebedf0; border-radius: 4px;"></td>
-                        <td style="background: #ebedf0; border-radius: 4px;"></td>
-                    </tr>
-                    <tr>
-                        <td style="padding: 8px; font-weight: 500;">Taping & Bracing</td>
-                        <td style="background: #40c463; height: 40px; border-radius: 4px; text-align: center; color: white;">10</td>
-                        <td style="background: #40c463; border-radius: 4px; text-align: center; color: white;">12</td>
-                        <td style="background: #40c463; border-radius: 4px; text-align: center; color: white;">10</td>
-                        <td style="background: #40c463; border-radius: 4px; text-align: center; color: white;">11</td>
-                        <td style="background: #40c463; border-radius: 4px; text-align: center; color: white;">12</td>
-                        <td style="background: #30a14e; border-radius: 4px; text-align: center; color: white;">15</td>
-                        <td style="background: #ebedf0; border-radius: 4px;"></td>
-                    </tr>
-                </tbody>
-            </table>
+            <div style="background: #f8f9fa; padding: 20px; border-radius: 8px; border: 1px solid #eee; text-align: center;">
+                <div style="font-size: 13px; color: #666; font-weight: 500; margin-bottom: 8px; text-transform: uppercase; letter-spacing: 0.5px;">Avg Exp / Student</div>
+                <div style="font-size: 28px; font-weight: 700; color: #FF9F40;">{{ metric_avg_per_student }}</div>
+            </div>
+
+            <div style="background: #f8f9fa; padding: 20px; border-radius: 8px; border: 1px solid #eee; text-align: center;">
+                <div style="font-size: 13px; color: #666; font-weight: 500; margin-bottom: 8px; text-transform: uppercase; letter-spacing: 0.5px;">Total Reports Logged</div>
+                <div style="font-size: 28px; font-weight: 700; color: #9966FF;">{{ metric_total_reports }}</div>
+            </div>
+
+            <div style="background: #f8f9fa; padding: 20px; border-radius: 8px; border: 1px solid #eee; text-align: center;">
+                <div style="font-size: 13px; color: #666; font-weight: 500; margin-bottom: 8px; text-transform: uppercase; letter-spacing: 0.5px;">Most Common Care</div>
+                <div style="font-size: 18px; font-weight: 700; color: #FF6384; display: flex; align-items: center; justify-content: center; height: 32px;">{{ metric_most_common_care }}</div>
+            </div>
+
+            <div style="background: #f8f9fa; padding: 20px; border-radius: 8px; border: 1px solid #eee; text-align: center;">
+                <div style="font-size: 13px; color: #666; font-weight: 500; margin-bottom: 8px; text-transform: uppercase; letter-spacing: 0.5px;">Most Active Sport</div>
+                <div style="font-size: 18px; font-weight: 700; color: #7BC225; display: flex; align-items: center; justify-content: center; height: 32px;">{{ metric_most_active_sport }}</div>
+            </div>
         </div>
     </div>
 </div>
 
 <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js" integrity="sha384-9nhczxUqK87bcKHh20fSQcTGD4qq5GhayNYSYWqwBkINBhOfQLg/P5HG5lF1urn4" crossorigin="anonymous"></script>
 {{ pie_chart_data|json_script:"pie-chart-data" }}
+{{ pie_chart_data2|json_script:"pie-chart-data2" }}
+{{ trend_datasets|json_script:"trend-chart-data" }}
 <script>
-    // Toggle week dropdown visibility based on time selection
-    function setupTimeToggle() {
-        const timeDropdown = document.getElementById('timeDropdown');
-        const weekWrapper = document.getElementById('weekDropdownWrapper');
-        
-        console.log('🔧 setupTimeToggle called');
-        console.log('🔧 timeDropdown exists:', !!timeDropdown);
-        console.log('🔧 weekWrapper exists:', !!weekWrapper);
-        
-        if (timeDropdown && weekWrapper) {
-            console.log('🔧 timeDropdown.value:', timeDropdown.value);
-            
-            // Set initial state on page load
-            if (timeDropdown.value === 'week') {
-                console.log('✅ Showing week dropdown (time_filter=week)');
-                weekWrapper.style.display = 'block';
-            } else {
-                console.log('✅ Hiding week dropdown (time_filter=semester)');
-                weekWrapper.style.display = 'none';
-            }
-            
-            // Listen for changes
-            timeDropdown.addEventListener('change', function() {
-                console.log('🔄 Time dropdown changed to:', this.value);
-                if (this.value === 'week') {
-                    console.log('✅ Showing week dropdown');
-                    weekWrapper.style.display = 'block';
-                } else {
-                    console.log('✅ Hiding week dropdown');
-                    weekWrapper.style.display = 'none';
-                }
-            });
-        } else {
-            console.error('❌ timeDropdown or weekWrapper not found!');
-        }
-    }
-
     // Auto-submit form when filter dropdowns change
     function setupAutoSubmit() {
         const form = document.getElementById('filterForm');
-        console.log('🔧 setupAutoSubmit called, form exists:', !!form);
+        const form2 = document.getElementById('filterForm2');
+        const form3 = document.getElementById('filterForm3');
+        const form4 = document.getElementById('filterForm4');
         
-        if (form) {
-            const selects = form.querySelectorAll('select');
-            console.log('🔧 Found', selects.length, 'select elements');
-            
-            selects.forEach((select, index) => {
-                console.log('🔧 Adding change listener to select', index, ':', select.name);
-                select.addEventListener('change', function() {
-                    console.log('📤 Form will submit in 200ms (changed:', this.name, '=', this.value, ')');
-                    setTimeout(() => {
-                        console.log('📤 Submitting form...');
-                        form.submit();
-                    }, 200);
+        [form, form2, form3, form4].forEach(f => {
+            if (f) {
+                const inputs = f.querySelectorAll('select, input');
+                inputs.forEach((input) => {
+                    input.addEventListener('change', function() {
+                        sessionStorage.setItem('dashboardScrollPosition', window.scrollY);
+                        setTimeout(() => {
+                            f.submit();
+                        }, 200);
+                    });
                 });
-            });
-        }
+            }
+        });
     }
 
     // Initialize everything on DOM load
@@ -276,13 +292,19 @@
         console.log('🚀 DOM loaded, initializing...');
         console.log('🚀 Current URL:', window.location.href);
         
+        // Restore scroll position if available
+        const scrollPosition = sessionStorage.getItem('dashboardScrollPosition');
+        if (scrollPosition !== null) {
+            window.scrollTo(0, parseInt(scrollPosition));
+            sessionStorage.removeItem('dashboardScrollPosition');
+        }
+        
         // Setup toggle and auto-submit
-        setupTimeToggle();
         setupAutoSubmit();
         
         // Get data from Django context (safe via json_script)
         const pieChartData = JSON.parse(document.getElementById('pie-chart-data').textContent);
-        console.log('📊 Django context ', pieChartData);
+        const pieChartData2 = JSON.parse(document.getElementById('pie-chart-data2').textContent);
         
         const pieOptions = { 
             responsive: true, 
@@ -313,14 +335,14 @@
 
         // RIGHT CHART
         const ctx2 = document.getElementById('pieChart2');
-        if (ctx2) {
+        if (ctx2 && pieChartData2 && pieChartData2.length > 0) {
             new Chart(ctx2.getContext('2d'), {
                 type: 'pie',
                 data: {
-                    labels: ['Football', 'Basketball', 'Soccer', 'Baseball'],
+                    labels: pieChartData2.map(item => item.label),
                     datasets: [{ 
-                        data: [14, 9, 6, 11], 
-                        backgroundColor: ['#4BC0C0', '#9966FF', '#FF9F40', '#36A2EB'] 
+                        data: pieChartData2.map(item => item.value), 
+                        backgroundColor: ['#4BC0C0', '#9966FF', '#FF9F40', '#36A2EB', '#FF6384', '#FFCE56', '#C9CBCF', '#7BC225', '#E74C3C'] 
                     }]
                 },
                 options: pieOptions
@@ -329,20 +351,18 @@
 
         // TREND CHART
         const ctx3 = document.getElementById('trendChart');
+        const trendDatasets = JSON.parse(document.getElementById('trend-chart-data').textContent);
         if (ctx3) {
             new Chart(ctx3.getContext('2d'), {
                 type: 'line',
                 data: {
-                    labels: ['Week 1', 'Week 2', 'Week 3', 'Week 4', 'Week 5', 'Week 6', 'Week 7', 'Week 8'],
-                    datasets: [
-                        { label: 'Immediate Care', data: [2, 5, 3, 8, 4, 10, 7, 9], borderColor: '#FF6384', tension: 0.3, fill: false },
-                        { label: 'Rehab', data: [10, 12, 15, 14, 20, 22, 25, 28], borderColor: '#4BC0C0', tension: 0.3, fill: false }
-                    ]
+                    labels: ['Week 1', 'Week 2', 'Week 3', 'Week 4', 'Week 5', 'Week 6', 'Week 7', 'Week 8', 'Week 9', 'Week 10', 'Week 11', 'Week 12', 'Week 13', 'Week 14', 'Week 15', 'Week 16'],
+                    datasets: trendDatasets
                 },
                 options: {
                     responsive: true,
                     maintainAspectRatio: false,
-                    scales: { y: { beginAtZero: true } },
+                    scales: { y: { beginAtZero: true, title: { display: true, text: 'Clinical Experiences' } } },
                     plugins: { legend: { position: 'top', align: 'end' } }
                 }
             });
