@@ -630,3 +630,62 @@ class FacultyDashboardMetricsTests(TestCase):
         self.assertEqual(football_data[0], 3)  # 2 immediate + 1 modalities
         self.assertEqual(soccer_data[0], 11)   # 1 immediate + 5 musculoskeletal + 5 rehab
 
+    def test_metric_filters_by_student_and_semester(self):
+        """Metric filters (metric_student, metric_semester) correctly restrict aggregates."""
+        # Derive the semester/year string from the actual report so the test
+        # is stable regardless of current date (Spring vs Fall).
+        alice_report = ClinicReport.objects.get(email='alice@university.edu')
+        year = alice_report.created_at.year
+        short_year = str(year)[-2:]
+        formatted_semester = f"{alice_report.semester} '{short_year}"
+
+        # Filter to Alice only in this semester
+        response = self.client.post(self.url, {
+            'metric_student': 'Alice Liddell (alice@university.edu)',
+            'metric_semester': formatted_semester,
+        })
+        self.assertEqual(response.status_code, 200)
+
+        # Only Alice's 3 experiences should be counted
+        self.assertEqual(response.context['metric_total_experiences'], 3)
+        self.assertEqual(response.context['metric_active_students'], 1)
+        self.assertEqual(response.context['metric_avg_per_student'], 3.0)
+        self.assertEqual(response.context['metric_total_reports'], 1)
+
+    def test_trend_filters_by_sport_and_care_type(self):
+        """Trend filters limit datasets to the requested sport and care type."""
+        # Immediate/emergency care only, and only Football
+        response = self.client.post(self.url, {
+            'trend_sport': 'Football',
+            'trend_care': 'immediate_emergency_care',
+        })
+        self.assertEqual(response.status_code, 200)
+
+        datasets = response.context['trend_datasets']
+        # Only Football should be present
+        self.assertEqual(len(datasets), 1)
+        self.assertEqual(datasets[0]['label'], 'Football')
+
+        # For Football and care type immediate_emergency_care, week 1 total is 2
+        football_data = datasets[0]['data']
+        self.assertEqual(football_data[0], 2)
+
+    def test_trend_filters_by_student(self):
+        """Trend filters for trend_student restrict data to that student only.""" 
+        response = self.client.post(self.url, {
+            'trend_student': 'Alice Liddell (alice@university.edu)',
+        })
+        self.assertEqual(response.status_code, 200)
+
+        datasets = response.context['trend_datasets']
+        labels = {ds['label'] for ds in datasets}
+
+        # With a student filter, only sports where that student has data appear
+        self.assertEqual(labels, {'Football'})
+
+        data_by_label = {ds['label']: ds['data'] for ds in datasets}
+        football_data = data_by_label['Football']
+
+        # Alice only has Football experiences: 3 at week 1, and no weeks for Soccer
+        self.assertEqual(football_data[0], 3)
+
