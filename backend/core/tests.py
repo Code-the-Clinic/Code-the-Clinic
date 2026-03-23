@@ -498,3 +498,135 @@ class LoginUrlSettingsTests(TestCase):
         from config.settings import get_login_url
         self.assertEqual(get_login_url(), '/accounts/login/')
 
+
+class FacultyDashboardMetricsTests(TestCase):
+    """Tests for faculty_dashboard_view filters and aggregate math."""
+
+    @classmethod
+    def setUpTestData(cls):
+        cls.football, _ = Sport.objects.get_or_create(name='Football', defaults={'active': True})
+        cls.soccer, _ = Sport.objects.get_or_create(name='Soccer', defaults={'active': True})
+
+    def setUp(self):
+        self.client = Client()
+        self.url = reverse('faculty_dashboard')
+
+        self.staff_user = User.objects.create_user(
+            username='staff-metrics',
+            email='staff-metrics@university.edu',
+            password='testpass123',
+            is_staff=True,
+        )
+        self.client.force_login(self.staff_user)
+
+        # Two reports with known totals
+        ClinicReport.objects.create(
+            first_name='Alice',
+            last_name='Liddell',
+            email='alice@university.edu',
+            sport=self.football,
+            week=1,
+            immediate_emergency_care=2,
+            musculoskeletal_exam=0,
+            non_musculoskeletal_exam=0,
+            taping_bracing=0,
+            rehabilitation_reconditioning=0,
+            modalities=1,
+            pharmacology=0,
+            injury_illness_prevention=0,
+            non_sport_patient=0,
+            interacted_hcps=False,
+        )
+        ClinicReport.objects.create(
+            first_name='Bob',
+            last_name='Smith',
+            email='bob@university.edu',
+            sport=self.soccer,
+            week=1,
+            immediate_emergency_care=1,
+            musculoskeletal_exam=5,
+            non_musculoskeletal_exam=0,
+            taping_bracing=0,
+            rehabilitation_reconditioning=5,
+            modalities=0,
+            pharmacology=0,
+            injury_illness_prevention=0,
+            non_sport_patient=0,
+            interacted_hcps=False,
+        )
+
+    def test_post_filters_override_get(self):
+        """On POST, filters are taken from POST, not GET query params."""
+        response = self.client.post(
+            self.url + '?student=Eve%20(ignored@university.edu)',
+            {
+                'student': 'First Last (alice@university.edu)',
+                'care_category': 'modalities',
+                "semester2": "Fall '24",
+            },
+        )
+        self.assertEqual(response.status_code, 200)
+        # Selected values come from POST
+        self.assertEqual(
+            response.context['selected_student'],
+            'First Last (alice@university.edu)',
+        )
+        self.assertEqual(response.context['care_category'], 'modalities')
+        self.assertEqual(response.context['selected_semester2'], "Fall '24")
+
+    def test_key_metrics_math(self):
+        """Key metrics totals, averages, and most-active sport are correct."""
+        response = self.client.get(self.url)
+        self.assertEqual(response.status_code, 200)
+
+        # Totals across all care fields
+        # Alice: 2 immediate + 1 modalities = 3
+        # Bob:   1 immediate + 5 musculoskeletal + 5 rehab = 11
+        # Total experiences = 14
+        self.assertEqual(response.context['metric_total_experiences'], 14)
+
+        # Two distinct student emails
+        self.assertEqual(response.context['metric_active_students'], 2)
+        # 14 / 2 = 7.0
+        self.assertEqual(response.context['metric_avg_per_student'], 7.0)
+
+        # Two reports total
+        self.assertEqual(response.context['metric_total_reports'], 2)
+
+        # Most common care type should be Musculoskeletal Exam (5)
+        self.assertEqual(response.context['metric_most_common_care'], 'Musculoskeletal Exam')
+
+        # Most active sport is Soccer (11 experiences) vs Football (3)
+        self.assertEqual(response.context['metric_most_active_sport'], 'Soccer')
+
+    def test_pie_charts_math(self):
+        """Pie charts correctly reflect category and per-sport totals."""
+        response = self.client.post(self.url, {'care_category': 'immediate_emergency_care'})
+        self.assertEqual(response.status_code, 200)
+
+        pie1 = response.context['pie_chart_data']
+        labels1 = {item['label']: item['value'] for item in pie1}
+        # Immediate/Emergency total across both reports: 2 + 1 = 3
+        self.assertEqual(labels1.get('Immediate/Emergency'), 3)
+
+        pie2 = response.context['pie_chart_data2']
+        labels2 = {item['label']: item['value'] for item in pie2}
+        # Per-sport totals for Immediate/Emergency
+        self.assertEqual(labels2.get('Football'), 2)
+        self.assertEqual(labels2.get('Soccer'), 1)
+
+    def test_trend_chart_math(self):
+        """Trend chart datasets sum experiences per sport per week."""
+        response = self.client.get(self.url)
+        self.assertEqual(response.status_code, 200)
+
+        datasets = response.context['trend_datasets']
+        data_by_label = {ds['label']: ds['data'] for ds in datasets}
+
+        football_data = data_by_label['Football']
+        soccer_data = data_by_label['Soccer']
+
+        # Week 1 index is 0
+        self.assertEqual(football_data[0], 3)  # 2 immediate + 1 modalities
+        self.assertEqual(soccer_data[0], 11)   # 1 immediate + 5 musculoskeletal + 5 rehab
+
