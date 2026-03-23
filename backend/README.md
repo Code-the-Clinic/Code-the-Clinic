@@ -17,10 +17,6 @@
     - Run migration: docker-compose exec backend python manage.py migrate
 - To create a superuser (required to locally test the admin page without a Microsoft account): docker-compose exec backend python manage.py createsuperuser
 
-## How to test in a production-like environment
-- Run `docker-compose -f docker-compose.prod.yml up --build` — no bind mount, staticfiles from image.
-- When deploying in production: Remove bind mounts, ensure collectstatic runs during build, and serve statics via Whitenoise or Nginx.
-
 ## How to test
 - To run all backend tests: docker-compose exec backend python manage.py test
 - To run all backend tests for a specific app: docker-compose exec backend python manage.py test app-name
