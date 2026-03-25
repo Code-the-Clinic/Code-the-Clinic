@@ -343,8 +343,20 @@ def faculty_dashboard_view(request):
 @login_required
 def student_dashboard_view(request):
     """Render the student dashboard."""
+    # Build semester options in the same way as the faculty dashboard
+    semester_year_pairs = ClinicReport.objects.annotate(
+        year=ExtractYear('created_at')
+    ).values_list('semester', 'year').distinct().exclude(semester__isnull=True)
+
+    formatted_semesters = []
+    for sem, year in semester_year_pairs:
+        if sem and year:
+            short_year = str(year)[-2:]
+            formatted_semesters.append(f"{sem} '{short_year}")
+
     context = {
-        'weeks': range(1, 17)  # Weeks 1-16
+        'weeks': range(1, 17),  # Weeks 1-16
+        'semesters': sorted(set(formatted_semesters), reverse=True),
     }
     return render(request, 'core/student_dashboard.html', context)
 
