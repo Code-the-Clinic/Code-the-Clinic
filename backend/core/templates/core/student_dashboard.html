@@ -6,24 +6,21 @@
 <div class="page-container" style="padding: 20px; max-width: 1200px; margin: auto; font-family: sans-serif;">
     <h1 style="color: #2c3e50; margin-bottom: 24px;">Your Clinical Experience</h1>
 
-    <div style="display: flex; gap: 20px; flex-wrap: wrap; margin-bottom: 32px;">
+        <div style="display: flex; gap: 20px; flex-wrap: wrap; margin-bottom: 32px;">
         <!-- Care by Category Pie Chart -->
         <div style="flex: 1 1 300px; min-width: 280px; max-width: 400px; background: white; padding: 24px; border-radius: 8px; box-shadow: 0 2px 10px rgba(0,0,0,0.08);">
             <h2 style="margin: 0 0 15px 0; color: #2c3e50; font-size: 16px;">Patient Care by Type</h2>
             <div style="position: relative; height: 300px; width: 100%;">
-                <canvas id="careCategoryChart" role="img" aria-label="Pie chart showing your patient care experiences by care type."></canvas>
+                <canvas
+                    id="careCategoryChart"
+                    role="img"
+                    tabindex="0"
+                    aria-label="Pie chart showing your patient care experiences by care type."
+                    aria-describedby="careCategorySummary"></canvas>
             </div>
+            <ul id="careCategorySummary" class="visually-hidden"></ul>
         </div>
 
-        <!-- Care by Sport Pie Chart -->
-        <!-- COMMENTED OUT FOR NOW
-        <div style="flex: 1 1 300px; min-width: 300px; max-width: 400px; background: white; padding: 24px; border-radius: 8px; box-shadow: 0 2px 10px rgba(0,0,0,0.08);">
-            <h3 style="margin: 0 0 15px 0; color: #2c3e50; font-size: 16px;">Patients by Sport</h3>
-            <div style="position: relative; height: 300px; width: 100%;">
-                <canvas id="careBySportChart"></canvas>
-            </div>
-        </div>
-        -->
     </div>
 
     <!-- Summary Stats -->
@@ -133,21 +130,17 @@
                     careCategoryChart.update();
                 }
 
-                // For sport chart, we'll show a simple breakdown if data exists
-                // (Note: current endpoint returns care by category, not by sport)
-                // This is a placeholder for when we enhance the endpoint
-                
-                /* COMMENTED OUT FOR NOW
-                const sportLabels = (data.sport_breakdown || []).map(item => item.label);
-                const sportValues = (data.sport_breakdown || []).map(item => item.value);
-
-                if (careBySportChart) {
-                    careBySportChart.data.labels = sportLabels;
-                    careBySportChart.data.datasets[0].data = sportValues;
-                    careBySportChart.data.datasets[0].backgroundColor = chartColors.slice(0, sportLabels.length);
-                    careBySportChart.update();
+                // Update textual summary for care by category
+                const summary = document.getElementById('careCategorySummary');
+                if (summary) {
+                    summary.innerHTML = '';
+                    categoryLabels.forEach((label, idx) => {
+                        const li = document.createElement('li');
+                        li.textContent = `${label}: ${categoryValues[idx]}`;
+                        summary.appendChild(li);
+                    });
                 }
-                */
+
             }
         } catch (error) {
             console.error('Error loading dashboard data:', error);

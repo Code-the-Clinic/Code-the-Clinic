@@ -75,8 +75,16 @@
             </form>
             <h2 style="margin: 0 0 15px 0; color: #2c3e50; font-size: 18px;">Care Chart</h2>
             <div style="flex-grow: 1; display: flex; align-items: center; justify-content: center; width: 100%;">
-                <canvas id="pieChart" width="280" height="280" role="img" aria-label="Pie chart showing distribution of clinical experiences by care category."></canvas>
+                <canvas
+                    id="pieChart"
+                    width="280"
+                    height="280"
+                    role="img"
+                    tabindex="0"
+                    aria-label="Pie chart showing distribution of clinical experiences by care category."
+                    aria-describedby="pieChartSummary"></canvas>
             </div>
+            <ul id="pieChartSummary" class="visually-hidden"></ul>
         </div>
 
         <!-- RIGHT CHART - Care Utilization by Sport -->
@@ -137,8 +145,16 @@
             </form>
             <h2 style="margin: 0 0 15px 0; color: #2c3e50; font-size: 18px;">Care Utilization by Sport</h2>
             <div style="flex-grow: 1; display: flex; align-items: center; justify-content: center; width: 100%;">
-                <canvas id="pieChart2" width="280" height="280" role="img" aria-label="Pie chart showing care utilization by sport."></canvas>
+                <canvas
+                    id="pieChart2"
+                    width="280"
+                    height="280"
+                    role="img"
+                    tabindex="0"
+                    aria-label="Pie chart showing care utilization by sport."
+                    aria-describedby="pieChart2Summary"></canvas>
             </div>
+            <ul id="pieChart2Summary" class="visually-hidden"></ul>
         </div>
     </div>
 
@@ -206,8 +222,14 @@
             </div>
         </form>
         <div style="position: relative; height: 350px; width: 100%;">
-            <canvas id="trendChart" role="img" aria-label="Line chart showing clinical experiences over weeks."></canvas>
+            <canvas
+                id="trendChart"
+                role="img"
+                tabindex="0"
+                aria-label="Line chart showing clinical experiences over weeks."
+                aria-describedby="trendChartSummary"></canvas>
         </div>
+        <ul id="trendChartSummary" class="visually-hidden"></ul>
     </div>
 
     <!-- SUMMARY STATISTICS -->
@@ -358,6 +380,16 @@
                 },
                 options: pieOptions
             });
+
+            const summary1 = document.getElementById('pieChartSummary');
+            if (summary1) {
+                summary1.innerHTML = '';
+                pieChartData.forEach(item => {
+                    const li = document.createElement('li');
+                    li.textContent = `${item.label}: ${item.value}`;
+                    summary1.appendChild(li);
+                });
+            }
         }
 
         // RIGHT CHART
@@ -374,6 +406,16 @@
                 },
                 options: pieOptions
             });
+
+            const summary2 = document.getElementById('pieChart2Summary');
+            if (summary2) {
+                summary2.innerHTML = '';
+                pieChartData2.forEach(item => {
+                    const li = document.createElement('li');
+                    li.textContent = `${item.label}: ${item.value}`;
+                    summary2.appendChild(li);
+                });
+            }
         }
 
         // TREND CHART
@@ -389,10 +431,12 @@
             dataset.pointBackgroundColor = color;
         });
         if (ctx3) {
+            const weekLabels = ['Week 1', 'Week 2', 'Week 3', 'Week 4', 'Week 5', 'Week 6', 'Week 7', 'Week 8', 'Week 9', 'Week 10', 'Week 11', 'Week 12', 'Week 13', 'Week 14', 'Week 15', 'Week 16'];
+
             new Chart(ctx3.getContext('2d'), {
                 type: 'line',
                 data: {
-                    labels: ['Week 1', 'Week 2', 'Week 3', 'Week 4', 'Week 5', 'Week 6', 'Week 7', 'Week 8', 'Week 9', 'Week 10', 'Week 11', 'Week 12', 'Week 13', 'Week 14', 'Week 15', 'Week 16'],
+                    labels: weekLabels,
                     datasets: trendDatasets
                 },
                 options: {
@@ -402,6 +446,25 @@
                     plugins: { legend: { position: 'bottom', align: 'center' } }
                 }
             });
+
+            const trendSummary = document.getElementById('trendChartSummary');
+            if (trendSummary) {
+                trendSummary.innerHTML = '';
+                trendDatasets.forEach((dataset, index) => {
+                    const li = document.createElement('li');
+                    const label = dataset.label || `Series ${index + 1}`;
+                    const parts = [];
+
+                    (dataset.data || []).forEach((value, idx) => {
+                        if (value !== null && value !== undefined) {
+                            parts.push(`${weekLabels[idx]}: ${value}`);
+                        }
+                    });
+
+                    li.textContent = `${label}: ${parts.join('; ')}`;
+                    trendSummary.appendChild(li);
+                });
+            }
         }
     });
 </script>
