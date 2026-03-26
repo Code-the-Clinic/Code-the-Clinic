@@ -64,7 +64,7 @@ az deployment group create \
     -p main.bicepparam
 ```
 ```bash
-az stack group create --name clinic-test-stack --resource-group <new-resource-group> --template-file main.bicep --parameters main-local.bicepparam --deny-settings-mode none --action-on-unmanage detachAll
+az stack group create --name clinic-test-stack --resource-group <new-resource-group> --template-file main.bicep --parameters main-local.bicepparam --deny-settings-mode none --action-on-unmanage deleteAll
 ```
 ### Post-deployment todos
 - Add yourself as a Key Vault Secrets Officer

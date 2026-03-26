@@ -34,6 +34,8 @@ param csrfTrustedOrigins string
 param tenantId string = subscription().tenantId
 @description('The Object ID of the Entra user/group to be the DB Admin')
 param dbAdminObjectIds array = []
+@description('Set to false to skip deploying the DB identity bootstrap script and its managed identity/role assignment. Use this when you want to run the SQL setup manually from Cloud Shell instead of via a deployment script.')
+param runAutomatedDbIdentitySetup bool = true
 
 resource flexibleServers_code_the_clinic_db_name_resource 'Microsoft.DBforPostgreSQL/flexibleServers@2025-01-01-preview' = {
   name: flexibleServers_code_the_clinic_db_name
@@ -657,22 +659,22 @@ resource kvRoleAssignment 'Microsoft.Authorization/roleAssignments@2022-04-01' =
   }
 }
 
-resource deploymentScriptUserAssignedIdentity 'Microsoft.ManagedIdentity/userAssignedIdentities@2023-01-31' = {
+resource deploymentScriptUserAssignedIdentity 'Microsoft.ManagedIdentity/userAssignedIdentities@2023-01-31' = if (runAutomatedDbIdentitySetup) {
   name: '${sites_code_the_clinic_name}-dbscript-mi'
   location: location
 }
 
-resource deploymentScriptServerContributorRoleAssignment 'Microsoft.Authorization/roleAssignments@2022-04-01' = {
+resource deploymentScriptServerContributorRoleAssignment 'Microsoft.Authorization/roleAssignments@2022-04-01' = if (runAutomatedDbIdentitySetup) {
   name: guid(flexibleServers_code_the_clinic_db_name_resource.id, deploymentScriptUserAssignedIdentity.id, 'Contributor')
   scope: flexibleServers_code_the_clinic_db_name_resource
   properties: {
     roleDefinitionId: subscriptionResourceId('Microsoft.Authorization/roleDefinitions', 'b24988ac-6180-42a0-ab88-20f7382dd24c') // Contributor
-    principalId: deploymentScriptUserAssignedIdentity.properties.principalId
+    principalId: deploymentScriptUserAssignedIdentity!.properties.principalId
     principalType: 'ServicePrincipal'
   }
 }
 
-resource dbIdentitySetupScript 'Microsoft.Resources/deploymentScripts@2023-08-01' = {
+resource dbIdentitySetupScript 'Microsoft.Resources/deploymentScripts@2023-08-01' = if (runAutomatedDbIdentitySetup) {
   name: '${sites_code_the_clinic_name}-db-identity-setup'
   location: location
   kind: 'AzureCLI'
@@ -722,15 +724,15 @@ resource dbIdentitySetupScript 'Microsoft.Resources/deploymentScripts@2023-08-01
       }
       {
         name: 'SCRIPT_MI_NAME'
-        value: deploymentScriptUserAssignedIdentity.name
+        value: deploymentScriptUserAssignedIdentity!.name
       }
       {
         name: 'SCRIPT_MI_PRINCIPAL_ID'
-        value: deploymentScriptUserAssignedIdentity.properties.principalId
+        value: deploymentScriptUserAssignedIdentity!.properties.principalId
       }
       {
         name: 'SCRIPT_MI_CLIENT_ID'
-        value: deploymentScriptUserAssignedIdentity.properties.clientId
+        value: deploymentScriptUserAssignedIdentity!.properties.clientId
       }
     ]
     scriptContent: '''
