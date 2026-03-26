@@ -49,7 +49,9 @@
                 <label style="font-weight: 500; display: block; margin-bottom: 4px; font-size: 13px; color: #666;">Semester</label>
                 <select id="semester-filter" style="padding: 8px 12px; border-radius: 4px; border: 1px solid #bbb; background: white;">
                     <option value="">All Semesters</option>
-                    <option value="current">Current Semester</option>
+                    {% for sem in semesters %}
+                        <option value="{{ sem }}">{{ sem }}</option>
+                    {% endfor %}
                 </select>
             </div>
             <div>
@@ -92,24 +94,16 @@
     // Fetch student data and update charts
     async function loadDashboardData() {
         try {
-            const semesterFilter = document.getElementById('semester-filter').value;
-            const week = document.getElementById('week-filter').value;
+            const semesterValue = document.getElementById('semester-filter').value;
+            const weekValue = document.getElementById('week-filter').value;
 
             const payload = {};
-            if (semesterFilter) {
-                if (semesterFilter === 'current') {
-                    // Determine current semester based on date
-                    const today = new Date();
-                    const month = today.getMonth() + 1;  // 1-12
-                    const year = today.getFullYear();
-                    const semester = month >= 1 && month <= 5 ? 'Spring' : 'Fall';
-                    payload.semester = semester;
-                    payload.year = year;
-                } else {
-                    // Other semesters would be handled here in future
-                }
+            if (semesterValue) {
+                // Send the selected semester string (e.g., "Spring '26")
+                // so the backend can parse and filter just like the faculty dashboard.
+                payload.semester = semesterValue;
             }
-            if (week) payload.week = parseInt(week);
+            if (weekValue) payload.week = parseInt(weekValue);
 
             const response = await fetch('/dashboard/fetch_student_data/', {
                 method: 'POST',
