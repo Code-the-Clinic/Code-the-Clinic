@@ -50,12 +50,12 @@
     }
   </style>
 
-    <h2>Weekly Clinical Report</h2>
+  <h1>Weekly Clinical Report</h1>
 
     <form id="clinic-form" method="post">
       {% csrf_token %}
       <!-- Personal Information Section -->
-      <div class="section-title">Personal Information</div>
+      <h2 class="section-title">Personal Information</h2>
       <div class="form-row">
         <div class="form-group">
           <label for="first_name">First Name</label>
@@ -78,7 +78,7 @@
       </div>
 
       <!-- Clinical Information Section -->
-      <div class="section-title">Clinical Information</div>
+      <h2 class="section-title">Clinical Information</h2>
       <div class="form-row">
         <div class="form-group">
           <label for="sport">Sport</label>
@@ -101,7 +101,7 @@
       </div>
 
       <!-- Patient Categories Section -->
-      <div class="section-title">Number of Patients in Each Category</div>
+      <h2 class="section-title">Number of Patients in Each Category</h2>
       
       <div class="form-row">
         <div class="form-group">
@@ -155,7 +155,7 @@
       </div>
 
       <!-- Interaction with other Health Care Professionals -->
-      <div class="section-title">Interprofessional Interaction</div>
+      <h2 class="section-title">Interprofessional Interaction</h2>
       <fieldset class="form-row full" aria-describedby="interprofessional-help">
         <div class="form-group">
           <legend style="font-weight: bold; margin-bottom: 5px; color: #555; font-size: 14px;">Did you interact with other Health Care Professionals during your clinical education this week?</legend>

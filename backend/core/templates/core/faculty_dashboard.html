@@ -4,7 +4,7 @@
 
 {% block content %}
 <div class="page-container" style="padding: 20px; max-width: 1200px; margin: auto; font-family: sans-serif;">
-    <h2 style="color: #2c3e50; margin-bottom: 24px;">Faculty Dashboard</h2>
+    <h1 style="color: #2c3e50; margin-bottom: 24px;">Faculty Dashboard</h1>
 
     <div style="display: flex; flex-wrap: nowrap; gap: 32px; justify-content: center; align-items: flex-start; min-width: 800px; margin-bottom: 32px;">
         
@@ -66,7 +66,7 @@
                     </div>
                 </div>
             </form>
-            <h3 style="margin: 0 0 15px 0; color: #2c3e50; font-size: 18px;">Care Chart</h3>
+            <h2 style="margin: 0 0 15px 0; color: #2c3e50; font-size: 18px;">Care Chart</h2>
             <div style="flex-grow: 1; display: flex; align-items: center; justify-content: center; width: 100%;">
                 <canvas id="pieChart" width="280" height="280" role="img" aria-label="Pie chart showing distribution of clinical experiences by care category."></canvas>
             </div>
@@ -128,7 +128,7 @@
                     </div>
                 </div>
             </form>
-            <h3 style="margin: 0 0 15px 0; color: #2c3e50; font-size: 18px;">Care Utilization by Sport</h3>
+            <h2 style="margin: 0 0 15px 0; color: #2c3e50; font-size: 18px;">Care Utilization by Sport</h2>
             <div style="flex-grow: 1; display: flex; align-items: center; justify-content: center; width: 100%;">
                 <canvas id="pieChart2" width="280" height="280" role="img" aria-label="Pie chart showing care utilization by sport."></canvas>
             </div>
@@ -137,7 +137,7 @@
 
     <!-- Rest of your template (trend chart, heatmap table) stays the same -->
     <div style="background: white; padding: 24px; border-radius: 8px; box-shadow: 0 2px 10px rgba(0,0,0,0.08); width: 100%; box-sizing: border-box; margin-bottom: 32px;">
-        <h3 style="margin: 0 0 15px 0; color: #2c3e50;">Clinical Experience Trends</h3>
+        <h2 style="margin: 0 0 15px 0; color: #2c3e50;">Clinical Experience Trends</h2>
         <form id="filterForm3" method="POST">
             {% csrf_token %}
             <!-- Preserve other params from other forms -->
@@ -206,7 +206,7 @@
     <!-- SUMMARY STATISTICS -->
     <div style="background: white; padding: 24px; border-radius: 8px; box-shadow: 0 2px 10px rgba(0,0,0,0.08); width: 100%; box-sizing: border-box;">
         <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 20px;">
-            <h3 style="margin: 0; color: #2c3e50;">Key Metrics</h3>
+            <h2 style="margin: 0; color: #2c3e50;">Key Metrics</h2>
 
             <form id="filterForm4" method="POST" style="display: flex; gap: 15px;">
                 {% csrf_token %}

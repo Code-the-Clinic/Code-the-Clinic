@@ -8,7 +8,7 @@
 {% if user.is_authenticated %}
 {% if user.is_staff %}
 <h1>Welcome to Code the Clinic</h1>
-    <div class="section-title">Admin Hub</div>
+    <h2 class="section-title">Admin Hub</h2>
     <div class="centered">
         <p class="muted">Welcome back, {{user.first_name}}!</p>
         <a class="btn-primary" href="/admin/">Admin Portal</a>
@@ -17,7 +17,7 @@
     </div>
 {% else %}
 <h1>Welcome to Code the Clinic</h1>
-    <div class="section-title">Student Hub</div>
+    <h2 class="section-title">Student Hub</h2>
     <div class="centered">
         <p class="muted">Welcome back, {{user.first_name}}!</p>
         <a class="btn-primary" href="/dashboard/student/">Student Dashboard</a>
@@ -26,7 +26,7 @@
 {% endif %}
 {% else %}
 <h1>Welcome to Code the Clinic</h1>
-    <div class="section-title">Get Started</div>
+    <h2 class="section-title">Get Started</h2>
     <div class="centered">
         <p class="muted">Sign in with myBama to submit reports and view dashboards.</p>
         {% with login=login_url|default:'/accounts/login/' %}
