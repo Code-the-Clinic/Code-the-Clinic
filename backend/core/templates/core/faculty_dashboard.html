@@ -353,7 +353,7 @@
                     labels: pieChartData.map(item => item.label),
                     datasets: [{
                         data: pieChartData.map(item => item.value),
-                        backgroundColor: ['#FF6384', '#36A2EB', '#FFCE56', '#4BC0C0', '#9966FF', '#FF9F40', '#C9CBCF', '#7BC225', '#E74C3C']
+                        backgroundColor: ['#CC2952', '#1F78B4', '#D39B00', '#008A8A', '#6A3D9A', '#CC6A00', '#8A8F99', '#4C8C1A', '#C62828']
                     }]
                 },
                 options: pieOptions
@@ -369,7 +369,7 @@
                     labels: pieChartData2.map(item => item.label),
                     datasets: [{ 
                         data: pieChartData2.map(item => item.value), 
-                        backgroundColor: ['#4BC0C0', '#9966FF', '#FF9F40', '#36A2EB', '#FF6384', '#FFCE56', '#C9CBCF', '#7BC225', '#E74C3C'] 
+                        backgroundColor: ['#008A8A', '#6A3D9A', '#CC6A00', '#1F78B4', '#CC2952', '#D39B00', '#8A8F99', '#4C8C1A', '#C62828'] 
                     }]
                 },
                 options: pieOptions
@@ -379,6 +379,15 @@
         // TREND CHART
         const ctx3 = document.getElementById('trendChart');
         const trendDatasets = JSON.parse(document.getElementById('trend-chart-data').textContent);
+
+        // Apply high-contrast, same-hue colors to trend lines
+        const trendColors = ['#CC2952', '#1F78B4', '#D39B00', '#008A8A', '#6A3D9A', '#CC6A00', '#8A8F99', '#4C8C1A', '#C62828'];
+        trendDatasets.forEach((dataset, index) => {
+            const color = trendColors[index % trendColors.length];
+            dataset.borderColor = color;
+            dataset.backgroundColor = color;
+            dataset.pointBackgroundColor = color;
+        });
         if (ctx3) {
             new Chart(ctx3.getContext('2d'), {
                 type: 'line',
