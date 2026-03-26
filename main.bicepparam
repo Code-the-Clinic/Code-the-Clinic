@@ -13,8 +13,8 @@ param flexibleServers_code_the_clinic_db_name = 'code-the-clinic-db'
 param privateDnsZones_privatelink_postgres_database_azure_com_name = 'privatelink.postgres.database.azure.com'
 
 // Location parameters
-param location = 'North Central US'
-param locationLower = 'northcentralus'
+param location = 'East US'
+param locationLower = 'eastus'
 
 // Networking parameters
 param networkAddressSpace = '10.0.0.0/16'

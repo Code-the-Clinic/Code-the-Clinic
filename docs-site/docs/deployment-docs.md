@@ -66,6 +66,13 @@ az deployment group create \
 ```bash
 az stack group create --name clinic-test-stack --resource-group <new-resource-group> --template-file main.bicep --parameters main-local.bicepparam --deny-settings-mode none --action-on-unmanage deleteAll
 ```
+
+- NOTE: If the deployment fails midway through and you want a fresh start, if you used the second command (az stack group create ...) you can use this command to delete all the resources created via the deployment command. ONLY use this if you want to delete all the resources you just tried to deploy.
+
+```bash
+az stack group delete --name clinic-test-stack --resource-group <rg-name> --action-on-unmanage deleteAll
+```
+
 ### Post-deployment todos
 - Add yourself as a Key Vault Secrets Officer
     - Go to your Key Vault => Access control (IAM) => Role assignments => New role assignment => Assign yourself the Key Vault Secrets Officer role. This will let you view, add, and edit secrets, which you will need to do to set up the application.
