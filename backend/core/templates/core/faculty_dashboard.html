@@ -28,8 +28,8 @@
 
                 <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px 18px; background: #f8f9fa; padding: 15px; border-radius: 6px; border: 1px solid #eee;">
                     <div>
-                        <label style="font-weight: 500; display: block; margin-bottom: 4px; font-size: 12px; color: #666;">Sport</label>
-                        <select name="sport" style="padding: 6px; border-radius: 4px; border: 1px solid #bbb; width: 100%; background: white;">
+                        <label for="faculty-sport" style="font-weight: 500; display: block; margin-bottom: 4px; font-size: 12px; color: #666;">Sport</label>
+                        <select id="faculty-sport" name="sport" style="padding: 6px; border-radius: 4px; border: 1px solid #bbb; width: 100%; background: white;">
                             <option value="">All Sports</option>
                             {% for sport_name in sports %}
                             <option value="{{ sport_name }}" {% if selected_sport == sport_name %}selected{% endif %}>{{ sport_name }}</option>
@@ -37,8 +37,8 @@
                         </select>
                     </div>
                     <div>
-                        <label style="font-weight: 500; display: block; margin-bottom: 4px; font-size: 12px; color: #666;">Semester</label>
-                        <select name="semester" style="padding: 6px; border-radius: 4px; border: 1px solid #bbb; width: 100%; background: white;">
+                        <label for="faculty-semester" style="font-weight: 500; display: block; margin-bottom: 4px; font-size: 12px; color: #666;">Semester</label>
+                        <select id="faculty-semester" name="semester" style="padding: 6px; border-radius: 4px; border: 1px solid #bbb; width: 100%; background: white;">
                             <option value="">All Semesters</option>
                             {% for sem in semesters %}
                             <option value="{{ sem }}" {% if selected_semester == sem %}selected{% endif %}>{{ sem }}</option>
@@ -46,8 +46,8 @@
                         </select>
                     </div>
                     <div>
-                        <label style="font-weight: 500; display: block; margin-bottom: 4px; font-size: 12px; color: #666;">Student</label>
-                        <input list="facultyStudents" name="student" style="padding: 6px; border-radius: 4px; border: 1px solid #bbb; width: 100%; box-sizing: border-box; background: white;" placeholder="Search students..." value="{{ selected_student|default:'' }}">
+                        <label for="faculty-student" style="font-weight: 500; display: block; margin-bottom: 4px; font-size: 12px; color: #666;">Student</label>
+                        <input id="faculty-student" list="facultyStudents" name="student" style="padding: 6px; border-radius: 4px; border: 1px solid #bbb; width: 100%; box-sizing: border-box; background: white;" placeholder="Search students..." value="{{ selected_student|default:'' }}">
                         <datalist id="facultyStudents">
                             <option value="All Students"></option>
                             {% for student in students %}
@@ -56,8 +56,8 @@
                         </datalist>
                     </div>
                     <div>
-                        <label style="font-weight: 500; display: block; margin-bottom: 4px; font-size: 12px; color: #666;">Week</label>
-                        <select name="week" style="padding: 6px; border-radius: 4px; border: 1px solid #bbb; width: 100%; background: white;">
+                        <label for="faculty-week" style="font-weight: 500; display: block; margin-bottom: 4px; font-size: 12px; color: #666;">Week</label>
+                        <select id="faculty-week" name="week" style="padding: 6px; border-radius: 4px; border: 1px solid #bbb; width: 100%; background: white;">
                             <option value="">All Weeks</option>
                             {% for week_num in weeks_list %}
                             <option value="{{ week_num }}" {% if selected_week == week_num|stringformat:"s" %}selected{% endif %}>{{ week_num }}</option>
@@ -68,7 +68,7 @@
             </form>
             <h3 style="margin: 0 0 15px 0; color: #2c3e50; font-size: 18px;">Care Chart</h3>
             <div style="flex-grow: 1; display: flex; align-items: center; justify-content: center; width: 100%;">
-                <canvas id="pieChart" width="280" height="280"></canvas>
+                <canvas id="pieChart" width="280" height="280" role="img" aria-label="Pie chart showing distribution of clinical experiences by care category."></canvas>
             </div>
         </div>
 
@@ -91,8 +91,8 @@
 
                 <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px 18px; background: #f8f9fa; padding: 15px; border-radius: 6px; border: 1px solid #eee;">
                     <div>
-                        <label style="font-weight: 500; display: block; margin-bottom: 4px; font-size: 12px; color: #666;">Care Type</label>
-                        <select name="care_category" style="padding: 6px; border-radius: 4px; border: 1px solid #bbb; width: 100%; background: white;">
+                        <label for="faculty-care-category" style="font-weight: 500; display: block; margin-bottom: 4px; font-size: 12px; color: #666;">Care Type</label>
+                        <select id="faculty-care-category" name="care_category" style="padding: 6px; border-radius: 4px; border: 1px solid #bbb; width: 100%; background: white;">
                             <option value="immediate_emergency_care" {% if care_category == 'immediate_emergency_care' %}selected{% endif %}>Immediate / Emergency Care</option>
                             <option value="musculoskeletal_exam" {% if care_category == 'musculoskeletal_exam' %}selected{% endif %}>Musculoskeletal Exam</option>
                             <option value="non_musculoskeletal_exam" {% if care_category == 'non_musculoskeletal_exam' %}selected{% endif %}>Non-Musculoskeletal Exam</option>
@@ -105,8 +105,8 @@
                         </select>
                     </div>
                     <div>
-                        <label style="font-weight: 500; display: block; margin-bottom: 4px; font-size: 12px; color: #666;">Semester</label>
-                        <select name="semester2" style="padding: 6px; border-radius: 4px; border: 1px solid #bbb; width: 100%; background: white;">
+                        <label for="faculty-semester2" style="font-weight: 500; display: block; margin-bottom: 4px; font-size: 12px; color: #666;">Semester</label>
+                        <select id="faculty-semester2" name="semester2" style="padding: 6px; border-radius: 4px; border: 1px solid #bbb; width: 100%; background: white;">
                             <option value="">All Semesters</option>
                             {% for sem in semesters %}
                             <option value="{{ sem }}" {% if selected_semester2 == sem %}selected{% endif %}>{{ sem }}</option>
@@ -114,12 +114,12 @@
                         </select>
                     </div>
                     <div>
-                        <label style="font-weight: 500; display: block; margin-bottom: 4px; font-size: 12px; color: #666;">Student</label>
-                        <input list="facultyStudents" name="student_filter2" style="padding: 6px; border-radius: 4px; border: 1px solid #bbb; width: 100%; box-sizing: border-box; background: white;" placeholder="Search students..." value="{{ selected_student2|default:'' }}">
+                        <label for="faculty-student2" style="font-weight: 500; display: block; margin-bottom: 4px; font-size: 12px; color: #666;">Student</label>
+                        <input id="faculty-student2" list="facultyStudents" name="student_filter2" style="padding: 6px; border-radius: 4px; border: 1px solid #bbb; width: 100%; box-sizing: border-box; background: white;" placeholder="Search students..." value="{{ selected_student2|default:'' }}">
                     </div>
                     <div>
-                        <label style="font-weight: 500; display: block; margin-bottom: 4px; font-size: 12px; color: #666;">Week</label>
-                        <select name="week2" style="padding: 6px; border-radius: 4px; border: 1px solid #bbb; width: 100%; background: white;">
+                        <label for="faculty-week2" style="font-weight: 500; display: block; margin-bottom: 4px; font-size: 12px; color: #666;">Week</label>
+                        <select id="faculty-week2" name="week2" style="padding: 6px; border-radius: 4px; border: 1px solid #bbb; width: 100%; background: white;">
                             <option value="">All Weeks</option>
                             {% for week_num in weeks_list %}
                             <option value="{{ week_num }}" {% if selected_week2 == week_num|stringformat:"s" %}selected{% endif %}>{{ week_num }}</option>
@@ -130,7 +130,7 @@
             </form>
             <h3 style="margin: 0 0 15px 0; color: #2c3e50; font-size: 18px;">Care Utilization by Sport</h3>
             <div style="flex-grow: 1; display: flex; align-items: center; justify-content: center; width: 100%;">
-                <canvas id="pieChart2" width="280" height="280"></canvas>
+                <canvas id="pieChart2" width="280" height="280" role="img" aria-label="Pie chart showing care utilization by sport."></canvas>
             </div>
         </div>
     </div>
@@ -154,8 +154,8 @@
 
             <div style="display: flex; gap: 15px; flex-wrap: wrap; background: #f8f9fa; padding: 15px; border-radius: 6px; border: 1px solid #eee; margin-bottom: 20px;">
                 <div>
-                    <label style="font-weight: 500; display: block; margin-bottom: 4px; font-size: 13px; color: #666;">Sport</label>
-                    <select name="trend_sport" style="padding: 6px 12px; border-radius: 4px; border: 1px solid #bbb; width: 180px; background: white;">
+                    <label for="trend-sport" style="font-weight: 500; display: block; margin-bottom: 4px; font-size: 13px; color: #666;">Sport</label>
+                    <select id="trend-sport" name="trend_sport" style="padding: 6px 12px; border-radius: 4px; border: 1px solid #bbb; width: 180px; background: white;">
                         <option value="all">All Sports</option>
                         {% for sport_name in sports %}
                         <option value="{{ sport_name }}" {% if selected_trend_sport == sport_name %}selected{% endif %}>{{ sport_name }}</option>
@@ -163,8 +163,8 @@
                     </select>
                 </div>
                 <div>
-                    <label style="font-weight: 500; display: block; margin-bottom: 4px; font-size: 13px; color: #666;">Care Type</label>
-                    <select name="trend_care" style="padding: 6px 12px; border-radius: 4px; border: 1px solid #bbb; width: 180px; background: white;">
+                    <label for="trend-care" style="font-weight: 500; display: block; margin-bottom: 4px; font-size: 13px; color: #666;">Care Type</label>
+                    <select id="trend-care" name="trend_care" style="padding: 6px 12px; border-radius: 4px; border: 1px solid #bbb; width: 180px; background: white;">
                         <option value="all">All Care Types</option>
                         <option value="immediate_emergency_care" {% if selected_trend_care == 'immediate_emergency_care' %}selected{% endif %}>Immediate / Emergency Care</option>
                         <option value="musculoskeletal_exam" {% if selected_trend_care == 'musculoskeletal_exam' %}selected{% endif %}>Musculoskeletal Exam</option>
@@ -178,8 +178,8 @@
                     </select>
                 </div>
                 <div>
-                    <label style="font-weight: 500; display: block; margin-bottom: 4px; font-size: 13px; color: #666;">Student</label>
-                    <input list="trendStudents" name="trend_student" style="padding: 6px 12px; border-radius: 4px; border: 1px solid #bbb; width: 180px; box-sizing: border-box; background: white;" placeholder="Search students..." value="{{ selected_trend_student|default:'' }}">
+                    <label for="trend-student" style="font-weight: 500; display: block; margin-bottom: 4px; font-size: 13px; color: #666;">Student</label>
+                    <input id="trend-student" list="trendStudents" name="trend_student" style="padding: 6px 12px; border-radius: 4px; border: 1px solid #bbb; width: 180px; box-sizing: border-box; background: white;" placeholder="Search students..." value="{{ selected_trend_student|default:'' }}">
                     <datalist id="trendStudents">
                         <option value="All Students"></option>
                         {% for student in students %}
@@ -188,8 +188,8 @@
                     </datalist>
                 </div>
                 <div>
-                    <label style="font-weight: 500; display: block; margin-bottom: 4px; font-size: 13px; color: #666;">Semester</label>
-                    <select name="trend_semester" style="padding: 6px 12px; border-radius: 4px; border: 1px solid #bbb; width: 120px; background: white;">
+                    <label for="trend-semester" style="font-weight: 500; display: block; margin-bottom: 4px; font-size: 13px; color: #666;">Semester</label>
+                    <select id="trend-semester" name="trend_semester" style="padding: 6px 12px; border-radius: 4px; border: 1px solid #bbb; width: 120px; background: white;">
                         <option value="">All Semesters</option>
                         {% for sem in semesters %}
                         <option value="{{ sem }}" {% if selected_trend_semester == sem %}selected{% endif %}>{{ sem }}</option>
@@ -199,7 +199,7 @@
             </div>
         </form>
         <div style="position: relative; height: 350px; width: 100%;">
-            <canvas id="trendChart"></canvas>
+            <canvas id="trendChart" role="img" aria-label="Line chart showing clinical experiences over weeks."></canvas>
         </div>
     </div>
 
@@ -225,7 +225,8 @@
                 {% if selected_trend_semester %}<input type="hidden" name="trend_semester" value="{{ selected_trend_semester }}">{% endif %}
                 
                 <div>
-                    <select name="metric_semester" style="padding: 6px 12px; border-radius: 4px; border: 1px solid #bbb; width: 140px; background: white; font-size: 13px;">
+                    <label for="metric-semester" class="visually-hidden">Semester filter for key metrics</label>
+                    <select id="metric-semester" name="metric_semester" style="padding: 6px 12px; border-radius: 4px; border: 1px solid #bbb; width: 140px; background: white; font-size: 13px;">
                         <option value="">All Semesters</option>
                         {% for sem in semesters %}
                         <option value="{{ sem }}" {% if selected_metric_semester == sem %}selected{% endif %}>{{ sem }}</option>
@@ -233,7 +234,8 @@
                     </select>
                 </div>
                 <div>
-                    <input list="metricStudents" name="metric_student" style="padding: 6px 12px; border-radius: 4px; border: 1px solid #bbb; width: 180px; box-sizing: border-box; background: white; font-size: 13px;" placeholder="Search students..." value="{{ selected_metric_student|default:'' }}">
+                    <label for="metric-student" class="visually-hidden">Student filter for key metrics</label>
+                    <input id="metric-student" list="metricStudents" name="metric_student" style="padding: 6px 12px; border-radius: 4px; border: 1px solid #bbb; width: 180px; box-sizing: border-box; background: white; font-size: 13px;" placeholder="Search students..." value="{{ selected_metric_student|default:'' }}">
                     <datalist id="metricStudents">
                         <option value="All Students"></option>
                         {% for student in students %}
