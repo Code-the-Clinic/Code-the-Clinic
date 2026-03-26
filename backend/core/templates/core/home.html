@@ -8,27 +8,32 @@
 {% if user.is_authenticated %}
 {% if user.is_staff %}
 <h1>Welcome to Code the Clinic</h1>
-    <h2 class="section-title">Admin Hub</h2>
+    <h2 class="section-title" style="text-align: left;">Admin Hub</h2>
     <div class="centered">
         <p class="muted">Welcome back, {{user.first_name}}!</p>
-        <a class="btn-primary" href="/admin/">Admin Portal</a>
-        <a class="btn-primary" href="/dashboard/admin/">Admin Dashboard</a>
-        <a class="btn-primary" href="/clinic-reports/">Clinical Experience Form</a>
+        <div class="button-row">
+            <a class="btn-primary" href="/admin/">Admin Portal</a>
+            <a class="btn-primary" href="/dashboard/admin/">Admin Dashboard</a>
+            <a class="btn-primary" href="/clinic-reports/">Clinical Experience Form</a>
+        </div>
     </div>
 {% else %}
 <h1>Welcome to Code the Clinic</h1>
-    <h2 class="section-title">Student Hub</h2>
+    <h2 class="section-title" style="text-align: left;">Student Hub</h2>
     <div class="centered">
         <p class="muted">Welcome back, {{user.first_name}}!</p>
-        <a class="btn-primary" href="/dashboard/student/">Student Dashboard</a>
-        <a class="btn-primary" href="/clinic-reports/">Clinical Experience Form</a>
+        <div class="button-row">
+            <a class="btn-primary" href="/dashboard/student/">Student Dashboard</a>
+            <a class="btn-primary" href="/clinic-reports/">Clinical Experience Form</a>
+        </div>
     </div>
 {% endif %}
 {% else %}
 <h1>Welcome to Code the Clinic</h1>
-    <h2 class="section-title">Get Started</h2>
+    <h2 class="section-title" style="text-align: left;">Get Started</h2>
     <div class="centered">
         <p class="muted">Sign in with myBama to submit reports and view dashboards.</p>
+        <div class="button-row">
         {% with login=login_url|default:'/accounts/login/' %}
             {% if login|slice:":11" != "javascript:" %}
                 <a class="btn-primary" href="{{ login }}">Login with myBama</a>
@@ -36,6 +41,7 @@
                 <a class="btn-primary" href="/accounts/login/">Login with myBama</a>
             {% endif %}
         {% endwith %}
+        </div>
     </div>
 {% endif %}
 {% endblock %}
