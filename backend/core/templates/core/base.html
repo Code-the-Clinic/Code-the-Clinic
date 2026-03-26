@@ -34,6 +34,7 @@
             display: flex;
             align-items: center;
             justify-content: space-between;
+            flex-wrap: wrap;
             margin-bottom: 20px;
         }
         .nav-title {
@@ -42,6 +43,7 @@
         }
         .nav-links {
             display: flex;
+            flex-wrap: wrap;
             gap: 12px;
         }
         .nav a,
@@ -56,8 +58,11 @@
             font-size: 16px;
         }
         .nav a:hover,
-        .nav button:hover {
+        .nav a:focus-visible,
+        .nav button:hover,
+        .nav button:focus-visible {
             color: var(--crimson-dark);
+            text-decoration: underline;
         }
         h1, h2 {
             color: var(--text);
@@ -71,6 +76,7 @@
             margin-bottom: 15px;
             border-radius: 4px;
             font-weight: bold;
+            font-size: 16px;
         }
         .btn-primary {
             background-color: var(--crimson);
@@ -90,17 +96,67 @@
         .centered {
             text-align: center;
         }
+        .button-row {
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: center;
+            gap: 8px 12px; /* vertical, horizontal */
+            margin-top: 8px;
+        }
         .muted {
             color: var(--muted);
             font-size: 17px;
         }
+        .chart-summary {
+            margin-top: 12px;
+            font-size: 14px;
+            color: var(--muted);
+            list-style: none;
+            padding-left: 0;
+        }
+        .chart-summary li {
+            margin-bottom: 2px;
+        }
+        .skip-link {
+            position: absolute;
+            left: -999px;
+            top: auto;
+            width: 1px;
+            height: 1px;
+            overflow: hidden;
+        }
+        .skip-link:focus {
+            position: absolute;
+            left: 20px;
+            top: 10px;
+            width: auto;
+            height: auto;
+            padding: 8px 16px;
+            background-color: var(--crimson);
+            color: #ffffff;
+            border-radius: 4px;
+            z-index: 1000;
+        }
+        .visually-hidden {
+            border: 0;
+            clip: rect(0 0 0 0);
+            height: 1px;
+            margin: -1px;
+            overflow: hidden;
+            padding: 0;
+            position: absolute;
+            width: 1px;
+            white-space: nowrap;
+        }
     </style>
 </head>
 <body>
+    <a href="#main-content" class="skip-link">Skip to main content</a>
     <div class="page-container">
-        <nav class="nav">
-            <div class="nav-title">Code the Clinic</div>
-            <div class="nav-links">
+        <header>
+            <nav class="nav" aria-label="Main site navigation">
+                <div class="nav-title">Code the Clinic</div>
+                <div class="nav-links">
                 <a href="/">Home</a>
                 {% if user.is_authenticated %}
                     {% if user.is_staff %}
@@ -132,12 +188,15 @@
                     {% endif %}
                 {% endwith %}
                 {% endif %}
-            </div>
-        </nav>
+                </div>
+            </nav>
+        </header>
 
-        {% block content %}
-        <!-- Child templates put their content here -->
-        {% endblock %}
+        <main id="main-content" role="main" tabindex="-1">
+            {% block content %}
+            <!-- Child templates put their content here -->
+            {% endblock %}
+        </main>
     </div>
 </body>
 </html>

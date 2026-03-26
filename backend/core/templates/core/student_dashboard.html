@@ -4,31 +4,28 @@
 
 {% block content %}
 <div class="page-container" style="padding: 20px; max-width: 1200px; margin: auto; font-family: sans-serif;">
-    <h2 style="color: #2c3e50; margin-bottom: 24px;">Your Clinical Experience</h2>
+    <h1 style="color: #2c3e50; margin-bottom: 24px;">Your Clinical Experience</h1>
 
-    <div style="display: flex; gap: 20px; flex-wrap: wrap; margin-bottom: 32px;">
+        <div style="display: flex; gap: 20px; flex-wrap: wrap; margin-bottom: 32px;">
         <!-- Care by Category Pie Chart -->
-        <div style="flex: 1 1 300px; min-width: 300px; max-width: 400px; background: white; padding: 24px; border-radius: 8px; box-shadow: 0 2px 10px rgba(0,0,0,0.08);">
-            <h3 style="margin: 0 0 15px 0; color: #2c3e50; font-size: 16px;">Patient Care by Type</h3>
+        <div style="flex: 1 1 300px; min-width: 280px; max-width: 400px; background: white; padding: 24px; border-radius: 8px; box-shadow: 0 2px 10px rgba(0,0,0,0.08);">
+            <h2 style="margin: 0 0 15px 0; color: #2c3e50; font-size: 16px;">Patient Care by Type</h2>
             <div style="position: relative; height: 300px; width: 100%;">
-                <canvas id="careCategoryChart"></canvas>
+                <canvas
+                    id="careCategoryChart"
+                    role="img"
+                    tabindex="0"
+                    aria-label="Pie chart showing your patient care experiences by care type."
+                    aria-describedby="careCategorySummary"></canvas>
             </div>
+            <ul id="careCategorySummary" class="visually-hidden"></ul>
         </div>
 
-        <!-- Care by Sport Pie Chart -->
-        <!-- COMMENTED OUT FOR NOW
-        <div style="flex: 1 1 300px; min-width: 300px; max-width: 400px; background: white; padding: 24px; border-radius: 8px; box-shadow: 0 2px 10px rgba(0,0,0,0.08);">
-            <h3 style="margin: 0 0 15px 0; color: #2c3e50; font-size: 16px;">Patients by Sport</h3>
-            <div style="position: relative; height: 300px; width: 100%;">
-                <canvas id="careBySportChart"></canvas>
-            </div>
-        </div>
-        -->
     </div>
 
     <!-- Summary Stats -->
     <div style="background: white; padding: 24px; border-radius: 8px; box-shadow: 0 2px 10px rgba(0,0,0,0.08); margin-bottom: 32px;">
-        <h3 style="margin: 0 0 20px 0; color: #2c3e50; font-size: 16px;">Summary</h3>
+        <h2 style="margin: 0 0 20px 0; color: #2c3e50; font-size: 16px;">Summary</h2>
         <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 20px;">
             <div style="padding: 16px; background: #f8f9fa; border-radius: 6px; border-left: 4px solid #9e1b32;">
                 <div style="font-size: 12px; color: #666; margin-bottom: 8px;">Total Patients</div>
@@ -43,11 +40,11 @@
 
     <!-- Filter Options -->
     <div style="background: white; padding: 24px; border-radius: 8px; box-shadow: 0 2px 10px rgba(0,0,0,0.08);">
-        <h3 style="margin: 0 0 15px 0; color: #2c3e50; font-size: 16px;">Filter by</h3>
+        <h2 style="margin: 0 0 15px 0; color: #2c3e50; font-size: 16px;">Filter by</h2>
         <div style="display: flex; gap: 15px; flex-wrap: wrap;">
             <div>
-                <label style="font-weight: 500; display: block; margin-bottom: 4px; font-size: 13px; color: #666;">Semester</label>
-                <select id="semester-filter" style="padding: 8px 12px; border-radius: 4px; border: 1px solid #bbb; background: white;">
+            <label for="semester-filter" style="font-weight: 500; display: block; margin-bottom: 4px; font-size: 13px; color: #666;">Semester</label>
+            <select id="semester-filter" style="padding: 8px 12px; border-radius: 4px; border: 1px solid #bbb; background: white;">
                     <option value="">All Semesters</option>
                     {% for sem in semesters %}
                         <option value="{{ sem }}">{{ sem }}</option>
@@ -55,7 +52,7 @@
                 </select>
             </div>
             <div>
-                <label style="font-weight: 500; display: block; margin-bottom: 4px; font-size: 13px; color: #666;">Week</label>
+                <label for="week-filter" style="font-weight: 500; display: block; margin-bottom: 4px; font-size: 13px; color: #666;">Week</label>
                 <select id="week-filter" style="padding: 8px 12px; border-radius: 4px; border: 1px solid #bbb; background: white;">
                     <option value="">All Weeks</option>
                     {% for week in weeks %}
@@ -72,7 +69,7 @@
     let careCategoryChart = null;
     // let careBySportChart = null;  // COMMENTED OUT FOR NOW
 
-    const chartColors = ['#FF6384', '#36A2EB', '#FFCE56', '#4BC0C0', '#9966FF', '#FF9F40', '#00B894', '#FF7675', '#A29BFE'];
+    const chartColors = ['#CC2952', '#1F78B4', '#D39B00', '#008A8A', '#6A3D9A', '#CC6A00', '#008B5E', '#D84343', '#5C6BC0'];
     const pieOptions = { responsive: true, maintainAspectRatio: false, plugins: { legend: { position: 'bottom', labels: { boxWidth: 12, padding: 15 } } } };
 
     // Helper to get CSRF token
@@ -133,21 +130,17 @@
                     careCategoryChart.update();
                 }
 
-                // For sport chart, we'll show a simple breakdown if data exists
-                // (Note: current endpoint returns care by category, not by sport)
-                // This is a placeholder for when we enhance the endpoint
-                
-                /* COMMENTED OUT FOR NOW
-                const sportLabels = (data.sport_breakdown || []).map(item => item.label);
-                const sportValues = (data.sport_breakdown || []).map(item => item.value);
-
-                if (careBySportChart) {
-                    careBySportChart.data.labels = sportLabels;
-                    careBySportChart.data.datasets[0].data = sportValues;
-                    careBySportChart.data.datasets[0].backgroundColor = chartColors.slice(0, sportLabels.length);
-                    careBySportChart.update();
+                // Update textual summary for care by category
+                const summary = document.getElementById('careCategorySummary');
+                if (summary) {
+                    summary.innerHTML = '';
+                    categoryLabels.forEach((label, idx) => {
+                        const li = document.createElement('li');
+                        li.textContent = `${label}: ${categoryValues[idx]}`;
+                        summary.appendChild(li);
+                    });
                 }
-                */
+
             }
         } catch (error) {
             console.error('Error loading dashboard data:', error);
