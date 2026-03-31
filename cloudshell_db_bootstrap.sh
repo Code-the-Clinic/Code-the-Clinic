@@ -32,6 +32,10 @@ DB_NAME="<db_name>"
 APP_SERVICE_NAME="<app_service_name>"        
 # Resource group containing the App Service
 RESOURCE_GROUP="your-resource-group-here"
+# Optional: if you already know the managed identity object ID for the App Service,
+# you can set it here to avoid calling az webapp identity show (which may require extra permissions).
+# Example: APP_OBJECT_ID="00000000-0000-0000-0000-000000000000"
+APP_OBJECT_ID=""
 
 # 2. Get your Entra principal and access token (you must be Postgres Entra admin)
 echo "Fetching signed-in Entra user principal..."
@@ -50,19 +54,23 @@ if [ -z "${PGPASSWORD:-}" ]; then
   exit 1
 fi
 
-# 3. Fetch the App Service managed identity object ID
-echo "Fetching managed identity principalId for App Service '${APP_SERVICE_NAME}' in resource group '${RESOURCE_GROUP}'..."
-APP_OBJECT_ID=$(az webapp identity show \
-  --name "${APP_SERVICE_NAME}" \
-  --resource-group "${RESOURCE_GROUP}" \
-  --query principalId -o tsv)
+# 3. Fetch or use the App Service managed identity object ID
+if [ -n "${APP_OBJECT_ID:-}" ]; then
+  echo "Using provided App Service object ID: ${APP_OBJECT_ID}"
+else
+  echo "Fetching managed identity principalId for App Service '${APP_SERVICE_NAME}' in resource group '${RESOURCE_GROUP}'..."
+  APP_OBJECT_ID=$(az webapp identity show \
+    --name "${APP_SERVICE_NAME}" \
+    --resource-group "${RESOURCE_GROUP}" \
+    --query principalId -o tsv)
 
-if [ -z "${APP_OBJECT_ID:-}" ]; then
-  echo "❌ Error: Could not find App Service managed identity. Is system-assigned identity enabled on the App Service?"
-  exit 1
+  if [ -z "${APP_OBJECT_ID:-}" ]; then
+    echo "❌ Error: Could not find App Service managed identity. Is system-assigned identity enabled on the App Service?"
+    exit 1
+  fi
+
+  echo "Found App Service object ID: ${APP_OBJECT_ID}"
 fi
-
-echo "Found App Service object ID: ${APP_OBJECT_ID}"
 
 # 4. Create role, apply security label, and grant permissions
 #    We connect to the 'postgres' database for metadata (extension + label),
@@ -75,9 +83,6 @@ cat <<'SQL' | psql "host=${DB_HOST} port=5432 dbname=postgres user=${DB_USER} ss
   -v app_role="${APP_ROLE}" \
   -v app_oid="${APP_OBJECT_ID}" \
   -v db_name="${DB_NAME}"
--- Ensure pgaadauth extension exists in this database
-CREATE EXTENSION IF NOT EXISTS pgaadauth;
-
 -- Create role for the App Service if it doesn't already exist
 SELECT format('CREATE ROLE %I WITH LOGIN', :'app_role')
 WHERE NOT EXISTS (

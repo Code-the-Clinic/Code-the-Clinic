@@ -106,7 +106,8 @@ az stack group delete --name clinic-test-stack --resource-group <rg-name> --acti
     - azure-secret (Add a new client secret under your Azure app registration and add the secret to Key Vault)
     - azure-tenant-id (Tenant ID from Azure app registration, NOT app service)
         - If you aren't using a single-tenant setup for myBama authentication (i.e. the university's tenant), you can just set this to "common". Otherwise use the tenant ID from the Azure app registration.
-    - django-secret-key (**TODO: Generate a new Django secret key and add it to Key Vault**)
+    - django-secret-key
+        - Generate a new one with this command: `python -c 'from django.core.management.utils import get_random_secret_key; print(get_random_secret_key())`
     - postgres-db (This isn't really a secret--it can be moved outside of key vault if needed. Name of the database within your PostgreSQL server in Azure where your Django tables are. You can find your databases in your PostgreSQL server settings => Databases.)
     - db-host (the domain of your Postgre DB--can be found in the Overview section if you click on your Postgres DB in the Azure portal)
     - postgres-user (the name of the App Service, since the App Service uses a Managed Identity to communicate with the DB)
@@ -120,6 +121,7 @@ az stack group delete --name clinic-test-stack --resource-group <rg-name> --acti
     - POSTGRES_HOST = In key vault (db-host)
     - POSTGRES_USER = In key vault (postgres-user)
     - ALLOWED_HOSTS = 'localhost,127.0.0.1,0.0.0.0,<domain-of-app-service-application>,https://<domain-of-app-service-application>'
+    - CSRF_TRUSTED_ORIGINS = 'https://<domain-of-app-service-application>
     - Other environment variables should be OK to leave as the default values set in the template.
 - Give the App Service permission to pull the latest Docker image from GHCR
     - Get GitHub Personal Access Token (PAT) with read:packages permission
