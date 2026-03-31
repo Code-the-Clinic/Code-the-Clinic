@@ -6,14 +6,21 @@ hide:
 # How to deploy the application
 Hi! Here's how to run our application locally, run tests, and deploy it in the cloud. In case you need to change Azure accounts later (for example, to move the application fully into the university tenant), you can use the Azure CLI and the bicep template files we've included to deploy without spending hours clicking through Azure's terrible GUI :)
 
+## Required setup tools
+- Docker Desktop (needed to run Docker locally)
+- VS Code or preferred IDE
+
 ## How to run in development
-- To run the docs and the main application: `docker-compose up`
-- To run the docs and the main application and rebuild the docker container (for example, if you added new dependencies to requirements.txt): `docker-compose up --build`
+- Set up environment variables
+    - Open .env-example and set the environment variables according to the guidelines (but do this in a different file, .env, and put .env in gitignore so that you don't expose any secrets.)
+    - For Azure credentials, see the "How to get myBama auth working..." section--local Azure credentials are only needed if you want to test myBama auth locally
+- To run the documentation website and the django backend: `docker-compose up`
+- To run the documentation website and the django backend and rebuild the docker container (for example, if you added new dependencies to requirements.txt): `docker-compose up --build`
 - To update the local database:
     - Create migration: `docker-compose exec backend python manage.py makemigrations clinic_reports`
-        - Use the name of the data model instead of clinic_reports if updating a different model (for example, core)
+        - Use the name of the data model instead of clinic_reports if updating a different model
     - Run migration: `docker-compose exec backend python manage.py migrate`
-- To create a superuser (required to locally test the admin page without a Microsoft account): docker-compose exec backend python manage.py createsuperuser
+- To create a superuser (required to locally test the admin page without a Microsoft account): `docker-compose exec backend python manage.py createsuperuser`
 
 ## How to test
 - To run all tests: `docker-compose exec backend python manage.py test`
@@ -27,18 +34,33 @@ Hi! Here's how to run our application locally, run tests, and deploy it in the c
 `docker-compose up --build` (rebuilds all the containers without caching)
 - If you are getting DB errors that the relation "django-session" doesn't exist, you need to run the migration command listed in the "how to run" section to recreate all the tables that Django expects to be in the database.
 
-## How to get myBama auth working (locally--it should "just work" in the cloud)
-- Get a personal Azure tenant ID and secret by creating an Azure account, or ask me for mine (I shared a doc with instructions for creating your own Azure credentials)
-- Put your Azure tenant ID and secret in .env (follow the instructions in .env-example)
-- Go to /accounts/microsoft/login and it should let you authenticate with myBama
-- If you want to be automatically logged in to the admin portal with myBama, you will need to follow these steps:
-    - Log in with myBama--this will create a user in the system for you
-    - Log out
-    - Create a superuser: docker-compose exec backend python manage.py createsuperuser
-    - Log in to the admin portal as the superuser
-    - Use the admin portal to give your myBama user superuser permissions
-    - Delete the manually created superuser when you are done for security
-    - Now when you log in with your crimson email you should automatically be able to see the admin dashboard!
+## How to get myBama auth working in your local environment
+- Get a personal Azure tenant ID and secret by creating an Azure account
+    1. Create the app registration
+        - In your personal Azure Portal (portal.azure.com), search for "App registrations" and click "New registration".
+        - If you don’t have an Azure account and see something like “tenant blocked due to inactivity,” make a new Azure account, wait 5 minutes, and try again. 
+        - Name: Doesn't matter, make this whatever you want 
+        - Supported account types: Select the option that says: "Accounts in any organizational directory (Any Microsoft Entra ID tenant - Multitenant)". Do NOT select "Personal Microsoft accounts only". 
+        - Redirect URI: (For local development) Select Web and enter http://localhost:8000/accounts/microsoft/login/callback/. This allows us to test myBama auth locally.
+        - Click Register. 
+
+    2. Get your keys
+        - Once created, you will land on the Overview page.
+        - Copy the Application (client) ID. -> Paste this into your .env as AZURE_CLIENT_ID. 
+        - Go to Certificates & secrets (sidebar) -> New client secret.
+        - Description: dev-secret, Expires: 6 months 
+        - Click Add -> Copy the Value (not the ID!). -> Paste this into your .env as AZURE_SECRET 
+        - Put your Azure tenant ID and secret in .env (follow the instructions in .env-example)
+        - Go to /accounts/microsoft/login and it should let you authenticate with myBama
+
+    3. If you want to be automatically logged in to the admin portal with myBama, you will need to follow these steps:
+        - Log in with myBama--this will create a user in the system for you
+        - Log out
+        - Create a superuser: docker-compose exec backend python manage.py createsuperuser
+        - Log in to the admin portal as the superuser
+        - Use the admin portal to give your myBama user superuser permissions
+        - Delete the manually created superuser when you are done for security
+        - Now when you log in with your crimson email you should automatically be able to see the admin dashboard!
 
 ## How to deploy to the cloud
 
@@ -140,9 +162,29 @@ az stack group delete --name clinic-test-stack --resource-group <rg-name> --acti
 ### Smoke testing
 - If you are experiencing HTTP errors and need to get clear error messages, you can temporarily set DEBUG=True in the App Service's environment variables. However, this makes the application more vulnerable since an attacker could see exactly what was preventing them from accessing a certain page. For this reason, you should immediately change DEBUG back to False after testing, and ideally never set DEBUG=True in the Azure portal at all (just do your testing locally instead).
 - If the app service isn't starting, you can see detailed logs in "log stream" under the App Service settings => Monitoring. You should be able to see "platform logs" (logs from the underlying server that is running the app) and "runtime logs" (logs from the app itself). If you don't see any runtime logs, check the platform logs to see what might be going wrong. Platform logs are where you would see problems pulling the Docker container from GitHub Container Registry or problems pinging the app for health checks. Runtime logs are where you would see Django errors (failed to run migrations, normal website errors like 403/400/etc.)
+
 ### Troubleshooting and known issues
 - If the app seems to start (check runtime Log Stream in the app service for gunicorn logs) but you are getting "gateway timeout" or "application error" because Azure is failing to ping the application, check Deployment Center => Containers => main => Port and make sure it is set to 8000. If it isn't set to 8000, Azure will ping the wrong port and won't be able to reach Django.
 
 ## Future considerations
 - Entra to Okta auth migration
-- Add teammates as key vault service officers
+- Add teammates as key vault secrets officers
+- Automate Azure app service app restart after new code changes
+
+# Info about the cloud deployment
+## Primary Azure resources + descriptions
+### Azure App Service
+The App Service resource is where the Django application is hosted. It provides a web address for the application and a managed virtual machine that runs our Docker container. It also uses a GitHub Personal Access Token (PAT) to get permission from GitHub to pull our auto-built Docker container from the GitHub Container Registry. (If you are curious about how our Docker auto-build process works, it happens every time you merge a PR into `main`, and the code that runs it is located in `deploy.yml`.)
+
+### Azure Database for PostgreSQL
+This is the database that stores all the information collected via the clinic report form. It communicates with the App Service via a secure virtual network (VNet) that only the database, App Service, and Key Vault have access to.
+
+### Key Vault
+This is a secrets manager that stores sensitive deployment information like Django and Azure credentials. Key Vault uses the same VNet to connect to the App Service so that the application can pull secrets from Key Vault as if they were normal environment variables, while maintaining stronger security than a standard environment variable.
+
+### VNet + private endpoint
+The App Service, database, and Key Vault all use a shared VNet to communicate with each other so that traffic between these resources isn't exposed to the public internet. The database connects to the VNet using a private endpoint, whereas the App Service and Key Vault use built-in VNet integration.
+
+## How to update the cloud app
+- Merge code changes into the main branch of the repo--this will auto-build a Docker container and push it to the GitHub Container Registry
+- Go into the Azure portal, navigate to the App Service resource for your cloud deployment (may be called code-the-clinic or similar) and click "restart" under the Overview tab. This will force the app to restart and pull the latest version of the Docker container from GitHub. You may also need to navigate to the app's website and reload it a couple of times to get the webpage to "fetch" the new version of the code.
