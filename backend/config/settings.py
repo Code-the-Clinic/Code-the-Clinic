@@ -300,6 +300,11 @@ ACCOUNT_EMAIL_VERIFICATION = 'none'
 # This allows testing the production behavior locally without Azure managed identity
 SOCIALACCOUNT_ONLY = IS_IN_AZURE or FORCE_SOCIALACCOUNT_ONLY
 
+# When hitting a provider login URL (e.g. /accounts/microsoft/login/),
+# immediately start the OAuth flow instead of showing an extra
+# "You are about to log in with ..." confirmation page.
+SOCIALACCOUNT_LOGIN_ON_GET = True
+
 # CSRF and cookie security settings
 # Allow browsers to send cookies with cross-origin XHR when configured
 CORS_ALLOW_CREDENTIALS = True

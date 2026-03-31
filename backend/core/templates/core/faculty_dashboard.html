@@ -3,13 +3,20 @@
 {% block title %}Faculty Dashboard{% endblock %}
 
 {% block content %}
+<style>
+@media (min-width: 900px) {
+    .faculty-charts-row {
+        flex-wrap: nowrap !important;
+    }
+}
+</style>
 <div class="page-container" style="padding: 20px; max-width: 1200px; margin: auto; font-family: sans-serif;">
-    <h2 style="color: #2c3e50; margin-bottom: 24px;">Faculty Dashboard</h2>
+    <h1 style="color: #2c3e50; margin-bottom: 24px;">Faculty Dashboard</h1>
 
-    <div style="display: flex; flex-wrap: nowrap; gap: 32px; justify-content: center; align-items: flex-start; min-width: 800px; margin-bottom: 32px;">
+    <div class="faculty-charts-row" style="display: flex; flex-wrap: wrap; gap: 32px; justify-content: center; align-items: flex-start; width: 100%; margin-bottom: 32px;">
         
         <!-- LEFT CHART - Care Chart -->
-        <div style="flex: 1 1 400px; min-width: 350px; max-width: 500px; height: 550px; background: white; padding: 24px; border-radius: 8px; box-shadow: 0 2px 10px rgba(0,0,0,0.08); display: flex; flex-direction: column; align-items: center; box-sizing: border-box;">
+        <div style="flex: 1 1 400px; min-width: 280px; max-width: 500px; min-height: 550px; background: white; padding: 24px; border-radius: 8px; box-shadow: 0 2px 10px rgba(0,0,0,0.08); display: flex; flex-direction: column; align-items: center; box-sizing: border-box;">
             <!-- FORM WRAPPER FOR AUTO-SUBMIT FILTERS -->
             <form id="filterForm" method="POST" style="width: 100%; max-width: 380px; margin-bottom: 24px;">
                 {% csrf_token %}
@@ -28,8 +35,8 @@
 
                 <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px 18px; background: #f8f9fa; padding: 15px; border-radius: 6px; border: 1px solid #eee;">
                     <div>
-                        <label style="font-weight: 500; display: block; margin-bottom: 4px; font-size: 12px; color: #666;">Sport</label>
-                        <select name="sport" style="padding: 6px; border-radius: 4px; border: 1px solid #bbb; width: 100%; background: white;">
+                        <label for="faculty-sport" style="font-weight: 500; display: block; margin-bottom: 4px; font-size: 12px; color: #666;">Sport</label>
+                        <select id="faculty-sport" name="sport" style="padding: 6px; border-radius: 4px; border: 1px solid #bbb; width: 100%; background: white;">
                             <option value="">All Sports</option>
                             {% for sport_name in sports %}
                             <option value="{{ sport_name }}" {% if selected_sport == sport_name %}selected{% endif %}>{{ sport_name }}</option>
@@ -37,8 +44,8 @@
                         </select>
                     </div>
                     <div>
-                        <label style="font-weight: 500; display: block; margin-bottom: 4px; font-size: 12px; color: #666;">Semester</label>
-                        <select name="semester" style="padding: 6px; border-radius: 4px; border: 1px solid #bbb; width: 100%; background: white;">
+                        <label for="faculty-semester" style="font-weight: 500; display: block; margin-bottom: 4px; font-size: 12px; color: #666;">Semester</label>
+                        <select id="faculty-semester" name="semester" style="padding: 6px; border-radius: 4px; border: 1px solid #bbb; width: 100%; background: white;">
                             <option value="">All Semesters</option>
                             {% for sem in semesters %}
                             <option value="{{ sem }}" {% if selected_semester == sem %}selected{% endif %}>{{ sem }}</option>
@@ -46,8 +53,8 @@
                         </select>
                     </div>
                     <div>
-                        <label style="font-weight: 500; display: block; margin-bottom: 4px; font-size: 12px; color: #666;">Student</label>
-                        <input list="facultyStudents" name="student" style="padding: 6px; border-radius: 4px; border: 1px solid #bbb; width: 100%; box-sizing: border-box; background: white;" placeholder="Search students..." value="{{ selected_student|default:'' }}">
+                        <label for="faculty-student" style="font-weight: 500; display: block; margin-bottom: 4px; font-size: 12px; color: #666;">Student</label>
+                        <input id="faculty-student" list="facultyStudents" name="student" style="padding: 6px; border-radius: 4px; border: 1px solid #bbb; width: 100%; box-sizing: border-box; background: white;" placeholder="Search students..." value="{{ selected_student|default:'' }}">
                         <datalist id="facultyStudents">
                             <option value="All Students"></option>
                             {% for student in students %}
@@ -56,8 +63,8 @@
                         </datalist>
                     </div>
                     <div>
-                        <label style="font-weight: 500; display: block; margin-bottom: 4px; font-size: 12px; color: #666;">Week</label>
-                        <select name="week" style="padding: 6px; border-radius: 4px; border: 1px solid #bbb; width: 100%; background: white;">
+                        <label for="faculty-week" style="font-weight: 500; display: block; margin-bottom: 4px; font-size: 12px; color: #666;">Week</label>
+                        <select id="faculty-week" name="week" style="padding: 6px; border-radius: 4px; border: 1px solid #bbb; width: 100%; background: white;">
                             <option value="">All Weeks</option>
                             {% for week_num in weeks_list %}
                             <option value="{{ week_num }}" {% if selected_week == week_num|stringformat:"s" %}selected{% endif %}>{{ week_num }}</option>
@@ -66,14 +73,22 @@
                     </div>
                 </div>
             </form>
-            <h3 style="margin: 0 0 15px 0; color: #2c3e50; font-size: 18px;">Care Chart</h3>
+            <h2 style="margin: 0 0 15px 0; color: #2c3e50; font-size: 18px;">Care Chart</h2>
             <div style="flex-grow: 1; display: flex; align-items: center; justify-content: center; width: 100%;">
-                <canvas id="pieChart" width="280" height="280"></canvas>
+                <canvas
+                    id="pieChart"
+                    width="280"
+                    height="280"
+                    role="img"
+                    tabindex="0"
+                    aria-label="Pie chart showing distribution of clinical experiences by care category."
+                    aria-describedby="pieChartSummary"></canvas>
             </div>
+            <ul id="pieChartSummary" class="visually-hidden"></ul>
         </div>
 
         <!-- RIGHT CHART - Care Utilization by Sport -->
-        <div style="flex: 1 1 400px; min-width: 350px; max-width: 500px; height: 550px; background: white; padding: 24px; border-radius: 8px; box-shadow: 0 2px 10px rgba(0,0,0,0.08); display: flex; flex-direction: column; align-items: center; box-sizing: border-box;">
+        <div style="flex: 1 1 400px; min-width: 280px; max-width: 500px; min-height: 550px; background: white; padding: 24px; border-radius: 8px; box-shadow: 0 2px 10px rgba(0,0,0,0.08); display: flex; flex-direction: column; align-items: center; box-sizing: border-box;">
             <form id="filterForm2" method="POST" style="width: 100%; max-width: 380px; margin-bottom: 24px;">
                 {% csrf_token %}
                 <!-- Preserve first form's parameters -->
@@ -91,8 +106,8 @@
 
                 <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px 18px; background: #f8f9fa; padding: 15px; border-radius: 6px; border: 1px solid #eee;">
                     <div>
-                        <label style="font-weight: 500; display: block; margin-bottom: 4px; font-size: 12px; color: #666;">Care Type</label>
-                        <select name="care_category" style="padding: 6px; border-radius: 4px; border: 1px solid #bbb; width: 100%; background: white;">
+                        <label for="faculty-care-category" style="font-weight: 500; display: block; margin-bottom: 4px; font-size: 12px; color: #666;">Care Type</label>
+                        <select id="faculty-care-category" name="care_category" style="padding: 6px; border-radius: 4px; border: 1px solid #bbb; width: 100%; background: white;">
                             <option value="immediate_emergency_care" {% if care_category == 'immediate_emergency_care' %}selected{% endif %}>Immediate / Emergency Care</option>
                             <option value="musculoskeletal_exam" {% if care_category == 'musculoskeletal_exam' %}selected{% endif %}>Musculoskeletal Exam</option>
                             <option value="non_musculoskeletal_exam" {% if care_category == 'non_musculoskeletal_exam' %}selected{% endif %}>Non-Musculoskeletal Exam</option>
@@ -105,8 +120,8 @@
                         </select>
                     </div>
                     <div>
-                        <label style="font-weight: 500; display: block; margin-bottom: 4px; font-size: 12px; color: #666;">Semester</label>
-                        <select name="semester2" style="padding: 6px; border-radius: 4px; border: 1px solid #bbb; width: 100%; background: white;">
+                        <label for="faculty-semester2" style="font-weight: 500; display: block; margin-bottom: 4px; font-size: 12px; color: #666;">Semester</label>
+                        <select id="faculty-semester2" name="semester2" style="padding: 6px; border-radius: 4px; border: 1px solid #bbb; width: 100%; background: white;">
                             <option value="">All Semesters</option>
                             {% for sem in semesters %}
                             <option value="{{ sem }}" {% if selected_semester2 == sem %}selected{% endif %}>{{ sem }}</option>
@@ -114,12 +129,12 @@
                         </select>
                     </div>
                     <div>
-                        <label style="font-weight: 500; display: block; margin-bottom: 4px; font-size: 12px; color: #666;">Student</label>
-                        <input list="facultyStudents" name="student_filter2" style="padding: 6px; border-radius: 4px; border: 1px solid #bbb; width: 100%; box-sizing: border-box; background: white;" placeholder="Search students..." value="{{ selected_student2|default:'' }}">
+                        <label for="faculty-student2" style="font-weight: 500; display: block; margin-bottom: 4px; font-size: 12px; color: #666;">Student</label>
+                        <input id="faculty-student2" list="facultyStudents" name="student_filter2" style="padding: 6px; border-radius: 4px; border: 1px solid #bbb; width: 100%; box-sizing: border-box; background: white;" placeholder="Search students..." value="{{ selected_student2|default:'' }}">
                     </div>
                     <div>
-                        <label style="font-weight: 500; display: block; margin-bottom: 4px; font-size: 12px; color: #666;">Week</label>
-                        <select name="week2" style="padding: 6px; border-radius: 4px; border: 1px solid #bbb; width: 100%; background: white;">
+                        <label for="faculty-week2" style="font-weight: 500; display: block; margin-bottom: 4px; font-size: 12px; color: #666;">Week</label>
+                        <select id="faculty-week2" name="week2" style="padding: 6px; border-radius: 4px; border: 1px solid #bbb; width: 100%; background: white;">
                             <option value="">All Weeks</option>
                             {% for week_num in weeks_list %}
                             <option value="{{ week_num }}" {% if selected_week2 == week_num|stringformat:"s" %}selected{% endif %}>{{ week_num }}</option>
@@ -128,16 +143,24 @@
                     </div>
                 </div>
             </form>
-            <h3 style="margin: 0 0 15px 0; color: #2c3e50; font-size: 18px;">Care Utilization by Sport</h3>
+            <h2 style="margin: 0 0 15px 0; color: #2c3e50; font-size: 18px;">Care Utilization by Sport</h2>
             <div style="flex-grow: 1; display: flex; align-items: center; justify-content: center; width: 100%;">
-                <canvas id="pieChart2" width="280" height="280"></canvas>
+                <canvas
+                    id="pieChart2"
+                    width="280"
+                    height="280"
+                    role="img"
+                    tabindex="0"
+                    aria-label="Pie chart showing care utilization by sport."
+                    aria-describedby="pieChart2Summary"></canvas>
             </div>
+            <ul id="pieChart2Summary" class="visually-hidden"></ul>
         </div>
     </div>
 
     <!-- Rest of your template (trend chart, heatmap table) stays the same -->
     <div style="background: white; padding: 24px; border-radius: 8px; box-shadow: 0 2px 10px rgba(0,0,0,0.08); width: 100%; box-sizing: border-box; margin-bottom: 32px;">
-        <h3 style="margin: 0 0 15px 0; color: #2c3e50;">Clinical Experience Trends</h3>
+        <h2 style="margin: 0 0 15px 0; color: #2c3e50;">Clinical Experience Trends</h2>
         <form id="filterForm3" method="POST">
             {% csrf_token %}
             <!-- Preserve other params from other forms -->
@@ -154,8 +177,8 @@
 
             <div style="display: flex; gap: 15px; flex-wrap: wrap; background: #f8f9fa; padding: 15px; border-radius: 6px; border: 1px solid #eee; margin-bottom: 20px;">
                 <div>
-                    <label style="font-weight: 500; display: block; margin-bottom: 4px; font-size: 13px; color: #666;">Sport</label>
-                    <select name="trend_sport" style="padding: 6px 12px; border-radius: 4px; border: 1px solid #bbb; width: 180px; background: white;">
+                    <label for="trend-sport" style="font-weight: 500; display: block; margin-bottom: 4px; font-size: 13px; color: #666;">Sport</label>
+                    <select id="trend-sport" name="trend_sport" style="padding: 6px 12px; border-radius: 4px; border: 1px solid #bbb; width: 180px; background: white;">
                         <option value="all">All Sports</option>
                         {% for sport_name in sports %}
                         <option value="{{ sport_name }}" {% if selected_trend_sport == sport_name %}selected{% endif %}>{{ sport_name }}</option>
@@ -163,8 +186,8 @@
                     </select>
                 </div>
                 <div>
-                    <label style="font-weight: 500; display: block; margin-bottom: 4px; font-size: 13px; color: #666;">Care Type</label>
-                    <select name="trend_care" style="padding: 6px 12px; border-radius: 4px; border: 1px solid #bbb; width: 180px; background: white;">
+                    <label for="trend-care" style="font-weight: 500; display: block; margin-bottom: 4px; font-size: 13px; color: #666;">Care Type</label>
+                    <select id="trend-care" name="trend_care" style="padding: 6px 12px; border-radius: 4px; border: 1px solid #bbb; width: 180px; background: white;">
                         <option value="all">All Care Types</option>
                         <option value="immediate_emergency_care" {% if selected_trend_care == 'immediate_emergency_care' %}selected{% endif %}>Immediate / Emergency Care</option>
                         <option value="musculoskeletal_exam" {% if selected_trend_care == 'musculoskeletal_exam' %}selected{% endif %}>Musculoskeletal Exam</option>
@@ -178,8 +201,8 @@
                     </select>
                 </div>
                 <div>
-                    <label style="font-weight: 500; display: block; margin-bottom: 4px; font-size: 13px; color: #666;">Student</label>
-                    <input list="trendStudents" name="trend_student" style="padding: 6px 12px; border-radius: 4px; border: 1px solid #bbb; width: 180px; box-sizing: border-box; background: white;" placeholder="Search students..." value="{{ selected_trend_student|default:'' }}">
+                    <label for="trend-student" style="font-weight: 500; display: block; margin-bottom: 4px; font-size: 13px; color: #666;">Student</label>
+                    <input id="trend-student" list="trendStudents" name="trend_student" style="padding: 6px 12px; border-radius: 4px; border: 1px solid #bbb; width: 180px; box-sizing: border-box; background: white;" placeholder="Search students..." value="{{ selected_trend_student|default:'' }}">
                     <datalist id="trendStudents">
                         <option value="All Students"></option>
                         {% for student in students %}
@@ -188,8 +211,8 @@
                     </datalist>
                 </div>
                 <div>
-                    <label style="font-weight: 500; display: block; margin-bottom: 4px; font-size: 13px; color: #666;">Semester</label>
-                    <select name="trend_semester" style="padding: 6px 12px; border-radius: 4px; border: 1px solid #bbb; width: 120px; background: white;">
+                    <label for="trend-semester" style="font-weight: 500; display: block; margin-bottom: 4px; font-size: 13px; color: #666;">Semester</label>
+                    <select id="trend-semester" name="trend_semester" style="padding: 6px 12px; border-radius: 4px; border: 1px solid #bbb; width: 120px; background: white;">
                         <option value="">All Semesters</option>
                         {% for sem in semesters %}
                         <option value="{{ sem }}" {% if selected_trend_semester == sem %}selected{% endif %}>{{ sem }}</option>
@@ -199,14 +222,20 @@
             </div>
         </form>
         <div style="position: relative; height: 350px; width: 100%;">
-            <canvas id="trendChart"></canvas>
+            <canvas
+                id="trendChart"
+                role="img"
+                tabindex="0"
+                aria-label="Line chart showing clinical experiences over weeks."
+                aria-describedby="trendChartSummary"></canvas>
         </div>
+        <ul id="trendChartSummary" class="visually-hidden"></ul>
     </div>
 
     <!-- SUMMARY STATISTICS -->
     <div style="background: white; padding: 24px; border-radius: 8px; box-shadow: 0 2px 10px rgba(0,0,0,0.08); width: 100%; box-sizing: border-box;">
         <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 20px;">
-            <h3 style="margin: 0; color: #2c3e50;">Key Metrics</h3>
+            <h2 style="margin: 0; color: #2c3e50;">Key Metrics</h2>
 
             <form id="filterForm4" method="POST" style="display: flex; gap: 15px;">
                 {% csrf_token %}
@@ -225,7 +254,8 @@
                 {% if selected_trend_semester %}<input type="hidden" name="trend_semester" value="{{ selected_trend_semester }}">{% endif %}
                 
                 <div>
-                    <select name="metric_semester" style="padding: 6px 12px; border-radius: 4px; border: 1px solid #bbb; width: 140px; background: white; font-size: 13px;">
+                    <label for="metric-semester" class="visually-hidden">Semester filter for key metrics</label>
+                    <select id="metric-semester" name="metric_semester" style="padding: 6px 12px; border-radius: 4px; border: 1px solid #bbb; width: 140px; background: white; font-size: 13px;">
                         <option value="">All Semesters</option>
                         {% for sem in semesters %}
                         <option value="{{ sem }}" {% if selected_metric_semester == sem %}selected{% endif %}>{{ sem }}</option>
@@ -233,7 +263,8 @@
                     </select>
                 </div>
                 <div>
-                    <input list="metricStudents" name="metric_student" style="padding: 6px 12px; border-radius: 4px; border: 1px solid #bbb; width: 180px; box-sizing: border-box; background: white; font-size: 13px;" placeholder="Search students..." value="{{ selected_metric_student|default:'' }}">
+                    <label for="metric-student" class="visually-hidden">Student filter for key metrics</label>
+                    <input id="metric-student" list="metricStudents" name="metric_student" style="padding: 6px 12px; border-radius: 4px; border: 1px solid #bbb; width: 180px; box-sizing: border-box; background: white; font-size: 13px;" placeholder="Search students..." value="{{ selected_metric_student|default:'' }}">
                     <datalist id="metricStudents">
                         <option value="All Students"></option>
                         {% for student in students %}
@@ -247,32 +278,32 @@
         <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 20px;">
             <div style="background: #f8f9fa; padding: 20px; border-radius: 8px; border: 1px solid #eee; text-align: center;">
                 <div style="font-size: 13px; color: #666; font-weight: 500; margin-bottom: 8px; text-transform: uppercase; letter-spacing: 0.5px;">Total Experiences</div>
-                <div style="font-size: 28px; font-weight: 700; color: #36A2EB;">{{ metric_total_experiences }}</div>
+                <div style="font-size: 28px; font-weight: 700; color: var(--text);">{{ metric_total_experiences }}</div>
             </div>
             
             <div style="background: #f8f9fa; padding: 20px; border-radius: 8px; border: 1px solid #eee; text-align: center;">
                 <div style="font-size: 13px; color: #666; font-weight: 500; margin-bottom: 8px; text-transform: uppercase; letter-spacing: 0.5px;">Active Students</div>
-                <div style="font-size: 28px; font-weight: 700; color: #4BC0C0;">{{ metric_active_students }}</div>
+                <div style="font-size: 28px; font-weight: 700; color: var(--text);">{{ metric_active_students }}</div>
             </div>
 
             <div style="background: #f8f9fa; padding: 20px; border-radius: 8px; border: 1px solid #eee; text-align: center;">
                 <div style="font-size: 13px; color: #666; font-weight: 500; margin-bottom: 8px; text-transform: uppercase; letter-spacing: 0.5px;">Avg Exp / Student</div>
-                <div style="font-size: 28px; font-weight: 700; color: #FF9F40;">{{ metric_avg_per_student }}</div>
+                <div style="font-size: 28px; font-weight: 700; color: var(--text);">{{ metric_avg_per_student }}</div>
             </div>
 
             <div style="background: #f8f9fa; padding: 20px; border-radius: 8px; border: 1px solid #eee; text-align: center;">
                 <div style="font-size: 13px; color: #666; font-weight: 500; margin-bottom: 8px; text-transform: uppercase; letter-spacing: 0.5px;">Total Reports Logged</div>
-                <div style="font-size: 28px; font-weight: 700; color: #9966FF;">{{ metric_total_reports }}</div>
+                <div style="font-size: 28px; font-weight: 700; color: var(--text);">{{ metric_total_reports }}</div>
             </div>
 
             <div style="background: #f8f9fa; padding: 20px; border-radius: 8px; border: 1px solid #eee; text-align: center;">
                 <div style="font-size: 13px; color: #666; font-weight: 500; margin-bottom: 8px; text-transform: uppercase; letter-spacing: 0.5px;">Most Common Care</div>
-                <div style="font-size: 18px; font-weight: 700; color: #FF6384; display: flex; align-items: center; justify-content: center; height: 32px;">{{ metric_most_common_care }}</div>
+                <div style="font-size: 18px; font-weight: 700; color: var(--text); display: flex; align-items: center; justify-content: center; height: 32px;">{{ metric_most_common_care }}</div>
             </div>
 
             <div style="background: #f8f9fa; padding: 20px; border-radius: 8px; border: 1px solid #eee; text-align: center;">
                 <div style="font-size: 13px; color: #666; font-weight: 500; margin-bottom: 8px; text-transform: uppercase; letter-spacing: 0.5px;">Most Active Sport</div>
-                <div style="font-size: 18px; font-weight: 700; color: #7BC225; display: flex; align-items: center; justify-content: center; height: 32px;">{{ metric_most_active_sport }}</div>
+                <div style="font-size: 18px; font-weight: 700; color: var(--text); display: flex; align-items: center; justify-content: center; height: 32px;">{{ metric_most_active_sport }}</div>
             </div>
         </div>
     </div>
@@ -344,11 +375,21 @@
                     labels: pieChartData.map(item => item.label),
                     datasets: [{
                         data: pieChartData.map(item => item.value),
-                        backgroundColor: ['#FF6384', '#36A2EB', '#FFCE56', '#4BC0C0', '#9966FF', '#FF9F40', '#C9CBCF', '#7BC225', '#E74C3C']
+                        backgroundColor: ['#CC2952', '#1F78B4', '#D39B00', '#008A8A', '#6A3D9A', '#CC6A00', '#8A8F99', '#4C8C1A', '#C62828']
                     }]
                 },
                 options: pieOptions
             });
+
+            const summary1 = document.getElementById('pieChartSummary');
+            if (summary1) {
+                summary1.innerHTML = '';
+                pieChartData.forEach(item => {
+                    const li = document.createElement('li');
+                    li.textContent = `${item.label}: ${item.value}`;
+                    summary1.appendChild(li);
+                });
+            }
         }
 
         // RIGHT CHART
@@ -360,30 +401,70 @@
                     labels: pieChartData2.map(item => item.label),
                     datasets: [{ 
                         data: pieChartData2.map(item => item.value), 
-                        backgroundColor: ['#4BC0C0', '#9966FF', '#FF9F40', '#36A2EB', '#FF6384', '#FFCE56', '#C9CBCF', '#7BC225', '#E74C3C'] 
+                        backgroundColor: ['#008A8A', '#6A3D9A', '#CC6A00', '#1F78B4', '#CC2952', '#D39B00', '#8A8F99', '#4C8C1A', '#C62828'] 
                     }]
                 },
                 options: pieOptions
             });
+
+            const summary2 = document.getElementById('pieChart2Summary');
+            if (summary2) {
+                summary2.innerHTML = '';
+                pieChartData2.forEach(item => {
+                    const li = document.createElement('li');
+                    li.textContent = `${item.label}: ${item.value}`;
+                    summary2.appendChild(li);
+                });
+            }
         }
 
         // TREND CHART
         const ctx3 = document.getElementById('trendChart');
         const trendDatasets = JSON.parse(document.getElementById('trend-chart-data').textContent);
+
+        // Apply high-contrast, same-hue colors to trend lines
+        const trendColors = ['#CC2952', '#1F78B4', '#D39B00', '#008A8A', '#6A3D9A', '#CC6A00', '#8A8F99', '#4C8C1A', '#C62828'];
+        trendDatasets.forEach((dataset, index) => {
+            const color = trendColors[index % trendColors.length];
+            dataset.borderColor = color;
+            dataset.backgroundColor = color;
+            dataset.pointBackgroundColor = color;
+        });
         if (ctx3) {
+            const weekLabels = ['Week 1', 'Week 2', 'Week 3', 'Week 4', 'Week 5', 'Week 6', 'Week 7', 'Week 8', 'Week 9', 'Week 10', 'Week 11', 'Week 12', 'Week 13', 'Week 14', 'Week 15', 'Week 16'];
+
             new Chart(ctx3.getContext('2d'), {
                 type: 'line',
                 data: {
-                    labels: ['Week 1', 'Week 2', 'Week 3', 'Week 4', 'Week 5', 'Week 6', 'Week 7', 'Week 8', 'Week 9', 'Week 10', 'Week 11', 'Week 12', 'Week 13', 'Week 14', 'Week 15', 'Week 16'],
+                    labels: weekLabels,
                     datasets: trendDatasets
                 },
                 options: {
                     responsive: true,
                     maintainAspectRatio: false,
                     scales: { y: { beginAtZero: true, title: { display: true, text: 'Clinical Experiences' } } },
-                    plugins: { legend: { position: 'top', align: 'end' } }
+                    plugins: { legend: { position: 'bottom', align: 'center' } }
                 }
             });
+
+            const trendSummary = document.getElementById('trendChartSummary');
+            if (trendSummary) {
+                trendSummary.innerHTML = '';
+                trendDatasets.forEach((dataset, index) => {
+                    const li = document.createElement('li');
+                    const label = dataset.label || `Series ${index + 1}`;
+                    const parts = [];
+
+                    (dataset.data || []).forEach((value, idx) => {
+                        if (value !== null && value !== undefined) {
+                            parts.push(`${weekLabels[idx]}: ${value}`);
+                        }
+                    });
+
+                    li.textContent = `${label}: ${parts.join('; ')}`;
+                    trendSummary.appendChild(li);
+                });
+            }
         }
     });
 </script>
