@@ -296,6 +296,35 @@ def faculty_dashboard_view(request):
                 'fill': False
             })
 
+    # Calculate Total Interactions across all matching trend_reports
+    total_data = []
+    for w in weeks:
+        week_reports = trend_reports.filter(sport__name__in=trend_sports, week=w)
+        if week_reports.exists():
+            week_sum = 0
+            sums = week_reports.aggregate(*[Sum(f) for f in care_fields])
+            for f in care_fields:
+                val = sums[f'{f}__sum']
+                if val:
+                    week_sum += val
+            total_data.append(week_sum)
+        else:
+            total_data.append(0)
+
+    # Only add total line if there are multiple sports or we explicitly want to show it.
+    # Actually, always showing it is fine, but if it covers exactly the single sport selected,
+    # it might be redundant. Let's just include it if it has data.
+    if any(total_data):
+        trend_datasets.append({
+            'label': 'Total Interactions',
+            'data': total_data,
+            'borderColor': '#000000',
+            'borderDash': [5, 5],
+            'borderWidth': 3,
+            'tension': 0.3,
+            'fill': False
+        })
+
     context = {
         # Filters
         'selected_sport': selected_sport,

@@ -375,7 +375,7 @@
                     labels: pieChartData.map(item => item.label),
                     datasets: [{
                         data: pieChartData.map(item => item.value),
-                        backgroundColor: ['#CC2952', '#1F78B4', '#D39B00', '#008A8A', '#6A3D9A', '#CC6A00', '#8A8F99', '#4C8C1A', '#C62828']
+                        backgroundColor: ['#1f77b4', '#ff7f0e', '#2ca02c', '#d62728', '#9467bd', '#8c564b', '#e377c2', '#7f7f7f', '#bcbd22', '#17becf']
                     }]
                 },
                 options: pieOptions
@@ -401,7 +401,7 @@
                     labels: pieChartData2.map(item => item.label),
                     datasets: [{ 
                         data: pieChartData2.map(item => item.value), 
-                        backgroundColor: ['#008A8A', '#6A3D9A', '#CC6A00', '#1F78B4', '#CC2952', '#D39B00', '#8A8F99', '#4C8C1A', '#C62828'] 
+                        backgroundColor: ['#1f77b4', '#ff7f0e', '#2ca02c', '#d62728', '#9467bd', '#8c564b', '#e377c2', '#7f7f7f', '#bcbd22', '#17becf'] 
                     }]
                 },
                 options: pieOptions
@@ -422,13 +422,18 @@
         const ctx3 = document.getElementById('trendChart');
         const trendDatasets = JSON.parse(document.getElementById('trend-chart-data').textContent);
 
-        // Apply high-contrast, same-hue colors to trend lines
-        const trendColors = ['#CC2952', '#1F78B4', '#D39B00', '#008A8A', '#6A3D9A', '#CC6A00', '#8A8F99', '#4C8C1A', '#C62828'];
-        trendDatasets.forEach((dataset, index) => {
-            const color = trendColors[index % trendColors.length];
+        // Apply high-contrast, same-hue colors to trend lines, except for Total
+        const trendColors = ['#1f77b4', '#ff7f0e', '#2ca02c', '#d62728', '#9467bd', '#8c564b', '#e377c2', '#7f7f7f', '#bcbd22', '#17becf'];
+        let colorIndex = 0;
+        trendDatasets.forEach((dataset) => {
+            if (dataset.label === 'Total Interactions') {
+                return; // Keep existing styling for Total
+            }
+            const color = trendColors[colorIndex % trendColors.length];
             dataset.borderColor = color;
             dataset.backgroundColor = color;
             dataset.pointBackgroundColor = color;
+            colorIndex++;
         });
         if (ctx3) {
             const weekLabels = ['Week 1', 'Week 2', 'Week 3', 'Week 4', 'Week 5', 'Week 6', 'Week 7', 'Week 8', 'Week 9', 'Week 10', 'Week 11', 'Week 12', 'Week 13', 'Week 14', 'Week 15', 'Week 16'];

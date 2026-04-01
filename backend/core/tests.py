@@ -662,12 +662,13 @@ class FacultyDashboardMetricsTests(TestCase):
         self.assertEqual(response.status_code, 200)
 
         datasets = response.context['trend_datasets']
+        original_datasets = [ds for ds in datasets if ds['label'] != 'Total Interactions']
         # Only Football should be present
-        self.assertEqual(len(datasets), 1)
-        self.assertEqual(datasets[0]['label'], 'Football')
+        self.assertEqual(len(original_datasets), 1)
+        self.assertEqual(original_datasets[0]['label'], 'Football')
 
         # For Football and care type immediate_emergency_care, week 1 total is 2
-        football_data = datasets[0]['data']
+        football_data = original_datasets[0]['data']
         self.assertEqual(football_data[0], 2)
 
     def test_trend_filters_by_student(self):
@@ -678,12 +679,13 @@ class FacultyDashboardMetricsTests(TestCase):
         self.assertEqual(response.status_code, 200)
 
         datasets = response.context['trend_datasets']
-        labels = {ds['label'] for ds in datasets}
+        original_datasets = [ds for ds in datasets if ds['label'] != 'Total Interactions']
+        labels = {ds['label'] for ds in original_datasets}
 
         # With a student filter, only sports where that student has data appear
         self.assertEqual(labels, {'Football'})
 
-        data_by_label = {ds['label']: ds['data'] for ds in datasets}
+        data_by_label = {ds['label']: ds['data'] for ds in original_datasets}
         football_data = data_by_label['Football']
 
         # Alice only has Football experiences: 3 at week 1, and no weeks for Soccer
