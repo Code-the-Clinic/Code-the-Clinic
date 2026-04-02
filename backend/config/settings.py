@@ -92,6 +92,7 @@ INSTALLED_APPS = [
     'axes',  # Brute force protection for admin login
     'core',
     'clinic_reports', # Clinic report form
+    'user_logging.apps.UserLoggingConfig',
 ]
 
 # For local dev without Azure creds, add dummy provider
@@ -106,6 +107,7 @@ MIDDLEWARE = [
     'django.middleware.common.CommonMiddleware',
     'django.middleware.csrf.CsrfViewMiddleware',
     'django.contrib.auth.middleware.AuthenticationMiddleware',
+    'user_logging.middleware.UserActivityLoggingMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
     'allauth.account.middleware.AccountMiddleware',

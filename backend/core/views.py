@@ -1,12 +1,15 @@
 from django.shortcuts import render, redirect
-from django.http import JsonResponse
+from django.http import JsonResponse, HttpResponse
 from django.views.decorators.http import require_http_methods
 from django.contrib.auth.decorators import login_required
 from django.db.models import Avg, Sum, F, Case, When, IntegerField, Value, FloatField
 from django.db.models.functions import Coalesce, ExtractYear
 from django.core.exceptions import PermissionDenied
+from openpyxl import Workbook
+from datetime import datetime
 import json
 import logging
+import re
 from clinic_reports.models import ClinicReport, Sport
 
 logger = logging.getLogger(__name__)
@@ -427,6 +430,20 @@ def _apply_dashboard_filters(clinic_reports, filters):
     return clinic_reports
 
 
+def _extract_email_from_student_value(student_value):
+    if not student_value or student_value == 'All Students':
+        return None
+    email_match = re.search(r'\(([^)]+)\)$', student_value)
+    return email_match.group(1) if email_match else student_value
+
+
+def _first_non_empty(values):
+    for value in values:
+        if value not in (None, ''):
+            return value
+    return None
+
+
 def _build_dashboard_payload(clinic_reports):
     """Build shared dashboard response payload for pie charts and summary metrics."""
     # Calculate average patient load per report (submission/week)
@@ -483,6 +500,131 @@ def _build_dashboard_payload(clinic_reports):
         'total_patients': sum(item['value'] for item in pie_chart_data),
         'average_patients_per_week': average_patients_per_week,
     }
+
+
+@require_http_methods(["GET"])
+@login_required
+def export_dashboard_excel(request):
+    """Export filtered raw dashboard ClinicReport data as an Excel file."""
+    if not request.user.is_staff:
+        return JsonResponse({'success': False, 'error': 'Permission denied'}, status=403)
+
+    try:
+        selected_sport = _first_non_empty([
+            request.GET.get('sport'),
+            request.GET.get('trend_sport') if request.GET.get('trend_sport') != 'all' else None,
+        ])
+        selected_semester = _first_non_empty([
+            request.GET.get('semester'),
+            request.GET.get('semester2'),
+            request.GET.get('metric_semester'),
+            request.GET.get('trend_semester'),
+        ])
+        selected_week = _first_non_empty([
+            request.GET.get('week'),
+            request.GET.get('week2'),
+        ])
+        selected_year = request.GET.get('year')
+        selected_student = _first_non_empty([
+            request.GET.get('student'),
+            request.GET.get('student_filter2'),
+            request.GET.get('metric_student'),
+            request.GET.get('trend_student'),
+        ])
+
+        filters = {
+            'sport': selected_sport,
+            'semester': selected_semester,
+            'week': selected_week,
+            'year': selected_year,
+        }
+
+        clinic_reports = ClinicReport.objects.select_related('sport', 'healthcare_provider').all()
+        clinic_reports = _apply_dashboard_filters(clinic_reports, filters)
+
+        email_to_filter = _extract_email_from_student_value(selected_student)
+        if email_to_filter:
+            clinic_reports = clinic_reports.filter(email=email_to_filter)
+
+        clinic_reports = clinic_reports.order_by('id')
+
+        workbook = Workbook()
+        sheet = workbook.active
+        sheet.title = 'clinic_reports_raw'
+
+        headers = [
+            'id',
+            'created_at_utc',
+            'first_name',
+            'last_name',
+            'email',
+            'sport',
+            'semester',
+            'week',
+            'immediate_emergency_care',
+            'musculoskeletal_exam',
+            'non_musculoskeletal_exam',
+            'taping_bracing',
+            'rehabilitation_reconditioning',
+            'modalities',
+            'pharmacology',
+            'injury_illness_prevention',
+            'non_sport_patient',
+            'interacted_hcps',
+            'healthcare_provider',
+            'total_experiences',
+        ]
+        sheet.append(headers)
+
+        for report in clinic_reports.iterator():
+            total_experiences = (
+                (report.immediate_emergency_care or 0)
+                + (report.musculoskeletal_exam or 0)
+                + (report.non_musculoskeletal_exam or 0)
+                + (report.taping_bracing or 0)
+                + (report.rehabilitation_reconditioning or 0)
+                + (report.modalities or 0)
+                + (report.pharmacology or 0)
+                + (report.injury_illness_prevention or 0)
+                + (report.non_sport_patient or 0)
+            )
+
+            sheet.append([
+                report.id,
+                report.created_at.isoformat() if report.created_at else '',
+                report.first_name,
+                report.last_name,
+                report.email,
+                report.sport.name if report.sport else '',
+                report.semester,
+                report.week,
+                report.immediate_emergency_care,
+                report.musculoskeletal_exam,
+                report.non_musculoskeletal_exam,
+                report.taping_bracing,
+                report.rehabilitation_reconditioning,
+                report.modalities,
+                report.pharmacology,
+                report.injury_illness_prevention,
+                report.non_sport_patient,
+                report.interacted_hcps,
+                report.healthcare_provider.name if report.healthcare_provider else '',
+                total_experiences,
+            ])
+
+        response = HttpResponse(
+            content_type='application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
+        )
+        timestamp = datetime.utcnow().strftime('%Y%m%d_%H%M%S')
+        response['Content-Disposition'] = f'attachment; filename="dashboard_raw_{timestamp}.xlsx"'
+        workbook.save(response)
+        return response
+    except ValueError as e:
+        logger.error(f"Dashboard export validation error: {e}")
+        return JsonResponse({'success': False, 'error': 'Invalid filter parameters'}, status=400)
+    except Exception as e:
+        logger.error(f"Dashboard export error: {e}")
+        return JsonResponse({'success': False, 'error': 'Failed to export dashboard data'}, status=500)
 
 @require_http_methods(["POST"])
 @login_required
