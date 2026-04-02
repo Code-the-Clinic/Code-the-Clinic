@@ -3,6 +3,9 @@
 
 using './main.bicep'
 
+// Toggle manual vs automatic DB setup in case of permission issues
+param runAutomatedDbIdentitySetup = true
+
 // Resource naming parameters
 param sites_code_the_clinic_name = 'code-the-clinic'
 param serverfarms_ASP_capstone_976d_name = 'ASP-capstone-976d'

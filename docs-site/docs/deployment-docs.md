@@ -14,6 +14,7 @@ Hi! Here's how to run our application locally, run tests, and deploy it in the c
 - Set up environment variables
     - Open .env-example and set the environment variables according to the guidelines (but do this in a different file, .env, and put .env in gitignore so that you don't expose any secrets.)
     - For Azure credentials, see the "How to get myBama auth working..." section--local Azure credentials are only needed if you want to test myBama auth locally
+- If you are setting up your dev environment and running the app locally for the first time, run this command once to apply all existing database migrations: `docker-compose exec backend python manage.py migrate`
 - To run the documentation website and the django backend: `docker-compose up`
 - To run the documentation website and the django backend and rebuild the docker container (for example, if you added new dependencies to requirements.txt): `docker-compose up --build`
 - To update the local database:
@@ -66,7 +67,6 @@ Hi! Here's how to run our application locally, run tests, and deploy it in the c
 
 ### Pre-deployment todos
 - Fill in environment variables in main.bicepparam (before doing this, make your own local copy of main.bicepparam (main-local.bicepparam) that is gitignored so so environment variables aren't in a public github)
-- For dbAdminPrincipalName, run this command in Azure Cloud Shell or in your local terminal and copy/paste the result into your LOCAL bicepparam file: `az ad signed-in-user show --query "userPrincipalName" -o tsv`
 
 ### Deploying the application
 - Run `az login` to log into the Azure CLI and then select the subscription you want to copy the application into.
@@ -90,12 +90,14 @@ az stack group create --name clinic-test-stack --resource-group <new-resource-gr
 ```
 
 - NOTE: If the deployment fails midway through and you want a fresh start, if you used the second command (az stack group create ...) you can use this command to delete all the resources created via the deployment command. ONLY use this if you want to delete all the resources you just tried to deploy.
+- NOTE: If the deployment script resource fails with a permission error (this may happen if you are in UA's tenant), you can set runAutomatedDbIdentitySetup = false in main-local.bicepparam to prevent the deployment script from running. You will need to do one additional manual task during post-deployment to enable the DB and App Service to communicate.
 
 ```bash
 az stack group delete --name clinic-test-stack --resource-group <rg-name> --action-on-unmanage deleteAll
 ```
 
 ### Post-deployment todos
+- If you set runAutomatedDbIdentitySetup = false, enter the required variables in cloudshell_db_bootstrap.sh (located at the root of the GitHub repo) and copy the script into a new Cloud Shell session. This script will perform the same action as the deployment script in the Bicep file--setting up the DB to recognize the App Service's managed identity, and giving the App Service permission to modify tables in the DB.
 - Add yourself as a Key Vault Secrets Officer
     - Go to your Key Vault => Access control (IAM) => Role assignments => New role assignment => Assign yourself the Key Vault Secrets Officer role. This will let you view, add, and edit secrets, which you will need to do to set up the application.
 - If you can't access the "Secrets" tab in your Key Vault because of a firewall rule:
@@ -125,9 +127,10 @@ az stack group delete --name clinic-test-stack --resource-group <rg-name> --acti
     - ALLOW_PASSWORD_ADMIN_LOGIN = False (if you need to allow admin login with username/password in an emergency, you can set this to True later.)
     - Other environment variables should be OK to leave as the default values set in the template.
 - Give the App Service permission to pull the latest Docker image from GHCR
-    - Get GitHub Personal Access Token (PAT) with read:packages permission
+    - Get GitHub Personal Access Token (PAT) with read:packages permission on the Code the Clinic repository
     - Go to your new App Service => Deployment Center => click on "main" => paste the PAT into the password field and click "ok"
-- NOTE: If the app isn't working at this point (after you restart it in the App Service overview page), temporarily swich DEBUG to True in the environment variables to see the stack trace. It's usually one of these problems:
+- NOTE: If the app isn't working at this point (after you restart it in the App Service overview page), temporarily swich DEBUG to True in the environment variables to see the stack trace and follow the "smoke testing" instructions to look at the platform (server-level) and runtime (Django app level) logs. It's usually one of these problems:
+    - You see an error in the Runtime logs when Django tries to auto-run migrations, indicating that the app can't connect to the database. If it says something like "password authentication invalid," that means the app service isn't properly set up to log into the DB with an Entra token. Try running the cloudshell_db_bootstrap.sh script in a new Cloud Shell session to set up the DB to recognize the App Service's managed identity and give it the proper permissions to create and edit tables.
     - You didn't add the App Service's domain to ALLOWED_HOSTS (this usually results in a 400 error). Try adding the exact domain listed in the error message to the ALLOWED_HOSTS environment variable and restart the app.
     - There was an issue with one of your Key Vault secrets and you fixed it, but the app isn't "seeing" it because it is just pulling a cached version of what's in Key Vault (this usually results in a 500 error). Try temporarily changing an environment variable and then changing it back--this should solve the problem.
     - You try to login with myBama and see a Microsoft login error page that says something about a redirect URL. Make sure that your App Service's domain (exactly as specified in the error message) is listed as a Redirect URL under the App Registration you are using for myBama auth.
@@ -164,7 +167,7 @@ az stack group delete --name clinic-test-stack --resource-group <rg-name> --acti
 
 ### Smoke testing
 - If you are experiencing HTTP errors and need to get clear error messages, you can temporarily set DEBUG=True in the App Service's environment variables. However, this makes the application more vulnerable since an attacker could see exactly what was preventing them from accessing a certain page. For this reason, you should immediately change DEBUG back to False after testing, and ideally never set DEBUG=True in the Azure portal at all (just do your testing locally instead).
-- If the app service isn't starting, you can see detailed logs in "log stream" under the App Service settings => Monitoring. You should be able to see "platform logs" (logs from the underlying server that is running the app) and "runtime logs" (logs from the app itself). If you don't see any runtime logs, check the platform logs to see what might be going wrong. Platform logs are where you would see problems pulling the Docker container from GitHub Container Registry or problems pinging the app for health checks. Runtime logs are where you would see Django errors (failed to run migrations, normal website errors like 403/400/etc.)
+- If the app service isn't starting, you can see detailed logs in "log stream" under the App Service settings => Monitoring. (You may need to enable filesystem-level logging first if you are deploying the app for the first time in a new environment). You should be able to see "platform logs" (logs from the underlying server that is running the app) and "runtime logs" (logs from the app itself). If you don't see any runtime logs, check the platform logs to see what might be going wrong. Platform logs are where you would see problems pulling the Docker container from GitHub Container Registry or problems pinging the app for health checks. Runtime logs are where you would see Django errors (failed to run migrations, normal website errors like 403/400/etc.)
 
 ### Troubleshooting and known issues
 - If the app seems to start (check runtime Log Stream in the app service for gunicorn logs) but you are getting "gateway timeout" or "application error" because Azure is failing to ping the application, check Deployment Center => Containers => main => Port and make sure it is set to 8000. If it isn't set to 8000, Azure will ping the wrong port and won't be able to reach Django.

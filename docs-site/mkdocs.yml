@@ -13,6 +13,7 @@ nav:
   - 'Meet the Team': team.md
   - 'Project Deliverables': deliverables.md
   - 'Documentation for Developers': deployment-docs.md
+  - 'Cybersecurity Assessment': cyber-assessment.md
 
 markdown_extensions:
   - attr_list     # Allows you to use { width="100" }
