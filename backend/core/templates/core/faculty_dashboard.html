@@ -359,6 +359,18 @@
             responsive: true, 
             maintainAspectRatio: false, 
             plugins: { 
+                tooltip: {
+                    callbacks: {
+                        label: function(context) {
+                            const label = context.label || '';
+                            const value = Number(context.parsed);
+                            const dataset = context.dataset.data || [];
+                            const total = dataset.reduce((sum, current) => sum + Number(current), 0);
+                            const percentage = total > 0 ? Math.round((value / total) * 100) : 0;
+                            return `${label}: ${value} (${percentage}%)`;
+                        }
+                    }
+                },
                 legend: { 
                     position: 'bottom', 
                     labels: { boxWidth: 12, padding: 15 } 
