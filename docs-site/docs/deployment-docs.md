@@ -122,6 +122,7 @@ az stack group delete --name clinic-test-stack --resource-group <rg-name> --acti
     - POSTGRES_USER = In key vault (postgres-user)
     - ALLOWED_HOSTS = 'localhost,127.0.0.1,0.0.0.0,<domain-of-app-service-application>,https://<domain-of-app-service-application>'
     - CSRF_TRUSTED_ORIGINS = 'https://<domain-of-app-service-application>
+    - ALLOW_PASSWORD_ADMIN_LOGIN = False (if you need to allow admin login with username/password in an emergency, you can set this to True later.)
     - Other environment variables should be OK to leave as the default values set in the template.
 - Give the App Service permission to pull the latest Docker image from GHCR
     - Get GitHub Personal Access Token (PAT) with read:packages permission
