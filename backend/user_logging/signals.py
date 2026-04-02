@@ -45,8 +45,19 @@ def _get_ip_address(request):
 
     forwarded = request.META.get('HTTP_X_FORWARDED_FOR')
     if forwarded:
-        return forwarded.split(',')[0].strip()
-    return request.META.get('REMOTE_ADDR')
+        candidate = forwarded.split(',')[0].strip()
+    else:
+        candidate = request.META.get('REMOTE_ADDR')
+
+    if not candidate:
+        return candidate
+
+    # Some hosting environments include the port (e.g. "1.2.3.4:56789").
+    # Strip the port for IPv4-style addresses so it fits GenericIPAddressField.
+    if ':' in candidate and candidate.count('.') == 3:
+        candidate = candidate.split(':', 1)[0]
+
+    return candidate
 
 
 def _build_base_log_data(request):
