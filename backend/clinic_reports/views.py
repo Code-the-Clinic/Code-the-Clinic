@@ -64,11 +64,27 @@ def submit_report(request):
 
         # Name and email validation (from authenticated user account, not the form)
         user_email = request.user.email
-        user_first_name = request.user.first_name
-        user_last_name = request.user.last_name
+        user_first_name = (request.user.first_name or '').strip()
+        user_last_name = (request.user.last_name or '').strip()
 
+        # Some SSO profiles may not populate first/last names consistently.
+        # Fall back to a safe split so valid users can still submit reports.
         if not user_first_name or not user_last_name:
-            return JsonResponse({'success': False, 'error': 'Your account is missing a first or last name. Please contact an administrator.'}, status=400)
+            full_name = (request.user.get_full_name() or '').strip()
+            if full_name:
+                parts = full_name.split()
+                if not user_first_name:
+                    user_first_name = parts[0]
+                if not user_last_name:
+                    user_last_name = parts[-1] if len(parts) > 1 else 'Unknown'
+            else:
+                username_or_email = (request.user.get_username() or user_email or 'User').strip()
+                if '@' in username_or_email:
+                    username_or_email = username_or_email.split('@', 1)[0]
+                if not user_first_name:
+                    user_first_name = username_or_email[:100] or 'Unknown'
+                if not user_last_name:
+                    user_last_name = 'Unknown'
 
         if not user_email:
             return JsonResponse({'success': False, 'error': 'No email is associated with your account. Please contact an administrator.'}, status=400)
