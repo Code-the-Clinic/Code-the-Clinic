@@ -1,9 +1,12 @@
-"""
-Export raw dashboard data (ClinicReport rows) to an Excel file.
+"""One-off utility to export dashboard source data to Excel.
+
+This script is not used by the web app at runtime; it is a
+standalone tool that can be run from the command line when
+faculty or admins need a raw dump of ClinicReport rows.
 
 Usage examples:
-  python scripts/export_dashboard_raw_to_excel.py
-  python scripts/export_dashboard_raw_to_excel.py --output "exports/dashboard_raw.xlsx"
+    python scripts/export_dashboard_raw_to_excel.py
+    python scripts/export_dashboard_raw_to_excel.py --output "exports/dashboard_raw.xlsx"
 """
 
 import argparse

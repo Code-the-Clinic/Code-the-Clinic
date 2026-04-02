@@ -628,40 +628,6 @@ def export_dashboard_excel(request):
 
 @require_http_methods(["POST"])
 @login_required
-def fetch_data(request):
-    """API endpoint to fetch pie chart data for faculty dashboard
-    
-    Accepts JSON payload with filters:
-    - sport: filter by sport name (optional)
-    - semester: filter by semester (optional)
-    - week: filter by week number (optional)
-    - year: filter by year (optional)
-    
-    Authorization:
-    - Non-staff users cannot use this endpoint
-    - Staff users can filter by any combination of parameters
-    """
-    if not request.user.is_staff:
-        return JsonResponse({'success': False, 'error': 'Permission denied'}, status=403)
-    
-    try:
-        filters = json.loads(request.body)
-        clinic_reports = ClinicReport.objects.all()
-        clinic_reports = _apply_dashboard_filters(clinic_reports, filters)
-        return JsonResponse(_build_dashboard_payload(clinic_reports))
-    
-    except json.JSONDecodeError:
-        return JsonResponse({'success': False, 'error': 'Invalid JSON'}, status=400)
-    except ValueError as e:
-        logger.error(f"Dashboard data fetch validation error: {e}")
-        return JsonResponse({'success': False, 'error': 'Invalid filter parameters'}, status=400)
-    except Exception as e:
-        logger.error(f"Dashboard data fetch error: {e}")
-        return JsonResponse({'success': False, 'error': 'Failed to fetch dashboard data'}, status=500)
-
-
-@require_http_methods(["POST"])
-@login_required
 def fetch_student_data(request):
     """API endpoint for student dashboard data (self-only)."""
     if request.user.is_staff:

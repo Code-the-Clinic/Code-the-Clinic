@@ -6,6 +6,5 @@ urlpatterns = [
     path('dashboard/admin/', views.faculty_dashboard_view, name='faculty_dashboard'),
     path('dashboard/export_excel/', views.export_dashboard_excel, name='export_dashboard_excel'),
     path('dashboard/student/', views.student_dashboard_view, name='student_dashboard'),
-    path('dashboard/fetch_data/', views.fetch_data, name='fetch_data'),
     path('dashboard/fetch_student_data/', views.fetch_student_data, name='fetch_student_data'),
 ]

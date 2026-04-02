@@ -1,3 +1,11 @@
+"""Middleware for lightweight, privacy-aware admin portal activity logging.
+
+This module is intentionally minimal and only records high-level navigation
+metadata needed for security/audit insights (no request bodies or sensitive
+query params are stored). See AdminPortalLog in user_logging.models for the
+data schema.
+"""
+
 from urllib.parse import parse_qsl
 
 from django.conf import settings
