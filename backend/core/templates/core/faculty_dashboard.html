@@ -10,6 +10,7 @@
     }
 }
 </style>
+<div id="dashboardStatus" role="status" aria-live="polite" aria-atomic="true" class="visually-hidden"></div>
 <div class="page-container" style="padding: 20px; max-width: 1200px; margin: auto; font-family: sans-serif;">
     <h1 style="color: #2c3e50; margin-bottom: 24px;">Faculty Dashboard</h1>
 
@@ -314,6 +315,14 @@
 {{ pie_chart_data2|json_script:"pie-chart-data2" }}
 {{ trend_datasets|json_script:"trend-chart-data" }}
 <script>
+    // Auto-update live region for status announcements
+    function setStatusMessage(message) {
+        const statusEl = document.getElementById('dashboardStatus');
+        if (statusEl) {
+            statusEl.textContent = message;
+        }
+    }
+
     // Auto-submit form when filter dropdowns change
     function setupAutoSubmit() {
         const form = document.getElementById('filterForm');
@@ -326,6 +335,7 @@
                 const inputs = f.querySelectorAll('select, input');
                 inputs.forEach((input) => {
                     input.addEventListener('change', function() {
+                        setStatusMessage('Updating dashboard filters...');
                         sessionStorage.setItem('dashboardScrollPosition', window.scrollY);
                         setTimeout(() => {
                             f.submit();
@@ -402,6 +412,7 @@
                     summary1.appendChild(li);
                 });
             }
+            setStatusMessage('Faculty dashboard care category chart updated.');
         }
 
         // RIGHT CHART
@@ -428,6 +439,7 @@
                     summary2.appendChild(li);
                 });
             }
+            setStatusMessage('Faculty dashboard care utilization chart updated.');
         }
 
         // TREND CHART
