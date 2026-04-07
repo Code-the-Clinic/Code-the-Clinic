@@ -183,11 +183,15 @@
       <button class="btn-primary" type="submit">Submit Report</button>
     </form>
 
-    <div class="success-message" id="success-message">
+    <div class="success-message" id="success-message" tabindex="-1">
       ✓ Report submitted successfully!
     </div>
-    <div class="error-message" id="error-message">
+    <div class="error-message" id="error-message" role="alert" aria-live="assertive" tabindex="-1">
       ✗ Error submitting report. Please try again.
+    </div>
+    <ul id="field-errors" class="error-message" style="display:none; list-style:disc; margin-left:2em;" role="alert" aria-live="assertive" tabindex="-1"></ul>
+    <div class="muted" style="margin-top:24px; text-align:center; font-size:14px;">
+      Need help? Contact your program director or email <a href="mailto:clinic-support@example.edu">clinic-support@example.edu</a>.
     </div>
   <script>
     // Helper to read cookie (to send CSRF token in XHR headers)
@@ -230,18 +234,51 @@
       e.preventDefault();
       const data = Object.fromEntries(new FormData(e.target));
 
+      // Hide all error messages initially
+      document.getElementById("error-message").style.display = "none";
+      document.getElementById("success-message").style.display = "none";
+      const fieldErrors = document.getElementById("field-errors");
+      fieldErrors.style.display = "none";
+      fieldErrors.innerHTML = "";
+
+
+      // Client-side validation: check required fields and show errors with suggestions
+      let firstErrorField = null;
+      const requiredFields = e.target.querySelectorAll("[required]");
+      requiredFields.forEach(field => {
+        if (!field.value) {
+          const label = e.target.querySelector(`label[for='${field.id}']`);
+          const fieldName = label ? label.textContent : field.name;
+          const errorId = field.id + "-error";
+          field.setAttribute("aria-describedby", errorId);
+          const li = document.createElement("li");
+          li.id = errorId;
+          // Suggestion for fixing the error
+          let suggestion = "Please enter a value.";
+          if (field.type === "number") suggestion = "Please enter a valid number (0 or greater).";
+          if (field.type === "email") suggestion = "Please enter a valid email address.";
+          li.textContent = `${fieldName} is required. ${suggestion}`;
+          fieldErrors.appendChild(li);
+          if (!firstErrorField) firstErrorField = field;
+        } else {
+          field.removeAttribute("aria-describedby");
+        }
+      });
+      if (fieldErrors.children.length > 0) {
+        fieldErrors.style.display = "block";
+        fieldErrors.focus();
+        if (firstErrorField) firstErrorField.focus();
+        return;
+      }
+
       try {
         const res = await fetch("/clinic-reports/api/submit/", {
           method: "POST",
           headers: { "Content-Type": "application/json", "X-CSRFToken": csrftoken },
-          // Ensure browser sends session cookie for CSRF/session-authenticated requests
           credentials: 'same-origin',
           body: JSON.stringify(data)
         });
 
-        // If the user is not authenticated the API returns 401. Redirect to
-        // the login page and preserve the current path with `next` so the
-        // user returns to the form after signing in.
         if (res.status === 401) {
           window.location = '/accounts/microsoft/login/?next=' + encodeURIComponent(window.location.pathname);
           return;
@@ -251,19 +288,36 @@
 
         if (result.success) {
           document.getElementById("success-message").style.display = "block";
-          document.getElementById("error-message").style.display = "none";
+          document.getElementById("success-message").focus();
           e.target.reset();
-          providerSection.style.display = 'none'; // Hide provider section on reset
+          providerSection.style.display = 'none';
           setTimeout(() => {
             document.getElementById("success-message").style.display = "none";
           }, 3000);
+        } else if (result.errors) {
+          // Server-side field errors
+          Object.entries(result.errors).forEach(([field, msg]) => {
+            const fieldEl = e.target.querySelector(`[name='${field}']`);
+            const label = e.target.querySelector(`label[for='${fieldEl ? fieldEl.id : field}']`);
+            const fieldName = label ? label.textContent : field;
+            const errorId = (fieldEl ? fieldEl.id : field) + "-error";
+            const li = document.createElement("li");
+            li.id = errorId;
+            li.textContent = `${fieldName}: ${msg}`;
+            fieldErrors.appendChild(li);
+            if (fieldEl) fieldEl.setAttribute("aria-describedby", errorId);
+            if (!firstErrorField && fieldEl) firstErrorField = fieldEl;
+          });
+          fieldErrors.style.display = "block";
+          fieldErrors.focus();
+          if (firstErrorField) firstErrorField.focus();
         } else {
           document.getElementById("error-message").style.display = "block";
-          document.getElementById("success-message").style.display = "none";
+          document.getElementById("error-message").focus();
         }
       } catch (error) {
         document.getElementById("error-message").style.display = "block";
-        document.getElementById("success-message").style.display = "none";
+        document.getElementById("error-message").focus();
       }
     };
   </script>
