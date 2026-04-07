@@ -307,6 +307,14 @@
             </div>
         </div>
     </div>
+
+    <div style="display: flex; justify-content: flex-end; margin-top: 18px;">
+        <a id="export-excel-link"
+           href="{% url 'export_dashboard_excel' %}"
+           style="display: inline-block; background: var(--crimson); color: #fff; text-decoration: none; padding: 10px 14px; border-radius: 6px; font-weight: 600;">
+            Export Raw Data to Excel
+        </a>
+    </div>
 </div>
 
 <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js" integrity="sha384-9nhczxUqK87bcKHh20fSQcTGD4qq5GhayNYSYWqwBkINBhOfQLg/P5HG5lF1urn4" crossorigin="anonymous"></script>
@@ -314,6 +322,47 @@
 {{ pie_chart_data2|json_script:"pie-chart-data2" }}
 {{ trend_datasets|json_script:"trend-chart-data" }}
 <script>
+    function getInputValue(id) {
+        const element = document.getElementById(id);
+        return element ? (element.value || '').trim() : '';
+    }
+
+    function updateExportExcelLink() {
+        const exportLink = document.getElementById('export-excel-link');
+        if (!exportLink) {
+            return;
+        }
+
+        const baseUrl = "{% url 'export_dashboard_excel' %}";
+        const params = new URLSearchParams();
+
+        const mappings = [
+            ['sport', getInputValue('faculty-sport')],
+            ['semester', getInputValue('faculty-semester')],
+            ['student', getInputValue('faculty-student')],
+            ['week', getInputValue('faculty-week')],
+            ['care_category', getInputValue('faculty-care-category')],
+            ['semester2', getInputValue('faculty-semester2')],
+            ['student_filter2', getInputValue('faculty-student2')],
+            ['week2', getInputValue('faculty-week2')],
+            ['trend_sport', getInputValue('trend-sport')],
+            ['trend_care', getInputValue('trend-care')],
+            ['trend_student', getInputValue('trend-student')],
+            ['trend_semester', getInputValue('trend-semester')],
+            ['metric_semester', getInputValue('metric-semester')],
+            ['metric_student', getInputValue('metric-student')],
+        ];
+
+        mappings.forEach(([key, value]) => {
+            if (value) {
+                params.set(key, value);
+            }
+        });
+
+        const query = params.toString();
+        exportLink.href = query ? `${baseUrl}?${query}` : baseUrl;
+    }
+
     // Auto-submit form when filter dropdowns change
     function setupAutoSubmit() {
         const form = document.getElementById('filterForm');
@@ -326,6 +375,7 @@
                 const inputs = f.querySelectorAll('select, input');
                 inputs.forEach((input) => {
                     input.addEventListener('change', function() {
+                        updateExportExcelLink();
                         sessionStorage.setItem('dashboardScrollPosition', window.scrollY);
                         setTimeout(() => {
                             f.submit();
@@ -350,6 +400,7 @@
         
         // Setup toggle and auto-submit
         setupAutoSubmit();
+        updateExportExcelLink();
         
         // Get data from Django context (safe via json_script)
         const pieChartData = JSON.parse(document.getElementById('pie-chart-data').textContent);
