@@ -431,6 +431,7 @@ def _apply_dashboard_filters(clinic_reports, filters):
 
 
 def _extract_email_from_student_value(student_value):
+    """Parse a student dropdown value and return the underlying email, if any."""
     if not student_value or student_value == 'All Students':
         return None
     email_match = re.search(r'\(([^)]+)\)$', student_value)
@@ -438,6 +439,7 @@ def _extract_email_from_student_value(student_value):
 
 
 def _first_non_empty(values):
+    """Return the first value in the iterable that is not None or an empty string."""
     for value in values:
         if value not in (None, ''):
             return value

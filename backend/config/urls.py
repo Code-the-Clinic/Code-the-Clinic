@@ -27,6 +27,7 @@ import os
 logger = logging.getLogger(__name__)
 
 def _db_health_check(request):
+    """Perform a simple database connectivity check for health endpoints."""
     try:
         connection.ensure_connection()
         with connection.cursor() as cursor:

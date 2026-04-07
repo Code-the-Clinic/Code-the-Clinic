@@ -7,5 +7,6 @@ class UserLoggingConfig(AppConfig):
     verbose_name = 'User Logging'
 
     def ready(self):
+        """Import auth signal handlers so they are registered at startup."""
         # Register signal handlers for auth events
         import user_logging.signals  # noqa: F401

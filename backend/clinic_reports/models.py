@@ -7,6 +7,7 @@ class Sport(models.Model):
     active = models.BooleanField(default=True)
 
     def __str__(self):
+        """Return the sport name for human-readable display."""
         return f"{self.name}"
 
 
@@ -15,6 +16,7 @@ class HealthcareProvider(models.Model):
     active = models.BooleanField(default=True)
 
     def __str__(self):
+        """Return the healthcare provider name for human-readable display."""
         return f"{self.name}"
 
 
@@ -58,6 +60,7 @@ class ClinicReport(models.Model):
     #  - Jun-Dec  -> Fall
     # Week is manually selected by the student (1-16).
     def save(self, *args, **kwargs):
+        """Populate the semester based on the created_at timestamp before saving."""
         created = self.created_at or timezone.now()
         month = created.month
 
@@ -77,5 +80,6 @@ class ClinicReport(models.Model):
         super().save(*args, **kwargs)
 
     def __str__(self):
+        """Return a concise identifier for this clinic report instance."""
         return f"{self.first_name} {self.last_name} - {self.sport} ({self.created_at.date()})"
 

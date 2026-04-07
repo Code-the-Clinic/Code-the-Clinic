@@ -39,5 +39,6 @@ class AdminPortalLog(models.Model):
         ]
 
     def __str__(self):
+        """Return a concise, human-readable summary of the admin portal event."""
         identity = self.email or self.username or 'unknown-user'
         return f"{self.event_type} - {identity} @ {self.created_at:%Y-%m-%d %H:%M:%S}"

@@ -26,6 +26,7 @@ SENSITIVE_QUERY_KEYS = {
 
 
 def _get_ip_address(request):
+    """Extract a best-effort client IP address from the incoming request."""
     forwarded = request.META.get('HTTP_X_FORWARDED_FOR')
     if forwarded:
         candidate = forwarded.split(',')[0].strip()
@@ -44,6 +45,7 @@ def _get_ip_address(request):
 
 
 def _sanitize_query_string(raw_query):
+    """Redact sensitive keys and truncate query strings before logging."""
     if not raw_query:
         return ''
 
