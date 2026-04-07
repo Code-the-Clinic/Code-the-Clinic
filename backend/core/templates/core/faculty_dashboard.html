@@ -277,7 +277,7 @@
         
         <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 20px;">
             <div style="background: #f8f9fa; padding: 20px; border-radius: 8px; border: 1px solid #eee; text-align: center;">
-                <div style="font-size: 13px; color: #666; font-weight: 500; margin-bottom: 8px; text-transform: uppercase; letter-spacing: 0.5px;">Total Experiences</div>
+                <div style="font-size: 13px; color: #666; font-weight: 500; margin-bottom: 8px; text-transform: uppercase; letter-spacing: 0.5px;">Total Patient Encounters</div>
                 <div style="font-size: 28px; font-weight: 700; color: var(--text);">{{ metric_total_experiences }}</div>
             </div>
             
@@ -477,7 +477,7 @@
         const trendColors = ['#1f77b4', '#ff7f0e', '#2ca02c', '#d62728', '#9467bd', '#8c564b', '#e377c2', '#7f7f7f', '#bcbd22', '#17becf'];
         let colorIndex = 0;
         trendDatasets.forEach((dataset) => {
-            if (dataset.label === 'Total Interactions') {
+            if (dataset.label === 'Total Patient Encounters') {
                 return; // Keep existing styling for Total
             }
             const color = trendColors[colorIndex % trendColors.length];
