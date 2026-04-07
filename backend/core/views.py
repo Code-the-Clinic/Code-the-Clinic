@@ -319,7 +319,7 @@ def faculty_dashboard_view(request):
     # it might be redundant. Let's just include it if it has data.
     if any(total_data):
         trend_datasets.append({
-            'label': 'Total Interactions',
+            'label': 'Total Patient Encounters',
             'data': total_data,
             'borderColor': '#000000',
             'borderDash': [5, 5],

@@ -463,7 +463,7 @@ class FacultyDashboardMetricsTests(TestCase):
         self.assertEqual(response.status_code, 200)
 
         datasets = response.context['trend_datasets']
-        original_datasets = [ds for ds in datasets if ds['label'] != 'Total Interactions']
+        original_datasets = [ds for ds in datasets if ds['label'] != 'Total Patient Encounters']
         # Only Football should be present
         self.assertEqual(len(original_datasets), 1)
         self.assertEqual(original_datasets[0]['label'], 'Football')
@@ -480,7 +480,7 @@ class FacultyDashboardMetricsTests(TestCase):
         self.assertEqual(response.status_code, 200)
 
         datasets = response.context['trend_datasets']
-        original_datasets = [ds for ds in datasets if ds['label'] != 'Total Interactions']
+        original_datasets = [ds for ds in datasets if ds['label'] != 'Total Patient Encounters']
         labels = {ds['label'] for ds in original_datasets}
 
         # With a student filter, only sports where that student has data appear

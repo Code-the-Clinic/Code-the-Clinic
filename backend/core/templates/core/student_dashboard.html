@@ -28,7 +28,7 @@
         <h2 style="margin: 0 0 20px 0; color: #2c3e50; font-size: 16px;">Summary</h2>
         <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 20px;">
             <div style="padding: 16px; background: #f8f9fa; border-radius: 6px; border-left: 4px solid #9e1b32;">
-                <div style="font-size: 12px; color: #666; margin-bottom: 8px;">Total Patients</div>
+                <div style="font-size: 12px; color: #666; margin-bottom: 8px;">Total Patient Encounters</div>
                 <div id="total-patients" style="font-size: 28px; font-weight: bold; color: #2c3e50;">0</div>
             </div>
             <div style="padding: 16px; background: #f8f9fa; border-radius: 6px; border-left: 4px solid #9e1b32;">
@@ -181,4 +181,10 @@
     document.getElementById('semester-filter').addEventListener('change', loadDashboardData);
     document.getElementById('week-filter').addEventListener('change', loadDashboardData);
 </script>
+{% endblock %}
+
+{% block helpinfo %}
+<footer style="margin-top:40px; text-align:center; color:#555; font-size:14px;">
+    Need help? Contact your program director or email <a href="mailto:clinic-support@example.edu">clinic-support@example.edu</a>.
+</footer>
 {% endblock %}
