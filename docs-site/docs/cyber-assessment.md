@@ -4,6 +4,10 @@ hide:
 ---
 
 # Cyber assessment
+
+## Overall assessment
+We have implemented a variety of security features to prevent common attacks, including DDoS, cross-site request forgery, privilege escalation, and malicious code execution. Our application is deployed in a secure University-owned Azure tenant, and permissions on the resource group where we have deployed the application are limited to those who are currently working on the project. Overall, our application is secure and ready for production use.
+
 ## Security features we implemented
 - Secure myBama authentication using an official UA Microsoft app registration
 - Force social account login in production (SOCIALACCOUNT_ONLY = True automatically in Azure) so that no one can use the standard Django username/password login--this lowers the risk of brute-force attacks
@@ -17,6 +21,7 @@ hide:
   - Enabled rate limiting in django settings (CWE-770)
   - Sanitized URLs in href tags to prevent execution of malicious javascript (CWE-79)
   - Added integrity attribute for external CDN files to ensure they haven't been tampered with (CWE-353)
+    - [Next steps] Possibly add Django "url" tags instead of manually sanitizing   urls for an extra layer of reliability
   - [Local dev] Prevented privilege escalation in local DB resource with 'no-new-privileges: true' (CWE-732)
   - [Local dev] Made the local DB's filesystem read-only (read_only: true) to prevent execution of malicious code (CWE-732)
   - Use CSRF tokens to prevent cross-site request forgery
