@@ -20,11 +20,13 @@ import time
 
 class AzureDbToken:
     def __init__(self):
+        """Configure an Azure credential client and in-memory token cache."""
         self.token = None
         self.expiry = 0
         self.cred = DefaultAzureCredential()
 
     def __str__(self):
+        """Return a cached Azure PostgreSQL access token, refreshing when near expiry."""
         # If token is missing or expiring in less than 5 mins, refresh it
         if not self.token or self.expiry < (time.time() + 300):
             token_obj = self.cred.get_token("https://ossrdbms-aad.database.windows.net/.default")
