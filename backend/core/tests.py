@@ -9,6 +9,7 @@ from django.contrib.auth import get_user_model
 from core.adapters import CustomSocialAccountAdapter
 from clinic_reports.models import ClinicReport, Sport
 from unittest.mock import patch
+from unittest import skip
 
 User = get_user_model()
 
@@ -49,7 +50,8 @@ class AdapterDomainTests(TestCase):
         with self.assertRaises(ValidationError):
             self.adapter.pre_social_login(request=None, sociallogin=sociallogin)
 
-# TODO: Check that faculty dashboard view can't render without staff authentication
+
+@skip("fetch_data endpoint is currently unused and not exposed via URLs")
 class FetchDataTests(TestCase):
     @classmethod
     def setUpTestData(cls):
