@@ -431,6 +431,7 @@ def _apply_dashboard_filters(clinic_reports, filters):
 
 
 def _extract_email_from_student_value(student_value):
+    """Parse a student dropdown value and return the underlying email, if any."""
     if not student_value or student_value == 'All Students':
         return None
     email_match = re.search(r'\(([^)]+)\)$', student_value)
@@ -438,6 +439,7 @@ def _extract_email_from_student_value(student_value):
 
 
 def _first_non_empty(values):
+    """Return the first value in the iterable that is not None or an empty string."""
     for value in values:
         if value not in (None, ''):
             return value
@@ -629,17 +631,18 @@ def export_dashboard_excel(request):
 @require_http_methods(["POST"])
 @login_required
 def fetch_data(request):
-    """API endpoint to fetch pie chart data for faculty dashboard
-    
-    Accepts JSON payload with filters:
-    - sport: filter by sport name (optional)
-    - semester: filter by semester (optional)
-    - week: filter by week number (optional)
-    - year: filter by year (optional)
-    
-    Authorization:
-    - Non-staff users cannot use this endpoint
-    - Staff users can filter by any combination of parameters
+    """[UNUSED] Legacy API endpoint for faculty dashboard data.
+
+    This endpoint is no longer exposed via URL routing and is kept only
+    for historical reference / potential future reuse. The supported API
+    surface for dashboard data is ``fetch_student_data`` (student) and the
+    server-side rendered faculty dashboard view.
+
+    Previous behavior (still implemented here):
+    - Accepts JSON payload with filters (sport, semester, week, year).
+    - Requires an authenticated staff user.
+    - Returns aggregated pie-chart and summary metrics.
+    - Can only be used by staff users (AT faculty and administrators).
     """
     if not request.user.is_staff:
         return JsonResponse({'success': False, 'error': 'Permission denied'}, status=403)

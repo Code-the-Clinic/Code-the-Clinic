@@ -67,9 +67,7 @@
 <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js" integrity="sha384-9nhczxUqK87bcKHh20fSQcTGD4qq5GhayNYSYWqwBkINBhOfQLg/P5HG5lF1urn4" crossorigin="anonymous"></script>
 <script>
     let careCategoryChart = null;
-    // let careBySportChart = null;  // COMMENTED OUT FOR NOW
-
-    const chartColors = ['#CC2952', '#1F78B4', '#D39B00', '#008A8A', '#6A3D9A', '#CC6A00', '#008B5E', '#D84343', '#5C6BC0'];
+    const chartColors = ['#1f77b4', '#ff7f0e', '#2ca02c', '#d62728', '#9467bd', '#8c564b', '#e377c2', '#7f7f7f', '#bcbd22', '#17becf'];
     const pieOptions = { responsive: true, maintainAspectRatio: false, plugins: { legend: { position: 'bottom', labels: { boxWidth: 12, padding: 15 } } } };
 
     // Helper to get CSRF token
@@ -160,20 +158,6 @@
         options: pieOptions
     });
 
-    /* COMMENTED OUT FOR NOW
-    careBySportChart = new Chart(document.getElementById('careBySportChart').getContext('2d'), {
-        type: 'pie',
-        data: {
-            labels: ['Loading...'],
-            datasets: [{
-                data: [100],
-                backgroundColor: ['#ddd']
-            }]
-        },
-        options: pieOptions
-    });
-    */
-
     // Load data on page load
     loadDashboardData();
 
@@ -181,10 +165,4 @@
     document.getElementById('semester-filter').addEventListener('change', loadDashboardData);
     document.getElementById('week-filter').addEventListener('change', loadDashboardData);
 </script>
-{% endblock %}
-
-{% block helpinfo %}
-<footer style="margin-top:40px; text-align:center; color:#555; font-size:14px;">
-    Need help? Contact your program director or email <a href="mailto:clinic-support@example.edu">clinic-support@example.edu</a>.
-</footer>
 {% endblock %}

@@ -65,6 +65,7 @@ class ClinicReportViewTests(TestCase):
         }
 
     def test_data_retrieval(self):
+        """Persist a submitted report and read it back correctly."""
         self.client.force_login(self.user)
         self.client.post(self.submit_url, data=json.dumps(self.payload), content_type='application/json')
         report = ClinicReport.objects.first()
@@ -73,6 +74,7 @@ class ClinicReportViewTests(TestCase):
         self.assertEqual(report.sport, self.football)  # Compare with Sport object
 
     def test_invalid_email(self):
+        """Reject submissions when the authenticated user's email is invalid."""
         self.client.force_login(self.user)
         # Invalid email on the authenticated user account should cause failure
         self.user.email = 'not-an-email'
@@ -114,6 +116,7 @@ class ClinicReportViewTests(TestCase):
         self.assertNotIn('DROP TABLE', report.last_name)
 
     def test_missing_required_field(self):
+        """Fail validation when a required field (such as sport) is missing."""
         self.client.force_login(self.user)
         bad_payload = self.payload.copy()
         del bad_payload['sport']
@@ -140,6 +143,7 @@ class ClinicReportViewTests(TestCase):
         self.assertEqual(ClinicReport.objects.count(), 0)
 
     def test_xss_injection(self):
+        """Ensure payload HTML in name fields is ignored to avoid XSS."""
         self.client.force_login(self.user)
         bad_payload = self.payload.copy()
         bad_payload['last_name'] = '<script>alert(1)</script>'
@@ -151,6 +155,7 @@ class ClinicReportViewTests(TestCase):
 
     @override_settings(LOGIN_URL='/accounts/microsoft/login/') # Simulate production situation (Azure credentials are available, so redirect to microsoft login) in test env
     def test_no_form_if_not_authenticated(self):
+        """Redirect unauthenticated users to the configured login URL."""
         # Use reverse to avoid hardcoding URLs
         resp = self.client.get(self.url)
         # Check that the site redirects unauthenticated users to the login page
@@ -159,6 +164,7 @@ class ClinicReportViewTests(TestCase):
         self.assertIn('/accounts/microsoft/login/', resp['Location'])
 
     def test_form_view_allows_authenticated(self):
+        """Allow authenticated users to access and render the clinic report form."""
         self.client.force_login(self.user) # This simulates logging in the user
         resp = self.client.get(self.url)
         self.assertEqual(resp.status_code, 200)
@@ -166,6 +172,7 @@ class ClinicReportViewTests(TestCase):
         self.assertContains(resp, "Submit Report")  
 
     def test_submit_requires_auth(self):
+        """Return a 401 JSON response when an unauthenticated user submits the form."""
         # Unauthenticated users shouldn't be able to submit the form
         resp = self.client.post(self.submit_url, data=json.dumps(self.payload), content_type='application/json')
         self.assertEqual(resp.status_code, 401)
@@ -176,6 +183,7 @@ class ClinicReportViewTests(TestCase):
         self.assertEqual(ClinicReport.objects.count(), 0)
     
     def test_submit_creates_report_when_authenticated(self):
+        """Create a ClinicReport record when an authenticated user submits valid data."""
         self.client.force_login(self.user)
         resp = self.client.post(self.submit_url, data=json.dumps(self.payload), content_type='application/json')
         # the view returns JsonResponse with success True

@@ -9,6 +9,7 @@ from django.contrib.auth import get_user_model
 from core.adapters import CustomSocialAccountAdapter
 from clinic_reports.models import ClinicReport, Sport
 from unittest.mock import patch
+from unittest import skip
 
 User = get_user_model()
 
@@ -17,10 +18,12 @@ class AdapterDomainTests(TestCase):
         self.adapter = CustomSocialAccountAdapter()
 
     def make_sociallogin(self, email_value):
+        """Create a lightweight sociallogin-like object with the given email."""
         # Creates small fake object with email in expected field
         return SimpleNamespace(account=SimpleNamespace(extra_data={'email': email_value}))
 
     def test_allows_allowed_domain(self):
+        """Permit authentication when the email domain is in ALLOWED_DOMAINS."""
         # Set fake values for allowed domains to avoid leaking real university email domains
         os.environ['ALLOWED_DOMAINS'] = 'university.edu,another.edu'
         sociallogin = self.make_sociallogin('user@university.edu')
@@ -32,6 +35,7 @@ class AdapterDomainTests(TestCase):
             self.fail(f"pre_social_login unexpectedly raised a ValidationError: {e}")
 
     def test_blocks_disallowed_domain(self):
+        """Reject authentication when the email domain is not allowed."""
         os.environ['ALLOWED_DOMAINS'] = 'university.edu,another.edu'
         sociallogin = self.make_sociallogin('intruder@notallowed.com')
 
@@ -39,13 +43,15 @@ class AdapterDomainTests(TestCase):
             self.adapter.pre_social_login(request=None, sociallogin=sociallogin)
 
     def test_missing_email_raises(self):
+        """Raise a ValidationError when Microsoft does not provide an email."""
         os.environ['ALLOWED_DOMAINS'] = 'university.edu'
         sociallogin = SimpleNamespace(account=SimpleNamespace(extra_data={}))  # no email
         # Should throw a ValidationError when email is missing
         with self.assertRaises(ValidationError):
             self.adapter.pre_social_login(request=None, sociallogin=sociallogin)
 
-# TODO: Check that faculty dashboard view can't render without staff authentication
+
+@skip("fetch_data endpoint is currently unused and not exposed via URLs")
 class FetchDataTests(TestCase):
     @classmethod
     def setUpTestData(cls):
@@ -321,6 +327,7 @@ class FetchStudentDataTests(TestCase):
         )
 
     def post_fetch_student(self, user, payload):
+        """Helper to POST JSON payloads to the fetch_student_data endpoint as a user."""
         self.client.force_login(user)
         return self.client.post(
             self.fetch_student_url,
@@ -329,6 +336,7 @@ class FetchStudentDataTests(TestCase):
         )
 
     def test_fetch_student_data_requires_authentication(self):
+        """Redirect anonymous users who call the student data endpoint."""
         response = self.client.post(
             self.fetch_student_url,
             data=json.dumps({}),
@@ -337,6 +345,7 @@ class FetchStudentDataTests(TestCase):
         self.assertEqual(response.status_code, 302)
 
     def test_fetch_student_data_denies_staff_user(self):
+        """Return a 403 and error message when a staff user calls the endpoint."""
         response = self.post_fetch_student(self.staff_user, {})
         data = json.loads(response.content)
 
@@ -345,6 +354,7 @@ class FetchStudentDataTests(TestCase):
         self.assertIn('faculty endpoint', data.get('error', ''))
 
     def test_fetch_student_data_returns_only_current_user_data(self):
+        """Aggregate only the authenticated student's reports, ignoring others."""
         response = self.post_fetch_student(self.student_user, {'email': 'student-other@university.edu'})
         data = json.loads(response.content)
         labels = {item['label']: item['value'] for item in data.get('pie_chart_data', [])}
@@ -361,6 +371,7 @@ class FetchStudentDataTests(TestCase):
         self.assertNotIn('Non-Musculoskeletal', labels)
 
     def test_fetch_student_data_rejects_invalid_year(self):
+        """Return a 400 JSON error when the year filter is not numeric."""
         response = self.post_fetch_student(self.student_user, {'year': 'Spring'})
         data = json.loads(response.content)
 

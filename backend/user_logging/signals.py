@@ -7,11 +7,13 @@ from .models import AdminPortalLog
 
 
 def _normalized_admin_path_prefix():
+    """Return the normalized admin path prefix derived from ADMIN_URL."""
     admin_url = os.environ.get('ADMIN_URL', 'admin/').strip('/')
     return f'/{admin_url}/'
 
 
 def _is_admin_url(url_value):
+    """Determine whether the given URL points to the admin portal."""
     if not url_value:
         return False
 
@@ -20,6 +22,7 @@ def _is_admin_url(url_value):
 
 
 def _is_admin_request(request):
+    """Check whether the current request is for, or will redirect to, admin URLs."""
     if request is None:
         return False
 
@@ -40,6 +43,7 @@ def _is_admin_request(request):
 
 
 def _get_ip_address(request):
+    """Extract a best-effort client IP address from the request for logging."""
     if request is None:
         return None
 
@@ -61,6 +65,7 @@ def _get_ip_address(request):
 
 
 def _build_base_log_data(request):
+    """Build a base dictionary of logging fields from the request context."""
     return {
         'ip_address': _get_ip_address(request),
         'user_agent': request.META.get('HTTP_USER_AGENT', '') if request else '',
@@ -70,6 +75,7 @@ def _build_base_log_data(request):
 
 @receiver(user_logged_in)
 def log_admin_user_login(sender, request, user, **kwargs):
+    """Record a login event, tagging whether it is admin-scoped or general."""
     data = _build_base_log_data(request)
     request_scope = 'admin' if _is_admin_request(request) else 'general'
     AdminPortalLog.objects.create(
@@ -84,6 +90,7 @@ def log_admin_user_login(sender, request, user, **kwargs):
 
 @receiver(user_logged_out)
 def log_admin_user_logout(sender, request, user, **kwargs):
+    """Record a logout event, preserving scope and basic request metadata."""
     data = _build_base_log_data(request)
     request_scope = 'admin' if _is_admin_request(request) else 'general'
     username = user.get_username() if user else ''
@@ -100,6 +107,7 @@ def log_admin_user_logout(sender, request, user, **kwargs):
 
 @receiver(user_login_failed)
 def log_admin_user_login_failed(sender, credentials, request, **kwargs):
+    """Record a failed login attempt with the attempted username, if available."""
     attempted_username = ''
     if isinstance(credentials, dict):
         attempted_username = (

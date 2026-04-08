@@ -22,7 +22,9 @@ class AdminPortalLogAdmin(admin.ModelAdmin):
     )
 
     def has_add_permission(self, request):
+        """Prevent manual creation of admin portal log records via the admin UI."""
         return False
 
     def has_change_permission(self, request, obj=None):
+        """Prevent editing of existing admin portal log records via the admin UI."""
         return False
