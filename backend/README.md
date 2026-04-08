@@ -25,6 +25,12 @@
 - To run all backend tests for a specific app: docker-compose exec backend python manage.py test app-name
     - For example, python manage.py test clinic_reports would run all the tests under the clinic_reports app (these check whether the form authentication and submission logic works correctly).
 
+## Project layout notes for handoff
+- Active Django apps: `core`, `clinic_reports`, and `user_logging` (plus Django/allauth/axes).
+- The old scaffolded `api` app has been removed because it was never wired into INSTALLED_APPS or URLs.
+- The `scripts/export_dashboard_raw_to_excel.py` helper is a standalone CLI utility and is not called by the web server.
+- The `backend/src` and `frontend` folders are currently empty placeholders and can be safely deleted or repurposed in a future phase.
+
 ## How to debug
 - If you are getting Django import errors after force-quitting and restarting Docker Desktop, try these steps to force re-creating all Docker containers without cache (in case the cache got corrupted during the abrupt restart). WARNING: This will delete all the records in your local database! NEVER use this method in production--only in local development!
 docker-compose down -v (removes all containers and deletes all associated volumes)
