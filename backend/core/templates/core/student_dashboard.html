@@ -67,8 +67,6 @@
 <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js" integrity="sha384-9nhczxUqK87bcKHh20fSQcTGD4qq5GhayNYSYWqwBkINBhOfQLg/P5HG5lF1urn4" crossorigin="anonymous"></script>
 <script>
     let careCategoryChart = null;
-    // let careBySportChart = null;  // COMMENTED OUT FOR NOW
-
     const chartColors = ['#1f77b4', '#ff7f0e', '#2ca02c', '#d62728', '#9467bd', '#8c564b', '#e377c2', '#7f7f7f', '#bcbd22', '#17becf'];
     const pieOptions = { responsive: true, maintainAspectRatio: false, plugins: { legend: { position: 'bottom', labels: { boxWidth: 12, padding: 15 } } } };
 
@@ -159,20 +157,6 @@
         },
         options: pieOptions
     });
-
-    /* COMMENTED OUT FOR NOW
-    careBySportChart = new Chart(document.getElementById('careBySportChart').getContext('2d'), {
-        type: 'pie',
-        data: {
-            labels: ['Loading...'],
-            datasets: [{
-                data: [100],
-                backgroundColor: ['#ddd']
-            }]
-        },
-        options: pieOptions
-    });
-    */
 
     // Load data on page load
     loadDashboardData();
