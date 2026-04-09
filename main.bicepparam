@@ -24,7 +24,10 @@ param networkAddressSpace = '10.0.0.0/16'
 param subnetDefault = '10.0.0.0/24'
 param subnetAppService = '10.0.1.0/26'
 param subnetDeploymentScript = '10.0.2.0/27'
-param vaultSubnetIpAddress = '130.160.194.1/32'
+// If you put an IP in vaultSubnetIpAddress, it will be allowed to access the Key Vault.
+// You can add your own IP for bootstrapping purposes, but make sure to remove it
+// in the Azure portal under your Key Vault resource once you are done adding/editing secrets.
+param vaultSubnetIpAddress = '<your-allowed-ip>'
 
 // Application parameters
 param containerImage = 'ghcr.io/code-the-clinic/code-the-clinic:main'
