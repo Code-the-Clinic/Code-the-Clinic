@@ -6,7 +6,7 @@ hide:
 # How to deploy the application
 *Created by Holland Henderson-Boyer*
 
-Hi! Here's how to run our application locally, run tests, and deploy it in the cloud. In case you need to change Azure accounts later (for example, to move the application fully into the university tenant), you can use the Azure CLI and the bicep template files we've included to deploy without spending hours clicking through Azure's terrible GUI :)
+Hi! Here's how to run our application locally, run tests, and deploy it in the cloud. In case you need to change Azure region or tenant later, you can use the Azure CLI and the bicep template files we've included to redeploy without spending hours clicking through Azure's terrible GUI :)
 
 ## Required setup tools
 - Docker Desktop (needed to run Docker locally)
@@ -66,13 +66,15 @@ Hi! Here's how to run our application locally, run tests, and deploy it in the c
         - Now when you log in with your crimson email you should automatically be able to see the admin dashboard!
 
 ## How to deploy to Azure
-We currently have the application deployed in the university's Azure tenant! The name of our resource group is CHES-CS495-Capstone-Team-Code-the-Clinic-RG. There is a cost associated with our deployed resources (currently about $37 per month), which is billed to the AT department.
-If you need to re-deploy in the university's tenant for any reason (changing regions, fatal problem with current deployment, etc.), ask for the following roles from IT for bootstrapping:
+We currently have the application deployed in the university's Azure tenant! The name of our resource group is `CHES-CS495-Capstone-Team-Code-the-Clinic-RG`. There is a cost associated with our deployed resources (currently about $37 per month), which is billed to the AT department.
+
+### Permissions required from IT
 - Contributor
 - Key Vault Secrets Officer (to add new secrets)
 - Managed Identity Operator
 - Role Based Access Control Administrator
-After initial setup, you should only need Contributor (and possibly Key Vault Secrets Officer if you need to add/update secrets in Key Vault).
+
+If you need to re-deploy in the university's tenant for any reason (changing regions, fatal problem with current deployment, etc.), ask for all of the above permissions. For regular maintenance and development after initial setup, you should only need Contributor (and possibly Key Vault Secrets Officer if you need to add/update secrets in Key Vault).
 
 ### Pre-deployment todos
 - Fill in environment variables in main.bicepparam (before doing this, make your own local copy of main.bicepparam (call it main-local.bicepparam) that is gitignored so so environment variables aren't in a public github)

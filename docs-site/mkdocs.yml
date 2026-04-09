@@ -12,7 +12,7 @@ nav:
   - Home: index.md
   - 'Meet the Team': team.md
   - 'Project Deliverables': deliverables.md
-  - 'Documentation for Developers': deployment-docs.md
+  - 'Deployment Documentation': deployment-docs.md
   - 'Cybersecurity Assessment': cyber-assessment.md
 
 markdown_extensions:
