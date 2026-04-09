@@ -34,6 +34,8 @@ param containerPort = '8000'
 // and they will need to enter a personal access token in Azure later (instructions
 // in deployment-docs.md) to give the App Service permission to pull from GHCR
 param siteContainerUserName = 'your-github-username'
+param minTlsVersion = '1.2'
+param healthCheckPath = '/health/'
 
 // Environment variables (replace items in <brackets> as needed)
 param allowedDomains = '<comma-separated string of university email domains>'
