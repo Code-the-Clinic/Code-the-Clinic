@@ -4,6 +4,8 @@ hide:
 ---
 
 # How to deploy the application
+*Created by Holland Henderson-Boyer*
+
 Hi! Here's how to run our application locally, run tests, and deploy it in the cloud. In case you need to change Azure accounts later (for example, to move the application fully into the university tenant), you can use the Azure CLI and the bicep template files we've included to deploy without spending hours clicking through Azure's terrible GUI :)
 
 ## Required setup tools
@@ -63,10 +65,17 @@ Hi! Here's how to run our application locally, run tests, and deploy it in the c
         - Delete the manually created superuser when you are done for security
         - Now when you log in with your crimson email you should automatically be able to see the admin dashboard!
 
-## How to deploy to the cloud
+## How to deploy to Azure
+We currently have the application deployed in the university's Azure tenant! The name of our resource group is CHES-CS495-Capstone-Team-Code-the-Clinic-RG. There is a cost associated with our deployed resources (currently about $37 per month), which is billed to the AT department.
+If you need to re-deploy in the university's tenant for any reason (changing regions, fatal problem with current deployment, etc.), ask for the following roles from IT for bootstrapping:
+- Contributor
+- Key Vault Secrets Officer (to add new secrets)
+- Managed Identity Operator
+- Role Based Access Control Administrator
+After initial setup, you should only need Contributor (and possibly Key Vault Secrets Officer if you need to add/update secrets in Key Vault).
 
 ### Pre-deployment todos
-- Fill in environment variables in main.bicepparam (before doing this, make your own local copy of main.bicepparam (main-local.bicepparam) that is gitignored so so environment variables aren't in a public github)
+- Fill in environment variables in main.bicepparam (before doing this, make your own local copy of main.bicepparam (call it main-local.bicepparam) that is gitignored so so environment variables aren't in a public github)
 
 ### Deploying the application
 - Run `az login` to log into the Azure CLI and then select the subscription you want to copy the application into.
@@ -145,8 +154,8 @@ az stack group delete --name clinic-test-stack --resource-group <rg-name> --acti
         az postgres flexible-server execute --name <postgres-server-name> --admin-user $USERNAME --admin-password $TOKEN --database-name=<db-name-should-be-same-as-postgres-server-name> --querytext "UPDATE auth_user SET is_staff = true, is_superuser = true WHERE email = '<your-crimson-email>';" 
         ```
     - Remove your Entra admin status in the PostgreSQL server settings
-- [IMPORTANT] Remove Contributor role assignment from the deployment-script managed identity (this identity was created solely to set up initial DB permissions and is no longer needed.)
-- [IMPORTANT] Revoke Entra admin status from the "test-dbscript" managed identity
+- [IMPORTANT] (You don't need to do this if you set runAutomatedDbIdentitySetup=false) Remove Contributor role assignment from the deployment-script managed identity (this identity was created solely to set up initial DB permissions and is no longer needed.)
+- [IMPORTANT] (You don't need to do this if you set runAutomatedDbIdentitySetup=false) Revoke Entra admin status from the "test-dbscript" managed identity
     - Run these commands in the Azure Cloud Shell or local terminal, one at a time:
         ```bash
         USERNAME=$(az ad signed-in-user show --query "userPrincipalName" -o tsv)
