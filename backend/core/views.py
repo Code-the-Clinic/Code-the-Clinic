@@ -394,9 +394,7 @@ def student_dashboard_view(request):
 
 def home_view(request):
     """Render the homepage."""
-    from django.conf import settings
-    context = {'login_url': settings.LOGIN_URL}
-    return render(request, 'core/home.html', context)
+    return render(request, 'core/home.html')
 
 
 def _apply_dashboard_filters(clinic_reports, filters):

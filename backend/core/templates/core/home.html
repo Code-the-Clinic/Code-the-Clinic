@@ -34,13 +34,7 @@
     <div class="centered">
         <p class="muted">Sign in with myBama to submit reports and view dashboards.</p>
         <div class="button-row">
-        {% with login=login_url|default:'/accounts/login/' %}
-            {% if login|slice:":11" != "javascript:" %}
-                <a class="btn-primary" href="{{ login }}">Login with myBama</a>
-            {% else %}
-                <a class="btn-primary" href="/accounts/login/">Login with myBama</a>
-            {% endif %}
-        {% endwith %}
+            <a class="btn-primary" href="{% url 'login_entry' %}">Login with myBama</a>
         </div>
     </div>
 {% endif %}
