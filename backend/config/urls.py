@@ -62,10 +62,26 @@ def _admin_login(request):
     query = urlencode({'next': next_url})
     return redirect(f'/accounts/microsoft/login/?{query}')
 
+
+def login_entry(request):
+    """Public login entry point used by templates.
+
+    Templates always link to the fixed named route 'login_entry' rather than
+    interpolating variables into href attributes, which avoids XSS patterns if
+    those variables ever become user-controlled.
+
+    The actual destination is controlled centrally via settings.LOGIN_URL
+    (e.g., /accounts/microsoft/login/ in Azure vs /accounts/login/ locally),
+    so auth behavior can change without touching templates.
+    """
+
+    return redirect(settings.LOGIN_URL)
+
 urlpatterns = [
     path('health/', lambda request: JsonResponse({"status": "ok"}), name='health'),
     path('health/db/', _db_health_check, name='health_db'),
     path('', include('core.urls')),
+    path('login/', login_entry, name='login_entry'),
     path(f'{ADMIN_URL}login/', _admin_login, name='admin_login'),
     path(ADMIN_URL, admin.site.urls, name='admin'),
     path('accounts/', include('allauth.urls'), name='accounts'),
