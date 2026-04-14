@@ -38,7 +38,7 @@ Note that most files on this page are stored in Google Drive--this is to preserv
 [Deployment documentation](deployment-docs.md) By Holland Henderson-Boyer <br>
 [User guide](https://docs.google.com/document/d/1KjX5WVBYQ-gBn7r5G-T_KVNk6oj3OR3RCYeIQ6MQbTE/edit?usp=sharing){target=_blank rel="noopener"} By Peter Capriotti (TODO: Ask if linking to google doc is ok) <br>
 [Dev environment documentation](){target=_blank rel="noopener"} By Pierce Daugherty (TODO: Add this link) <br>
-[FAQs](){target=_blank rel="noopener"} By Alex Cunningham (TODO: Add this link) <br>
+[FAQs](FAQ.md){target=_blank rel="noopener"} By Alex Cunningham <br>
 **Test plan:** Instructions for running tests are located at backend/README.md. All unit tests are located in their respective Django apps' `tests.py` files. For example, tests for the core data processing logic are in `backend/core/tests.py`. Tests for the clinic report submission logic are in `backend/clinic_reports/tests.py`. Since we already had tests and instructions for running them, Dr. Anderson told us to do the FAQs as individual documentation instead of the test plan (we are a 4-person team). <br>
 
 ## Thanks for a great 4 years!

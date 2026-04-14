@@ -1,4 +1,5 @@
 # FAQ
+*By Alex Cunningham*
 
 ### How do I run the app locally?
 
