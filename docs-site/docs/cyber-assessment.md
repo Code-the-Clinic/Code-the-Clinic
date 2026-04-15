@@ -27,6 +27,7 @@ We have implemented a variety of security features to prevent common attacks, in
   - Use Python logging instead of print statements for detailed error messages to prevent stack trace exposure
 
 ## Issues to review periodically
+- [BREAKING] Entra to Okta migration: myBama auth will transition from Microsoft Entra to Okta, which will break authentication for this app. A future development team will need to replace the Azure app registration credentials for myBama authentication with equivalent Okta credentials (may need to submit an IT ticket for this). 
 - Create a Content Security Policy to add another layer of defense against JavaScript injection/cross-site scripting attacks.
 - Encourage sponsor (AT department) to use the principle of least privilege with admin permissions--admins can click on any user and set their permissions in a more granular way--not every admin has to be a superuser (able to see all the data in the admin portal, create new users, etc.)
 - Make sure that DEBUG is set to False in the Azure App Service's environment variables--this prevents detailed error messages from being exposed to attackers.

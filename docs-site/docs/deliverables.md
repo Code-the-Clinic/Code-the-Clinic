@@ -31,14 +31,15 @@ Note that most files on this page are stored in Google Drive--this is to preserv
 [Sprint retrospective](https://docs.google.com/document/d/1RxW2ycW-Qt1jnz8ZrN2eIuMtvIyp_eHnCe1I47m65bM/edit?usp=sharing){target=_blank rel="noopener"} <br>
 [Sprint presentation](https://bama365-my.sharepoint.com/:p:/g/personal/hrhendersonboyer_crimson_ua_edu/IQDvJ2C77cHQTKDhD6x8qVS3AXiRSHex4RRiMOVieARMAv8?e=blfesx){target=_blank rel="noopener"} <br>
 [Sprint presentation - Google Drive backup](){target=_blank rel="noopener"} TODO: Add this after presentation is done <br>
-[Demo video](){target=_blank rel="noopener"} TODO: Add this link <br>
-[Cyber assessment](cyber-assessment.md)
+[Cyber assessment](cyber-assessment.md) <br>
+[Demo video (YouTube)](https://www.youtube.com/watch?v=fbzXmqy7v5g){target=_blank rel="noopener"} <br>
+<iframe width="640" height="360" src="https://www.youtube.com/embed/fbzXmqy7v5g" title="Project Demo Video" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" referrerpolicy="strict-origin-when-cross-origin" allowfullscreen></iframe>
 
 ## Individual documentation
 [Deployment documentation](deployment-docs.md) By Holland Henderson-Boyer <br>
-[User guide](https://docs.google.com/document/d/1KjX5WVBYQ-gBn7r5G-T_KVNk6oj3OR3RCYeIQ6MQbTE/edit?usp=sharing){target=_blank rel="noopener"} By Peter Capriotti (TODO: Ask if linking to google doc is ok) <br>
+[User guide](https://docs.google.com/document/d/1KjX5WVBYQ-gBn7r5G-T_KVNk6oj3OR3RCYeIQ6MQbTE/edit?usp=sharing){target=_blank rel="noopener"} By Peter Capriotti <br>
 [Dev environment documentation](){target=_blank rel="noopener"} By Pierce Daugherty (TODO: Add this link) <br>
-[FAQs](FAQ.md){target=_blank rel="noopener"} By Alex Cunningham <br>
+[FAQs](FAQ.md) By Alex Cunningham <br>
 **Test plan:** Instructions for running tests are located at backend/README.md. All unit tests are located in their respective Django apps' `tests.py` files. For example, tests for the core data processing logic are in `backend/core/tests.py`. Tests for the clinic report submission logic are in `backend/clinic_reports/tests.py`. Since we already had tests and instructions for running them, Dr. Anderson told us to do the FAQs as individual documentation instead of the test plan (we are a 4-person team). <br>
 
 ## Thanks for a great 4 years!
