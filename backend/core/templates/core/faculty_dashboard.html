@@ -420,6 +420,7 @@
         // LEFT CHART
         const ctx = document.getElementById('pieChart');
         if (ctx && pieChartData && pieChartData.length > 0) {
+            // Pie chart with percentage in tooltip
             new Chart(ctx.getContext('2d'), {
                 type: 'pie',
                 data: {
@@ -429,15 +430,34 @@
                         backgroundColor: ['#1f77b4', '#ff7f0e', '#2ca02c', '#d62728', '#9467bd', '#8c564b', '#e377c2', '#7f7f7f', '#bcbd22', '#17becf']
                     }]
                 },
-                options: pieOptions
+                options: {
+                    ...pieOptions,
+                    plugins: {
+                        ...pieOptions.plugins,
+                        tooltip: {
+                            callbacks: {
+                                label: function(context) {
+                                    const label = context.label || '';
+                                    const value = context.parsed;
+                                    const data = context.chart.data.datasets[0].data;
+                                    const total = data.reduce((a, b) => a + b, 0);
+                                    const percent = total ? ((value / total) * 100).toFixed(1) : '0.0';
+                                    return `${label}: ${value} (${percent}%)`;
+                                }
+                            }
+                        }
+                    }
+                }
             });
 
             const summary1 = document.getElementById('pieChartSummary');
             if (summary1) {
                 summary1.innerHTML = '';
+                const total = pieChartData.reduce((a, b) => a + b.value, 0);
                 pieChartData.forEach(item => {
+                    const percent = total ? ((item.value / total) * 100).toFixed(1) : '0.0';
                     const li = document.createElement('li');
-                    li.textContent = `${item.label}: ${item.value}`;
+                    li.textContent = `${item.label}: ${item.value} (${percent}%)`;
                     summary1.appendChild(li);
                 });
             }
@@ -446,6 +466,7 @@
         // RIGHT CHART
         const ctx2 = document.getElementById('pieChart2');
         if (ctx2 && pieChartData2 && pieChartData2.length > 0) {
+            // Pie chart 2 with percentage in tooltip
             new Chart(ctx2.getContext('2d'), {
                 type: 'pie',
                 data: {
@@ -455,15 +476,34 @@
                         backgroundColor: ['#1f77b4', '#ff7f0e', '#2ca02c', '#d62728', '#9467bd', '#8c564b', '#e377c2', '#7f7f7f', '#bcbd22', '#17becf'] 
                     }]
                 },
-                options: pieOptions
+                options: {
+                    ...pieOptions,
+                    plugins: {
+                        ...pieOptions.plugins,
+                        tooltip: {
+                            callbacks: {
+                                label: function(context) {
+                                    const label = context.label || '';
+                                    const value = context.parsed;
+                                    const data = context.chart.data.datasets[0].data;
+                                    const total = data.reduce((a, b) => a + b, 0);
+                                    const percent = total ? ((value / total) * 100).toFixed(1) : '0.0';
+                                    return `${label}: ${value} (${percent}%)`;
+                                }
+                            }
+                        }
+                    }
+                }
             });
 
             const summary2 = document.getElementById('pieChart2Summary');
             if (summary2) {
                 summary2.innerHTML = '';
+                const total2 = pieChartData2.reduce((a, b) => a + b.value, 0);
                 pieChartData2.forEach(item => {
+                    const percent = total2 ? ((item.value / total2) * 100).toFixed(1) : '0.0';
                     const li = document.createElement('li');
-                    li.textContent = `${item.label}: ${item.value}`;
+                    li.textContent = `${item.label}: ${item.value} (${percent}%)`;
                     summary2.appendChild(li);
                 });
             }
