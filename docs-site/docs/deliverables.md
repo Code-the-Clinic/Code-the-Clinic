@@ -24,13 +24,13 @@ Note that most files on this page are stored in Google Drive--this is to preserv
 [Sprint presentation](https://bama365-my.sharepoint.com/:p:/g/personal/hrhendersonboyer_crimson_ua_edu/IQAh9CtGd1ZnSoUfGThLnEYqAes3cyK7_4_LGFSSDcVDhD8?e=f2pgdP){target=_blank rel="noopener"} <br>
 [Sprint presentation - Google Drive backup](https://docs.google.com/presentation/d/1Zpn3NVcwho0wQlRGIKAIH2KfA87cVNj8/edit?usp=sharing&ouid=108060503150477856369&rtpof=true&sd=true){target=_blank rel="noopener"}
 ## Sprint 3
-[Project planning document](){target=_blank rel="noopener"} TODO: Add this link <br>
+[Project planning document](https://docs.google.com/document/d/1noJ2kHrcaE3Wu4uYZUsEJEvaz2vvxvFLF4t2EZjGR2c/edit?usp=sharing){target=_blank rel="noopener"} <br>
 [Final project backlog and remaining work](https://docs.google.com/document/d/1HGhEIPE2P2_UNhpQI-JQ39CWUw6ZEx_V/edit?usp=sharing&ouid=108060503150477856369&rtpof=true&sd=true){target=_blank rel="noopener"} <br>
 [Sprint backlog + goals](https://docs.google.com/document/d/1Iavc-5E6dOdamplwX0GMUr3X7_9PFZUr56lFyUZZ86Q/edit?usp=sharing){target=_blank rel="noopener"} <br>
 [Link to full backlog in GitHub Projects](https://github.com/orgs/Code-the-Clinic/projects/1){target=_blank rel="noopener"} (Note: Dr. Anderson should have read access to this) <br>
 [Sprint retrospective](https://docs.google.com/document/d/1RxW2ycW-Qt1jnz8ZrN2eIuMtvIyp_eHnCe1I47m65bM/edit?usp=sharing){target=_blank rel="noopener"} <br>
 [Sprint presentation](https://bama365-my.sharepoint.com/:p:/g/personal/hrhendersonboyer_crimson_ua_edu/IQDvJ2C77cHQTKDhD6x8qVS3AXiRSHex4RRiMOVieARMAv8?e=blfesx){target=_blank rel="noopener"} <br>
-[Sprint presentation - Google Drive backup](){target=_blank rel="noopener"} TODO: Add this after presentation is done <br>
+[Sprint presentation - Google Drive backup](https://docs.google.com/presentation/d/1t2OG-RF6BkxQTsObHvsvOUil_K6CAAol/edit?usp=sharing&ouid=108060503150477856369&rtpof=true&sd=true){target=_blank rel="noopener"} <br>
 [Cyber assessment](cyber-assessment.md) <br>
 [Demo video (YouTube)](https://www.youtube.com/watch?v=fbzXmqy7v5g){target=_blank rel="noopener"} <br>
 <iframe width="640" height="360" src="https://www.youtube.com/embed/fbzXmqy7v5g" title="Project Demo Video" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" referrerpolicy="strict-origin-when-cross-origin" allowfullscreen></iframe>
