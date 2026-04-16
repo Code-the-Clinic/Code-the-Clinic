@@ -1,4 +1,11 @@
+---
+hide:
+  - navigation
+---
+
 # FAQ
+*By Alex Cunningham* <br>
+*Note to Dr. Anderson: We already have unit tests and instructions for how to run them, so we did the FAQs instead of the test plan.*
 
 ### How do I run the app locally?
 

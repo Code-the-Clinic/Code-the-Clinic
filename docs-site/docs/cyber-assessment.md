@@ -6,7 +6,7 @@ hide:
 # Cyber assessment
 
 ## Overall assessment
-We have implemented a variety of security features to prevent common attacks, including DDoS, cross-site request forgery, privilege escalation, and malicious code execution. Our application is deployed in a secure University-owned Azure tenant, and permissions on the resource group where we have deployed the application are limited to those who are currently working on the project. Overall, our application is secure and ready for production use.
+We have implemented a variety of security features to prevent common attacks, including DDoS, cross-site request forgery, privilege escalation, and malicious code execution. Our application is deployed in a secure University-owned Azure tenant, and permissions on the resource group where we have deployed the application are limited to those who are currently working on the project. Overall, our application is secure and ready for production use. However, we recommend that future development teams add a Content Security Policy as an additional layer of defense-in-depth against cross-site scripting attacks (please see "Issues to Review" section below)
 
 ## Security features we implemented
 - Secure myBama authentication using an official UA Microsoft app registration
@@ -19,18 +19,19 @@ We have implemented a variety of security features to prevent common attacks, in
   - [Next steps] Coordinate with IT to send these logs to UA's Splunk system so IT can easily view access records
 - Fixed vulnerabilities identified by cyber team:
   - Enabled rate limiting in django settings (CWE-770)
-  - Sanitized URLs in href tags to prevent execution of malicious javascript (CWE-79)
+  - Replaced variable-based URLs in href attributes with fixed Django route names (including a dedicated login entry view) to prevent user-controlled `javascript:` URLs and similar XSS patterns (CWE-79)
   - Added integrity attribute for external CDN files to ensure they haven't been tampered with (CWE-353)
-    - [Next steps] Possibly add Django "url" tags instead of manually sanitizing   urls for an extra layer of reliability
   - [Local dev] Prevented privilege escalation in local DB resource with 'no-new-privileges: true' (CWE-732)
   - [Local dev] Made the local DB's filesystem read-only (read_only: true) to prevent execution of malicious code (CWE-732)
   - Use CSRF tokens to prevent cross-site request forgery
   - Use Python logging instead of print statements for detailed error messages to prevent stack trace exposure
 
-## Issues to review periodically
+## Next steps and issues to review periodically
+- [BREAKING] Entra to Okta migration: myBama auth will transition from Microsoft Entra to Okta, which will break authentication for this app. A future development team will need to replace the Azure app registration credentials for myBama authentication with equivalent Okta credentials (may need to submit an IT ticket for this). 
+- Create a Content Security Policy to add another layer of defense against JavaScript injection/cross-site scripting attacks.
 - Encourage sponsor (AT department) to use the principle of least privilege with admin permissions--admins can click on any user and set their permissions in a more granular way--not every admin has to be a superuser (able to see all the data in the admin portal, create new users, etc.)
 - Make sure that DEBUG is set to False in the Azure App Service's environment variables--this prevents detailed error messages from being exposed to attackers.
-- Make sure that ALLOW_PASSWORD_ADMIN_LOGIN is set to false
+- Make sure that ALLOW_PASSWORD_ADMIN_LOGIN is set to false unless there is an emergency that requires you to manually login as an admin user (with a username/password instead of SSO)
 - Unless you are actively creating/editing secrets, make sure that the Key Vault is set to only accept traffic from the VNet that contains the App Service and DB (not any other IP addresses). You can check this under the Key Vault's Networking settings.
 - Make sure the database (Azure DB for PostgreSQL resource in the Azure portal) is set to only accept traffic from the private endpoint that connects to the App Service's VNet. You can check this in the DB's Networking settings.
 - Perform periodic audits for any instances of @csrf_exempt--you shouldn't have any instances of this in production code because all API endpoints should be protected by CSRF tokens.
