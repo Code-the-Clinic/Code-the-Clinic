@@ -309,11 +309,29 @@
     </div>
 
     <div style="display: flex; justify-content: flex-end; margin-top: 18px;">
-        <a id="export-excel-link"
-           href="{% url 'export_dashboard_excel' %}"
-           style="display: inline-block; background: var(--crimson); color: #fff; text-decoration: none; padding: 10px 14px; border-radius: 6px; font-weight: 600;">
-            Export Raw Data to Excel
-        </a>
+        <form id="export-excel-form" method="POST" action="{% url 'export_dashboard_excel' %}" style="margin: 0;">
+            {% csrf_token %}
+            <input type="hidden" name="sport" id="export-sport">
+            <input type="hidden" name="semester" id="export-semester">
+            <input type="hidden" name="student" id="export-student">
+            <input type="hidden" name="week" id="export-week">
+            <input type="hidden" name="care_category" id="export-care-category">
+            <input type="hidden" name="semester2" id="export-semester2">
+            <input type="hidden" name="student_filter2" id="export-student-filter2">
+            <input type="hidden" name="week2" id="export-week2">
+            <input type="hidden" name="trend_sport" id="export-trend-sport">
+            <input type="hidden" name="trend_care" id="export-trend-care">
+            <input type="hidden" name="trend_student" id="export-trend-student">
+            <input type="hidden" name="trend_semester" id="export-trend-semester">
+            <input type="hidden" name="metric_semester" id="export-metric-semester">
+            <input type="hidden" name="metric_student" id="export-metric-student">
+
+            <button
+                type="submit"
+                style="display: inline-block; background: var(--crimson); color: #fff; border: none; padding: 10px 14px; border-radius: 6px; font-weight: 600; cursor: pointer;">
+                Export Raw Data to Excel
+            </button>
+        </form>
     </div>
 </div>
 
@@ -327,14 +345,11 @@
         return element ? (element.value || '').trim() : '';
     }
 
-    function updateExportExcelLink() {
-        const exportLink = document.getElementById('export-excel-link');
-        if (!exportLink) {
+    function updateExportExcelForm() {
+        const exportForm = document.getElementById('export-excel-form');
+        if (!exportForm) {
             return;
         }
-
-        const baseUrl = "{% url 'export_dashboard_excel' %}";
-        const params = new URLSearchParams();
 
         const mappings = [
             ['sport', getInputValue('faculty-sport')],
@@ -354,13 +369,11 @@
         ];
 
         mappings.forEach(([key, value]) => {
-            if (value) {
-                params.set(key, value);
+            const hidden = exportForm.querySelector(`[name="${key}"]`);
+            if (hidden) {
+                hidden.value = value || '';
             }
         });
-
-        const query = params.toString();
-        exportLink.href = query ? `${baseUrl}?${query}` : baseUrl;
     }
 
     // Auto-submit form when filter dropdowns change
@@ -375,7 +388,7 @@
                 const inputs = f.querySelectorAll('select, input');
                 inputs.forEach((input) => {
                     input.addEventListener('change', function() {
-                        updateExportExcelLink();
+                        updateExportExcelForm();
                         sessionStorage.setItem('dashboardScrollPosition', window.scrollY);
                         setTimeout(() => {
                             f.submit();
@@ -400,7 +413,14 @@
         
         // Setup toggle and auto-submit
         setupAutoSubmit();
-        updateExportExcelLink();
+        updateExportExcelForm();
+
+        const exportForm = document.getElementById('export-excel-form');
+        if (exportForm) {
+            exportForm.addEventListener('submit', function() {
+                updateExportExcelForm();
+            });
+        }
         
         // Get data from Django context (safe via json_script)
         const pieChartData = JSON.parse(document.getElementById('pie-chart-data').textContent);

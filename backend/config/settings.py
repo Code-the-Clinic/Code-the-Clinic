@@ -347,3 +347,13 @@ SECURE_SSL_REDIRECT = os.environ.get('SECURE_SSL_REDIRECT', 'True' if IS_IN_AZUR
 
 # Referrer Policy: Don't leak user activity to external sites
 SECURE_REFERRER_POLICY = "same-origin"
+
+# User activity log hardening:
+# By default, do not retain URL query strings in admin activity logs to reduce
+# accidental storage of PII passed in URL parameters.
+# Set USER_LOGGING_INCLUDE_QUERY_STRING=True only for short, controlled
+# troubleshooting windows.
+USER_LOGGING_INCLUDE_QUERY_STRING = os.environ.get(
+    'USER_LOGGING_INCLUDE_QUERY_STRING',
+    'False'
+).lower() in ('1', 'true', 'yes')

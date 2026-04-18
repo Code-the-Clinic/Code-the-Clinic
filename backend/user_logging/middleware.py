@@ -86,7 +86,8 @@ class UserActivityLoggingMiddleware:
                 return response
 
             user = request.user if request.user.is_authenticated else None
-            raw_query = request.META.get('QUERY_STRING', '')
+            include_query_string = getattr(settings, 'USER_LOGGING_INCLUDE_QUERY_STRING', False)
+            raw_query = request.META.get('QUERY_STRING', '') if include_query_string else ''
 
             AdminPortalLog.objects.create(
                 user=user,
@@ -101,6 +102,7 @@ class UserActivityLoggingMiddleware:
                     'method': request.method,
                     'status_code': response.status_code,
                     'query': _sanitize_query_string(raw_query),
+                    'query_logging_enabled': include_query_string,
                     'is_authenticated': bool(user),
                 },
             )
