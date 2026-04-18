@@ -494,6 +494,36 @@ class DashboardViewTests(TestCase):
         self.assertEqual(response.status_code, 403) # Permission denied error
 
 
+class ExportDashboardExcelViewTests(TestCase):
+    def setUp(self):
+        self.client = Client()
+        self.url = reverse('export_dashboard_excel')
+        self.staff_user = User.objects.create_user(
+            username='staff-export',
+            email='staff-export@university.edu',
+            password='testpass123',
+            is_staff=True,
+        )
+
+    def test_export_dashboard_excel_staff_post_returns_excel_file(self):
+        """Staff POST requests to export endpoint should return an Excel attachment."""
+        self.client.force_login(self.staff_user)
+        response = self.client.post(self.url, {'sport': 'Football'})
+
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(
+            response['Content-Type'],
+            'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+        )
+        self.assertIn('attachment; filename="dashboard_raw_', response['Content-Disposition'])
+
+    def test_export_dashboard_excel_staff_get_is_method_not_allowed(self):
+        """GET requests should be rejected so filters are not sent in query strings."""
+        self.client.force_login(self.staff_user)
+        response = self.client.get(self.url)
+        self.assertEqual(response.status_code, 405)
+
+
 class LoginUrlSettingsTests(TestCase):
     """Test that LOGIN_URL is configured correctly based on runtime environment."""
     

@@ -502,7 +502,7 @@ def _build_dashboard_payload(clinic_reports):
     }
 
 
-@require_http_methods(["GET"])
+@require_http_methods(["POST"])
 @login_required
 def export_dashboard_excel(request):
     """Export filtered raw dashboard ClinicReport data as an Excel file."""
@@ -510,26 +510,28 @@ def export_dashboard_excel(request):
         return JsonResponse({'success': False, 'error': 'Permission denied'}, status=403)
 
     try:
+        params = request.POST
+
         selected_sport = _first_non_empty([
-            request.GET.get('sport'),
-            request.GET.get('trend_sport') if request.GET.get('trend_sport') != 'all' else None,
+            params.get('sport'),
+            params.get('trend_sport') if params.get('trend_sport') != 'all' else None,
         ])
         selected_semester = _first_non_empty([
-            request.GET.get('semester'),
-            request.GET.get('semester2'),
-            request.GET.get('metric_semester'),
-            request.GET.get('trend_semester'),
+            params.get('semester'),
+            params.get('semester2'),
+            params.get('metric_semester'),
+            params.get('trend_semester'),
         ])
         selected_week = _first_non_empty([
-            request.GET.get('week'),
-            request.GET.get('week2'),
+            params.get('week'),
+            params.get('week2'),
         ])
-        selected_year = request.GET.get('year')
+        selected_year = params.get('year')
         selected_student = _first_non_empty([
-            request.GET.get('student'),
-            request.GET.get('student_filter2'),
-            request.GET.get('metric_student'),
-            request.GET.get('trend_student'),
+            params.get('student'),
+            params.get('student_filter2'),
+            params.get('metric_student'),
+            params.get('trend_student'),
         ])
 
         filters = {

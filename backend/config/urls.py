@@ -20,23 +20,7 @@ from django.urls import path, include
 from django.http import JsonResponse
 from django.shortcuts import redirect
 from django.utils.http import urlencode, url_has_allowed_host_and_scheme
-from django.db import connection
-import logging
 import os
-
-logger = logging.getLogger(__name__)
-
-def _db_health_check(request):
-    """Perform a simple database connectivity check for health endpoints."""
-    try:
-        connection.ensure_connection()
-        with connection.cursor() as cursor:
-            cursor.execute("SELECT 1")
-            cursor.fetchone()
-        return JsonResponse({"status": "ok", "db": "ok"})
-    except Exception as exc:
-        logger.error(f"Database health check failed: {exc}")
-        return JsonResponse({"status": "error", "db": "Database connection failed"}, status=500)
 
 # Configurable admin URL - set ADMIN_URL in env to keep it secret from public repo
 # Defaults to 'admin/' for local development
@@ -79,7 +63,6 @@ def login_entry(request):
 
 urlpatterns = [
     path('health/', lambda request: JsonResponse({"status": "ok"}), name='health'),
-    path('health/db/', _db_health_check, name='health_db'),
     path('', include('core.urls')),
     path('login/', login_entry, name='login_entry'),
     path(f'{ADMIN_URL}login/', _admin_login, name='admin_login'),
