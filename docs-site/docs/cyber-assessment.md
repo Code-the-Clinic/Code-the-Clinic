@@ -16,6 +16,7 @@ We have implemented a variety of security features to prevent common attacks, in
 - Use secure cookies by default
 - Enforce HTTPS-only traffic (if anyone tries to access our website via standard HTTP, they will be automatically redirected to HTTPS)
 - Use an activity logging system (logs are visible in the Django admin portal) to record IP addresses and usernames of everyone who has logged in/out of the system
+  - Query-string logging is disabled by default to reduce the risk of storing sensitive URL parameters in admin logs. For temporary troubleshooting only, this can be re-enabled by setting `USER_LOGGING_INCLUDE_QUERY_STRING=True` in environment variables, then set back to False after debugging.
   - [Next steps] Coordinate with IT to send these logs to UA's Splunk system so IT can easily view access records
 - Fixed vulnerabilities identified by cyber team:
   - Enabled rate limiting in django settings (CWE-770)
@@ -29,6 +30,7 @@ We have implemented a variety of security features to prevent common attacks, in
 ## Next steps and issues to review periodically
 - [BREAKING] Entra to Okta migration: myBama auth will transition from Microsoft Entra to Okta, which will break authentication for this app. A future development team will need to replace the Azure app registration credentials for myBama authentication with equivalent Okta credentials (may need to submit an IT ticket for this). 
 - Create a Content Security Policy to add another layer of defense against JavaScript injection/cross-site scripting attacks.
+- Force faculty dashboard endpoint to be POST-only as an additional layer of security for sensitive query parameters (note that requests to the endpoint are already sent as POST, so there isn't an active vulnerability here, but additional hardening is always good to have!)
 - Encourage sponsor (AT department) to use the principle of least privilege with admin permissions--admins can click on any user and set their permissions in a more granular way--not every admin has to be a superuser (able to see all the data in the admin portal, create new users, etc.)
 - Make sure that DEBUG is set to False in the Azure App Service's environment variables--this prevents detailed error messages from being exposed to attackers.
 - Make sure that ALLOW_PASSWORD_ADMIN_LOGIN is set to false unless there is an emergency that requires you to manually login as an admin user (with a username/password instead of SSO)
