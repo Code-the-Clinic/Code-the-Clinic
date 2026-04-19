@@ -332,6 +332,12 @@ SESSION_COOKIE_SECURE = SECURE_COOKIES
 CSRF_COOKIE_SAMESITE = os.environ.get('CSRF_COOKIE_SAMESITE', 'Lax')
 SESSION_COOKIE_SAMESITE = os.environ.get('SESSION_COOKIE_SAMESITE', 'Lax')
 
+# Limit authenticated sessions to 8 hours in Azure by default.
+SESSION_COOKIE_AGE = int(os.environ.get(
+    'SESSION_COOKIE_AGE',
+    '28800' if IS_IN_AZURE else '1209600'
+))
+
 # Extra security headers (recommended for FERPA-sensitive apps)
 SECURE_BROWSER_XSS_FILTER = True
 SECURE_CONTENT_TYPE_NOSNIFF = True
