@@ -14,6 +14,7 @@ nav:
   - 'Project Deliverables': deliverables.md
   - 'Deployment Documentation': deployment-docs.md
   - 'Cybersecurity Assessment': cyber-assessment.md
+  - 'Dev environment setup guide': README_copy.md
   - 'FAQs': FAQ.md
 
 markdown_extensions:
