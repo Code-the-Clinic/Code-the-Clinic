@@ -4,7 +4,7 @@ hide:
 ---
 
 # How to deploy the application
-*Created by Holland Henderson-Boyer*
+*By Holland Henderson-Boyer*
 
 Hi! Here's how to run our application locally, run tests, and deploy it in the cloud. In case you need to change Azure region or tenant later, you can use the Azure CLI and the bicep template files we've included to redeploy without spending hours clicking through Azure's terrible GUI :)
 
