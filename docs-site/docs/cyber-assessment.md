@@ -38,3 +38,6 @@ We have implemented a variety of security features to prevent common attacks, in
 - Make sure the database (Azure DB for PostgreSQL resource in the Azure portal) is set to only accept traffic from the private endpoint that connects to the App Service's VNet. You can check this in the DB's Networking settings.
 - Perform periodic audits for any instances of @csrf_exempt--you shouldn't have any instances of this in production code because all API endpoints should be protected by CSRF tokens.
 
+## Other notes
+- In our current Azure deployment, one of the original developers of the proejct is still listed as an Entra admin on the database. This should be fine security-wise--her Azure credentials will be revoked after graduation and no one else will be able to use her identity to get into the DB. Attempting to remove her from the admin list will result in errors because she initially granted the permissions to the App Service's managed identity that will let it manage the DB itself, so even though her Azure identity is not required for the app to work, there are still permission-related dependencies associated with her identity.
+
