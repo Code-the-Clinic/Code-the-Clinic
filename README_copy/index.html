@@ -1,0 +1,1414 @@
+
+<!doctype html>
+<html lang="en" class="no-js">
+  <head>
+    
+      <meta charset="utf-8">
+      <meta name="viewport" content="width=device-width,initial-scale=1">
+      
+      
+      
+      
+        <link rel="prev" href="../cyber-assessment/">
+      
+      
+        <link rel="next" href="../FAQ/">
+      
+      
+        
+      
+      
+      <link rel="icon" href="../assets/images/favicon.png">
+      <meta name="generator" content="mkdocs-1.6.1, mkdocs-material-9.7.6">
+    
+    
+      
+        <title>Dev environment setup guide - Code the Clinic</title>
+      
+    
+    
+      <link rel="stylesheet" href="../assets/stylesheets/main.484c7ddc.min.css">
+      
+        
+        <link rel="stylesheet" href="../assets/stylesheets/palette.ab4e12ef.min.css">
+      
+      
+
+
+    
+    
+      
+    
+    
+      
+        
+        
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+        <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Roboto:300,300i,400,400i,700,700i%7CRoboto+Mono:400,400i,700,700i&display=fallback">
+        <style>:root{--md-text-font:"Roboto";--md-code-font:"Roboto Mono"}</style>
+      
+    
+    
+      <link rel="stylesheet" href="../stylesheets/photos.css">
+    
+    <script>__md_scope=new URL("..",location),__md_hash=e=>[...e].reduce(((e,_)=>(e<<5)-e+_.charCodeAt(0)),0),__md_get=(e,_=localStorage,t=__md_scope)=>JSON.parse(_.getItem(t.pathname+"."+e)),__md_set=(e,_,t=localStorage,a=__md_scope)=>{try{t.setItem(a.pathname+"."+e,JSON.stringify(_))}catch(e){}}</script>
+    
+      
+
+    
+    
+  </head>
+  
+  
+    
+    
+    
+    
+    
+    <body dir="ltr" data-md-color-scheme="default" data-md-color-primary="indigo" data-md-color-accent="blue">
+  
+    
+    <input class="md-toggle" data-md-toggle="drawer" type="checkbox" id="__drawer" autocomplete="off">
+    <input class="md-toggle" data-md-toggle="search" type="checkbox" id="__search" autocomplete="off">
+    <label class="md-overlay" for="__drawer"></label>
+    <div data-md-component="skip">
+      
+        
+        <a href="#backend-project-setup-guide" class="md-skip">
+          Skip to content
+        </a>
+      
+    </div>
+    <div data-md-component="announce">
+      
+    </div>
+    
+    
+      
+
+<header class="md-header" data-md-component="header">
+  <nav class="md-header__inner md-grid" aria-label="Header">
+    <a href=".." title="Code the Clinic" class="md-header__button md-logo" aria-label="Code the Clinic" data-md-component="logo">
+      
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a3 3 0 0 0 3-3 3 3 0 0 0-3-3 3 3 0 0 0-3 3 3 3 0 0 0 3 3m0 3.54C9.64 9.35 6.5 8 3 8v11c3.5 0 6.64 1.35 9 3.54 2.36-2.19 5.5-3.54 9-3.54V8c-3.5 0-6.64 1.35-9 3.54"/></svg>
+
+    </a>
+    <label class="md-header__button md-icon" for="__drawer">
+      
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M3 6h18v2H3zm0 5h18v2H3zm0 5h18v2H3z"/></svg>
+    </label>
+    <div class="md-header__title" data-md-component="header-title">
+      <div class="md-header__ellipsis">
+        <div class="md-header__topic">
+          <span class="md-ellipsis">
+            Code the Clinic
+          </span>
+        </div>
+        <div class="md-header__topic" data-md-component="header-topic">
+          <span class="md-ellipsis">
+            
+              Dev environment setup guide
+            
+          </span>
+        </div>
+      </div>
+    </div>
+    
+      
+    
+    
+    
+    
+      
+      
+        <label class="md-header__button md-icon" for="__search">
+          
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.52 6.52 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5"/></svg>
+        </label>
+        <div class="md-search" data-md-component="search" role="dialog">
+  <label class="md-search__overlay" for="__search"></label>
+  <div class="md-search__inner" role="search">
+    <form class="md-search__form" name="search">
+      <input type="text" class="md-search__input" name="query" aria-label="Search" placeholder="Search" autocapitalize="off" autocorrect="off" autocomplete="off" spellcheck="false" data-md-component="search-query" required>
+      <label class="md-search__icon md-icon" for="__search">
+        
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.52 6.52 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5"/></svg>
+        
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M20 11v2H8l5.5 5.5-1.42 1.42L4.16 12l7.92-7.92L13.5 5.5 8 11z"/></svg>
+      </label>
+      <nav class="md-search__options" aria-label="Search">
+        
+        <button type="reset" class="md-search__icon md-icon" title="Clear" aria-label="Clear" tabindex="-1">
+          
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M19 6.41 17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"/></svg>
+        </button>
+      </nav>
+      
+    </form>
+    <div class="md-search__output">
+      <div class="md-search__scrollwrap" tabindex="0" data-md-scrollfix>
+        <div class="md-search-result" data-md-component="search-result">
+          <div class="md-search-result__meta">
+            Initializing search
+          </div>
+          <ol class="md-search-result__list" role="presentation"></ol>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+      
+    
+    
+  </nav>
+  
+</header>
+    
+    <div class="md-container" data-md-component="container">
+      
+      
+        
+          
+            
+<nav class="md-tabs" aria-label="Tabs" data-md-component="tabs">
+  <div class="md-grid">
+    <ul class="md-tabs__list">
+      
+        
+  
+  
+  
+  
+    <li class="md-tabs__item">
+      <a href=".." class="md-tabs__link">
+        
+  
+  
+    
+  
+  Home
+
+      </a>
+    </li>
+  
+
+      
+        
+  
+  
+  
+  
+    <li class="md-tabs__item">
+      <a href="../team/" class="md-tabs__link">
+        
+  
+  
+    
+  
+  Meet the Team
+
+      </a>
+    </li>
+  
+
+      
+        
+  
+  
+  
+  
+    <li class="md-tabs__item">
+      <a href="../deliverables/" class="md-tabs__link">
+        
+  
+  
+    
+  
+  Project Deliverables
+
+      </a>
+    </li>
+  
+
+      
+        
+  
+  
+  
+  
+    <li class="md-tabs__item">
+      <a href="../deployment-docs/" class="md-tabs__link">
+        
+  
+  
+    
+  
+  Deployment Documentation
+
+      </a>
+    </li>
+  
+
+      
+        
+  
+  
+  
+  
+    <li class="md-tabs__item">
+      <a href="../cyber-assessment/" class="md-tabs__link">
+        
+  
+  
+    
+  
+  Cybersecurity Assessment
+
+      </a>
+    </li>
+  
+
+      
+        
+  
+  
+  
+    
+  
+  
+    <li class="md-tabs__item md-tabs__item--active">
+      <a href="./" class="md-tabs__link">
+        
+  
+  
+    
+  
+  Dev environment setup guide
+
+      </a>
+    </li>
+  
+
+      
+        
+  
+  
+  
+  
+    <li class="md-tabs__item">
+      <a href="../FAQ/" class="md-tabs__link">
+        
+  
+  
+    
+  
+  FAQs
+
+      </a>
+    </li>
+  
+
+      
+    </ul>
+  </div>
+</nav>
+          
+        
+      
+      <main class="md-main" data-md-component="main">
+        <div class="md-main__inner md-grid">
+          
+            
+              
+                
+              
+              <div class="md-sidebar md-sidebar--primary" data-md-component="sidebar" data-md-type="navigation" hidden>
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+
+
+  
+
+
+<nav class="md-nav md-nav--primary md-nav--lifted" aria-label="Navigation" data-md-level="0">
+  <label class="md-nav__title" for="__drawer">
+    <a href=".." title="Code the Clinic" class="md-nav__button md-logo" aria-label="Code the Clinic" data-md-component="logo">
+      
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a3 3 0 0 0 3-3 3 3 0 0 0-3-3 3 3 0 0 0-3 3 3 3 0 0 0 3 3m0 3.54C9.64 9.35 6.5 8 3 8v11c3.5 0 6.64 1.35 9 3.54 2.36-2.19 5.5-3.54 9-3.54V8c-3.5 0-6.64 1.35-9 3.54"/></svg>
+
+    </a>
+    Code the Clinic
+  </label>
+  
+  <ul class="md-nav__list" data-md-scrollfix>
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href=".." class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Home
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../team/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Meet the Team
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../deliverables/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Project Deliverables
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../deployment-docs/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Deployment Documentation
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../cyber-assessment/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Cybersecurity Assessment
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+    
+  
+  
+  
+    <li class="md-nav__item md-nav__item--active">
+      
+      <input class="md-nav__toggle md-toggle" type="checkbox" id="__toc">
+      
+      
+        
+      
+      
+        <label class="md-nav__link md-nav__link--active" for="__toc">
+          
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Dev environment setup guide
+  
+
+    
+  </span>
+  
+  
+
+          <span class="md-nav__icon md-icon"></span>
+        </label>
+      
+      <a href="./" class="md-nav__link md-nav__link--active">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Dev environment setup guide
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+      
+        
+
+<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
+  
+  
+  
+    
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#0-prerequisites" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        0. Prerequisites
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#1-initial-setup-getting-started" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        1. Initial Setup &amp; Getting Started
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="1. Initial Setup &amp; Getting Started">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#step-1-clone-the-repository" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Step 1: Clone the Repository
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#step-2-environment-variables" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Step 2: Environment Variables
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#step-3-build-and-start-containers" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Step 3: Build and Start Containers
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#step-4-run-database-migrations" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Step 4: Run Database Migrations
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#step-5-create-admin-account" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Step 5: Create Admin Account
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#2-accessing-the-application" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        2. Accessing the Application
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#3-project-structure" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        3. Project Structure
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#4-modifying-and-extending" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        4. Modifying and Extending
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="4. Modifying and Extending">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#managing-dependencies" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Managing Dependencies
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#modifying-the-database" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Modifying the Database
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#adding-a-new-django-app" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Adding a New Django App
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#5-running-testing" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        5. Running &amp; Testing
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#6-ide-setup-vs-code" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        6. IDE Setup (VS Code)
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#7-security-notes" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        7. Security Notes
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#8-troubleshooting" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        8. Troubleshooting
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#9-azure-mybama-authentication-setup-optional" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        9. Azure / myBama Authentication Setup (Optional)
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="9. Azure / myBama Authentication Setup (Optional)">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#1-create-azure-app" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        1. Create Azure App
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#2-get-credentials" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        2. Get Credentials
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#3-enable-admin-access" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        3. Enable Admin Access
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#10-debug-tips" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        10. Debug Tips
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#11-development-notes" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        11. Development Notes
+      
+    </span>
+  </a>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../FAQ/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    FAQs
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+  </ul>
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+            
+              
+                
+              
+              <div class="md-sidebar md-sidebar--secondary" data-md-component="sidebar" data-md-type="toc" >
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+
+<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
+  
+  
+  
+    
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#0-prerequisites" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        0. Prerequisites
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#1-initial-setup-getting-started" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        1. Initial Setup &amp; Getting Started
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="1. Initial Setup &amp; Getting Started">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#step-1-clone-the-repository" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Step 1: Clone the Repository
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#step-2-environment-variables" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Step 2: Environment Variables
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#step-3-build-and-start-containers" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Step 3: Build and Start Containers
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#step-4-run-database-migrations" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Step 4: Run Database Migrations
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#step-5-create-admin-account" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Step 5: Create Admin Account
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#2-accessing-the-application" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        2. Accessing the Application
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#3-project-structure" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        3. Project Structure
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#4-modifying-and-extending" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        4. Modifying and Extending
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="4. Modifying and Extending">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#managing-dependencies" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Managing Dependencies
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#modifying-the-database" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Modifying the Database
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#adding-a-new-django-app" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Adding a New Django App
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#5-running-testing" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        5. Running &amp; Testing
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#6-ide-setup-vs-code" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        6. IDE Setup (VS Code)
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#7-security-notes" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        7. Security Notes
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#8-troubleshooting" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        8. Troubleshooting
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#9-azure-mybama-authentication-setup-optional" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        9. Azure / myBama Authentication Setup (Optional)
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="9. Azure / myBama Authentication Setup (Optional)">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#1-create-azure-app" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        1. Create Azure App
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#2-get-credentials" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        2. Get Credentials
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#3-enable-admin-access" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        3. Enable Admin Access
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#10-debug-tips" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        10. Debug Tips
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#11-development-notes" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        11. Development Notes
+      
+    </span>
+  </a>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+          
+          
+            <div class="md-content" data-md-component="content">
+              
+              <article class="md-content__inner md-typeset">
+                
+                  
+  
+
+
+
+
+<h1 id="backend-project-setup-guide">Backend Project Setup Guide</h1>
+<p><em>by Pierce Daugherty. Also located in the README at the root of this repo.</em> </p>
+<h2 id="0-prerequisites">0. Prerequisites</h2>
+<p>Before you begin, ensure you have the following installed:
+- <strong>Git</strong>: <a href="https://git-scm.com/downloads">Download Git</a>
+- <strong>Docker Desktop</strong>: <a href="https://www.docker.com/products/docker-desktop/">Download Docker</a> (<strong>Must be running</strong> before starting)
+- <strong>Python 3.10+</strong>: (Optional) Only needed for local IDE indexing and autocomplete.</p>
+<hr />
+<h2 id="1-initial-setup-getting-started">1. Initial Setup &amp; Getting Started</h2>
+<p>Follow these steps to set up the project locally using Docker.</p>
+<h3 id="step-1-clone-the-repository">Step 1: Clone the Repository</h3>
+<p>Open your terminal and run the following to pull the code and enter the directory:</p>
+<pre><code class="language-bash">git clone &lt;your-repository-url-here&gt;
+cd &lt;your-repository-name&gt;
+</code></pre>
+<h3 id="step-2-environment-variables">Step 2: Environment Variables</h3>
+<p>Create a <code>.env</code> file in the root directory by copying the example template:</p>
+<pre><code class="language-bash">cp .env.example .env
+</code></pre>
+<p>Then configure your local variables (secret keys, database settings, etc.).</p>
+<p>To generate a fresh Django Secret Key, run:</p>
+<pre><code class="language-bash">python -c 'from django.core.management.utils import get_random_secret_key; print(get_random_secret_key())'
+</code></pre>
+<p><strong>Important:</strong>
+- Never commit <code>.env</code> to Git
+- Do NOT store secrets in <code>.env.example</code>
+- Store all credentials (Azure, etc.) in <code>.env</code></p>
+<hr />
+<h3 id="step-3-build-and-start-containers">Step 3: Build and Start Containers</h3>
+<pre><code class="language-bash">docker-compose up -d --build
+</code></pre>
+<hr />
+<h3 id="step-4-run-database-migrations">Step 4: Run Database Migrations</h3>
+<p>Check for migrations:</p>
+<pre><code class="language-bash">docker-compose exec backend python manage.py showmigrations
+</code></pre>
+<p>Apply migrations:</p>
+<pre><code class="language-bash">docker-compose exec backend python manage.py migrate
+</code></pre>
+<hr />
+<h3 id="step-5-create-admin-account">Step 5: Create Admin Account</h3>
+<pre><code class="language-bash">docker-compose exec backend python manage.py createsuperuser
+</code></pre>
+<hr />
+<h2 id="2-accessing-the-application">2. Accessing the Application</h2>
+<ul>
+<li><strong>Django Backend:</strong> http://localhost:8000  </li>
+<li><strong>MkDocs Documentation:</strong> http://localhost:8001  </li>
+</ul>
+<blockquote>
+<p>If these don’t load, check <code>docker-compose.yml</code> port mappings.</p>
+</blockquote>
+<hr />
+<h2 id="3-project-structure">3. Project Structure</h2>
+<pre><code>backend/            # Core Django application
+config/             # Project settings and routing
+core/               # Base templates and shared logic
+clinic_reports/     # Domain-specific reports app
+user_logging/       # Logging functionality
+docs-site/          # MkDocs documentation
+docker-compose.yml  # Container orchestration
+</code></pre>
+<p><strong>Notes:</strong>
+- Active apps: <code>core</code>, <code>clinic_reports</code>, <code>user_logging</code>
+- <code>api</code> app was removed (unused)
+- <code>scripts/export_dashboard_raw_to_excel.py</code> is a standalone script
+- <code>backend/src</code> and <code>frontend</code> are placeholders</p>
+<hr />
+<h2 id="4-modifying-and-extending">4. Modifying and Extending</h2>
+<h3 id="managing-dependencies">Managing Dependencies</h3>
+<p>Add to <code>requirements.txt</code>, then rebuild:</p>
+<pre><code class="language-bash">docker-compose up -d --build
+</code></pre>
+<hr />
+<h3 id="modifying-the-database">Modifying the Database</h3>
+<p>Generate migrations:</p>
+<pre><code class="language-bash">docker-compose exec backend python manage.py makemigrations
+</code></pre>
+<p>Apply migrations:</p>
+<pre><code class="language-bash">docker-compose exec backend python manage.py migrate
+</code></pre>
+<hr />
+<h3 id="adding-a-new-django-app">Adding a New Django App</h3>
+<pre><code class="language-bash">docker-compose exec backend python manage.py startapp [app_name]
+</code></pre>
+<p>Then:
+- Move it into <code>/backend</code>
+- Add to <code>INSTALLED_APPS</code> in <code>settings.py</code></p>
+<hr />
+<h2 id="5-running-testing">5. Running &amp; Testing</h2>
+<p>Run everything:</p>
+<pre><code class="language-bash">docker-compose up
+</code></pre>
+<p>Run all tests:</p>
+<pre><code class="language-bash">docker-compose exec backend python manage.py test
+</code></pre>
+<p>Run tests for one app:</p>
+<pre><code class="language-bash">docker-compose exec backend python manage.py test clinic_reports
+</code></pre>
+<hr />
+<h2 id="6-ide-setup-vs-code">6. IDE Setup (VS Code)</h2>
+<ul>
+<li>Install extensions: Python, Docker, Django  </li>
+<li>Create local venv (for autocomplete only):</li>
+</ul>
+<pre><code class="language-bash">python -m venv venv
+pip install -r requirements.txt
+</code></pre>
+<ul>
+<li>Select interpreter:</li>
+<li><code>Ctrl + Shift + P</code></li>
+<li>"Python: Select Interpreter"</li>
+<li>Choose <code>venv</code></li>
+</ul>
+<hr />
+<h2 id="7-security-notes">7. Security Notes</h2>
+<ul>
+<li>Never commit secrets to Git</li>
+<li>Always use <code>.env</code> for credentials</li>
+<li>Set <code>DEBUG=False</code> in production</li>
+<li>Avoid <code>@csrf_exempt</code> — use CSRF tokens instead</li>
+</ul>
+<hr />
+<h2 id="8-troubleshooting">8. Troubleshooting</h2>
+<p>Stop containers:</p>
+<pre><code class="language-bash">docker-compose down
+</code></pre>
+<p>Hard reset (WARNING: deletes local DB data):</p>
+<pre><code class="language-bash">docker-compose down -v
+docker system prune -f
+docker-compose up --build
+</code></pre>
+<p>View logs:</p>
+<pre><code class="language-bash">docker-compose logs -f backend
+</code></pre>
+<p>Common issues:
+- <strong>Missing tables (e.g., django_session)</strong> → run migrations
+- <strong>Docker issues after crash</strong> → rebuild without cache</p>
+<hr />
+<h2 id="9-azure-mybama-authentication-setup-optional">9. Azure / myBama Authentication Setup (Optional)</h2>
+<h3 id="1-create-azure-app">1. Create Azure App</h3>
+<ul>
+<li>Go to Azure Portal → App Registrations → New Registration</li>
+<li>Account type: Multitenant</li>
+<li>Redirect URI:
+  <code>http://localhost:8000/accounts/microsoft/login/callback/</code></li>
+</ul>
+<hr />
+<h3 id="2-get-credentials">2. Get Credentials</h3>
+<ul>
+<li>Copy <strong>Client ID</strong> → <code>.env</code> as <code>AZURE_CLIENT_ID</code></li>
+<li>Create client secret → <code>.env</code> as <code>AZURE_SECRET</code></li>
+<li>Add tenant ID to <code>.env</code></li>
+</ul>
+<hr />
+<h3 id="3-enable-admin-access">3. Enable Admin Access</h3>
+<ol>
+<li>Log in via Microsoft</li>
+<li>Log out</li>
+<li>Create superuser:
+   <code>bash
+   docker-compose exec backend python manage.py createsuperuser</code></li>
+<li>Log into admin panel</li>
+<li>Grant your Microsoft user superuser permissions</li>
+<li>Delete temporary superuser</li>
+</ol>
+<hr />
+<h2 id="10-debug-tips">10. Debug Tips</h2>
+<ul>
+<li>Import errors after Docker restart → rebuild containers</li>
+<li>DB relation errors → rerun migrations</li>
+<li>Containers acting weird → full reset (see Troubleshooting)</li>
+</ul>
+<hr />
+<h2 id="11-development-notes">11. Development Notes</h2>
+<ul>
+<li>Docker is the source of truth (not local Python env)</li>
+<li>Local <code>venv</code> is only for IDE support</li>
+<li>Always rebuild after dependency changes</li>
+</ul>
+
+
+
+
+
+
+
+  
+  
+
+
+
+
+  
+
+
+
+                
+              </article>
+            </div>
+          
+          
+<script>var target=document.getElementById(location.hash.slice(1));target&&target.name&&(target.checked=target.name.startsWith("__tabbed_"))</script>
+        </div>
+        
+      </main>
+      
+        <footer class="md-footer">
+  
+  <div class="md-footer-meta md-typeset">
+    <div class="md-footer-meta__inner md-grid">
+      <div class="md-copyright">
+  
+  
+    Made with
+    <a href="https://squidfunk.github.io/mkdocs-material/" target="_blank" rel="noopener">
+      Material for MkDocs
+    </a>
+  
+</div>
+      
+    </div>
+  </div>
+</footer>
+      
+    </div>
+    <div class="md-dialog" data-md-component="dialog">
+      <div class="md-dialog__inner md-typeset"></div>
+    </div>
+    
+    
+    
+      
+      
+      <script id="__config" type="application/json">{"annotate": null, "base": "..", "features": ["navigation.tabs", "navigation.sections"], "search": "../assets/javascripts/workers/search.2c215733.min.js", "tags": null, "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}, "version": null}</script>
+    
+    
+      <script src="../assets/javascripts/bundle.79ae519e.min.js"></script>
+      
+    
+  </body>
+</html>
